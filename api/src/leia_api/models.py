@@ -23,7 +23,7 @@ from sqlalchemy import (
 )
 from sqlalchemy import Column as SAColumn
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 EMBEDDING_DIM = 768
 
@@ -73,11 +73,15 @@ class Livro(Base):
     titulo: Mapped[str] = mapped_column(String(300))
     isbn: Mapped[str | None] = mapped_column(String(20), unique=True)
     sinopse: Mapped[str | None] = mapped_column(Text)
+    sinopse_fonte: Mapped[str | None] = mapped_column(Text)  # atribuição (licença da fonte)
     ano: Mapped[int | None]
     editora: Mapped[str | None] = mapped_column(String(160))
     paginas: Mapped[int | None]
     idioma: Mapped[str] = mapped_column(String(10), server_default="pt")
     capa_url: Mapped[str | None] = mapped_column(Text)
+
+    autores: Mapped[list[Autor]] = relationship(secondary=livro_autor)
+    categorias: Mapped[list[Categoria]] = relationship(secondary=livro_categoria)
 
 
 class Exemplar(Base):

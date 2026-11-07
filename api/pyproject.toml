@@ -31,6 +31,9 @@ dev = [
     "ruff>=0.17.4",
     "testcontainers>=4.15.0",
 ]
+ml = [
+    "sentence-transformers>=6.2.0",
+]
 
 [tool.ruff]
 extend-exclude = ["migrations/versions"]
