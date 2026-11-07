@@ -1,0 +1,50 @@
+{"id": "t01", "tipo": "titulo", "consulta": "Dom Casmurro", "esperados": ["Dom Casmurro"]}
+{"id": "t02", "tipo": "titulo", "consulta": "Torto Arado", "esperados": ["Torto Arado"]}
+{"id": "t03", "tipo": "titulo", "consulta": "Vidas Secas", "esperados": ["Vidas secas"]}
+{"id": "t04", "tipo": "titulo", "consulta": "Macunaíma", "esperados": ["Macunaíma"]}
+{"id": "t05", "tipo": "titulo", "consulta": "Auto da Compadecida", "esperados": ["Auto da Compadecida"]}
+{"id": "t06", "tipo": "titulo", "consulta": "O Alquimista", "esperados": ["O Alquimista"]}
+{"id": "t07", "tipo": "titulo", "consulta": "Ensaio sobre a cegueira", "esperados": ["Ensaio Sobre a Cegueira"]}
+{"id": "t08", "tipo": "titulo", "consulta": "Capitães da Areia", "esperados": ["Capitães da Areia"]}
+{"id": "t09", "tipo": "titulo", "consulta": "O Guarani", "esperados": ["O guarani"]}
+{"id": "t10", "tipo": "titulo", "consulta": "Os Sertões", "esperados": ["Os sertões"]}
+{"id": "t11", "tipo": "titulo", "consulta": "Memórias póstumas de Brás Cubas", "esperados": ["Memórias póstumas de Brás Cubas"]}
+{"id": "t12", "tipo": "titulo", "consulta": "Livro do Desassossego", "esperados": ["Livro do Desassossego"]}
+{"id": "a01", "tipo": "autor", "consulta": "livros de Clarice Lispector", "autor_esperado": "Clarice Lispector"}
+{"id": "a02", "tipo": "autor", "consulta": "Saramago", "autor_esperado": "José Saramago"}
+{"id": "a03", "tipo": "autor", "consulta": "Jorge Amado", "autor_esperado": "Jorge Amado"}
+{"id": "a04", "tipo": "autor", "consulta": "Ailton Krenak", "autor_esperado": "Ailton Krenak"}
+{"id": "a05", "tipo": "autor", "consulta": "Paulo Coelho", "autor_esperado": "Paulo Coelho"}
+{"id": "a06", "tipo": "autor", "consulta": "Monteiro Lobato", "autor_esperado": "Monteiro Lobato"}
+{"id": "a07", "tipo": "autor", "consulta": "Machado de Assis", "autor_esperado": "Machado de Assis"}
+{"id": "a08", "tipo": "autor", "consulta": "o que tem do Chico Buarque", "autor_esperado": "Chico Buarque"}
+{"id": "i01", "tipo": "intencao", "consulta": "um romance sobre ciúme e traição", "esperados": ["Dom Casmurro"]}
+{"id": "i02", "tipo": "intencao", "consulta": "retirantes fugindo da seca no sertão", "esperados": ["Vidas secas"]}
+{"id": "i03", "tipo": "intencao", "consulta": "peça de teatro cômica ambientada no Nordeste", "esperados": ["Auto da Compadecida"]}
+{"id": "i04", "tipo": "intencao", "consulta": "pensamento indígena sobre o fim do mundo", "esperados": ["Ideias para Adiar o Fim do Mundo", "Futuro ancestral", "A Vida Nao e Util"]}
+{"id": "i05", "tipo": "intencao", "consulta": "romance sobre a escravidão no Brasil", "esperados": ["A escrava Isaura", "Os escravos", "O navio negreiro"]}
+{"id": "i06", "tipo": "intencao", "consulta": "uma epidemia de cegueira branca", "esperados": ["Ensaio Sobre a Cegueira"]}
+{"id": "i07", "tipo": "intencao", "consulta": "a morte decide parar de matar as pessoas", "esperados": ["As Intermitências da Morte"]}
+{"id": "i08", "tipo": "intencao", "consulta": "pai que cria um filho com síndrome de Down", "esperados": ["O filho eterno"]}
+{"id": "i09", "tipo": "intencao", "consulta": "memórias de um escritor preso pela ditadura de Vargas", "esperados": ["Memórias do cárcere"]}
+{"id": "i10", "tipo": "intencao", "consulta": "o herói sem nenhum caráter que nasce na floresta", "esperados": ["Macunaíma"]}
+{"id": "i11", "tipo": "intencao", "consulta": "um pastor que busca um tesouro perto das pirâmides", "esperados": ["O Alquimista"]}
+{"id": "i12", "tipo": "intencao", "consulta": "a guerra de Canudos no sertão da Bahia", "esperados": ["Os sertões"]}
+{"id": "i13", "tipo": "intencao", "consulta": "duas irmãs numa fazenda na Bahia, descendentes de escravos", "esperados": ["Torto Arado"]}
+{"id": "i14", "tipo": "intencao", "consulta": "meninos abandonados que vivem em bando em Salvador", "esperados": ["Capitães da Areia"]}
+{"id": "i15", "tipo": "intencao", "consulta": "uma fada invisível que cuida da floresta", "esperados": ["A Fada Oriana"]}
+{"id": "i16", "tipo": "intencao", "consulta": "menina negra e um coelho branco que queria ter uma filha pretinha", "esperados": ["Menina bonita do laço de fita"]}
+{"id": "i17", "tipo": "intencao", "consulta": "gatinho com medo da noite", "esperados": ["O gato e o escuro"]}
+{"id": "i18", "tipo": "intencao", "consulta": "jovem apaixonado num amor proibido que acaba em tragédia", "esperados": ["Amor de Perdição"]}
+{"id": "i19", "tipo": "intencao", "consulta": "um rei promete construir um convento em Mafra", "esperados": ["Memorial do Convento"]}
+{"id": "i20", "tipo": "intencao", "consulta": "suecos que chegam a Alagoas e ela se apaixona por um mestiço", "esperados": ["Riacho Doce"]}
+{"id": "i21", "tipo": "intencao", "consulta": "psicanalista gaúcho de bombacha que serve chimarrão", "esperados": ["O analista de Bagé"]}
+{"id": "i22", "tipo": "intencao", "consulta": "o diabo conversa com uma moça depois do baile de Carnaval", "esperados": ["A hora do diabo"]}
+{"id": "i23", "tipo": "intencao", "consulta": "diário de um ajudante de guarda-livros em Lisboa", "esperados": ["Livro do Desassossego"]}
+{"id": "i24", "tipo": "intencao", "consulta": "malandro no Rio de Janeiro do tempo do rei", "esperados": ["Memórias de um Sargento de Milícias"]}
+{"id": "i25", "tipo": "intencao", "consulta": "um patriota ingênuo que quer reformar o país", "esperados": ["Triste fim de Policarpo Quaresma"]}
+{"id": "i26", "tipo": "intencao", "consulta": "contos sobre a vida de mulheres negras", "esperados": ["Olhos D'Água", "Ponciá Vicêncio"]}
+{"id": "i27", "tipo": "intencao", "consulta": "poligamia e mulheres em Moçambique", "esperados": ["Niketche"]}
+{"id": "i28", "tipo": "intencao", "consulta": "boneca Emília e o Sítio do Picapau Amarelo", "esperados": ["Reinações de Narizinho", "A menina do narizinho arrebitado", "Viagem ao céu", "Aritmética da Emília", "O Poço do Visconde"]}
+{"id": "i29", "tipo": "intencao", "consulta": "mortos que se levantam porque os coveiros entraram em greve", "esperados": ["Incidente em Antares"]}
+{"id": "i30", "tipo": "intencao", "consulta": "saga de famílias gaúchas ao longo de dois séculos", "esperados": ["O tempo e o vento", "O continente vol. 1"]}
