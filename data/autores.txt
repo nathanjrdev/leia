@@ -1,0 +1,73 @@
+# Autores do catálogo de semente (um por linha). Foco em autores brasileiros e lusófonos.
+Machado de Assis
+Clarice Lispector
+Jorge Amado
+Graciliano Ramos
+João Guimarães Rosa
+Carlos Drummond de Andrade
+Cecília Meireles
+Rachel de Queiroz
+José de Alencar
+Lima Barreto
+Aluísio Azevedo
+Raul Pompeia
+Monteiro Lobato
+Erico Verissimo
+Lygia Fagundes Telles
+Rubem Fonseca
+Ariano Suassuna
+Mário de Andrade
+Oswald de Andrade
+Manuel Bandeira
+João Cabral de Melo Neto
+Vinicius de Moraes
+Nelson Rodrigues
+Dalton Trevisan
+Ana Maria Machado
+Ruth Rocha
+Ziraldo
+Paulo Coelho
+Luis Fernando Verissimo
+Moacyr Scliar
+Milton Hatoum
+Chico Buarque
+Itamar Vieira Junior
+Carolina Maria de Jesus
+Ailton Krenak
+Daniel Munduruku
+Bernardo Carvalho
+Cristóvão Tezza
+João Ubaldo Ribeiro
+José Lins do Rego
+Euclides da Cunha
+Castro Alves
+Gonçalves Dias
+Bernardo Guimarães
+Manuel Antônio de Almeida
+Joaquim Manuel de Macedo
+Adélia Prado
+Hilda Hilst
+Conceição Evaristo
+Jeferson Tenório
+Ferréz
+Paulo Leminski
+Cora Coralina
+Lya Luft
+Marina Colasanti
+Mia Couto
+José Eduardo Agualusa
+Pepetela
+Ondjaki
+Paulina Chiziane
+José Saramago
+Fernando Pessoa
+Eça de Queirós
+Luís de Camões
+Valter Hugo Mãe
+António Lobo Antunes
+Sophia de Mello Breyner Andresen
+Miguel Torga
+Camilo Castelo Branco
+Almeida Garrett
+Gonçalo M. Tavares
+Lídia Jorge
