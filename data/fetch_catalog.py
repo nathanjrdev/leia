@@ -216,6 +216,13 @@ def main() -> None:
         if linha.strip() and not linha.startswith("#")
     ]
     vistos: set[str] = set()
+    arquivo_exclusoes = ROOT / "excluidos.txt"
+    if arquivo_exclusoes.exists():  # revisão manual: pré-marca como já vistos
+        for linha in arquivo_exclusoes.read_text(encoding="utf-8").splitlines():
+            if linha.strip() and not linha.startswith("#"):
+                titulo, _, resto = linha.partition("|")
+                autor = resto.split("#")[0].strip()
+                vistos.add(f"{norm(autor)}:{norm(titulo)}")
     catalogo: list[dict] = []
     isbns: set[str] = set()
     for i, autor in enumerate(autores, 1):

@@ -12,7 +12,8 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from leia_api.config import settings
-from leia_api.embeddings import MODELO_PADRAO, gerar_embeddings
+from leia_api.embeddings import gerar_embeddings
+from leia_api.modelos import EncoderST
 from leia_api.models import Usuario
 from leia_api.seed import (
     carregar_catalogo_json,
@@ -32,15 +33,7 @@ def main() -> None:
             print("Usuários e locações fictícios criados.")
         session.commit()
 
-        from sentence_transformers import SentenceTransformer  # grupo opcional `ml`
-
-        modelo = SentenceTransformer(MODELO_PADRAO)
-
-        class _Encoder:
-            def encode(self, textos: list[str]) -> list[list[float]]:
-                return modelo.encode(textos, normalize_embeddings=True).tolist()  # type: ignore[no-any-return]
-
-        print(f"Embeddings gerados: {gerar_embeddings(session, _Encoder())}")
+        print(f"Embeddings gerados: {gerar_embeddings(session, EncoderST())}")
         session.commit()
 
 

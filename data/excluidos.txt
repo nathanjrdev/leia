@@ -1,0 +1,17 @@
+# Livros removidos na revisão manual das sinopses (07/11/2026). Formato: título | autor
+# O coletor ignora estas entradas. Motivo ao lado de cada uma.
+Magma | João Guimarães Rosa  # sinopse em inglês
+Alguma poesia | Carlos Drummond de Andrade  # sinopse é de Sentimento do Mundo
+Perfis De Mulher | José de Alencar  # sinopse é de Lucíola
+Contos | Lima Barreto  # sinopse é biografia do autor
+Filhos pródigos | Lygia Fagundes Telles  # sinopse descreve um único conto
+Seleta em prosa e verso | Ariano Suassuna  # sinopse é de O Rico Avarento
+Na noite grávida de punhais | Mário de Andrade  # obra de outro autor
+O vampiro de Curitiba | Dalton Trevisan  # sinopse é biografia do autor
+Brida | Paulo Coelho  # sinopse em holandês
+Terra | Chico Buarque  # sinopse descreve um compacto, não o livro
+O amanhã não está à venda | Ailton Krenak  # sinopse é de A Vida Não É Útil
+Bernardo Guimarães | Bernardo Guimarães  # título é o nome do autor
+Boletim Cultural Da Câmara Municipal De Luanda nº2 1964 | Manuel Antônio de Almeida  # não é livro do autor
+O Homem Duplicado | José Saramago  # sinopse em inglês
+Os cus de Judas | António Lobo Antunes  # sinopse em francês

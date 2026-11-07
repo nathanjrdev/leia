@@ -54,3 +54,12 @@ python_version = "3.12"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov=leia_api --cov-report=term-missing"
+
+[tool.coverage.run]
+# Adaptadores finos que carregam modelos do Hugging Face ou rodam como script manual;
+# a lógica testável fica nos módulos injetáveis (embeddings, busca, avaliacao).
+omit = [
+    "src/leia_api/carga.py",
+    "src/leia_api/modelos.py",
+    "src/leia_api/cli_busca.py",
+]
