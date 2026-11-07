@@ -495,38 +495,6 @@
     ]
   },
   {
-    "titulo": "Magma",
-    "autores": [
-      "João Guimarães Rosa"
-    ],
-    "ano": 1997,
-    "paginas": 146,
-    "editora": "Editora Nova Fronteira",
-    "isbn": "9788520908433",
-    "capa_url": "https://covers.openlibrary.org/b/id/3724235-L.jpg",
-    "sinopse": "\"Prize-winning work includes 24 poems and comments by Guilherme de Almeida. Contains four haiku poems: 'Imensidão', 'Romance I', 'Egoísmo', and 'Mundo Pequeno'. According to Almeida: 'Magma é poesia centrífuga, universalizadora, capaz de dar ao resto do mundo, síntese perfeitado que temos e somos. Há aí, vivo de beleza, todo o Brasil: sua terra, a sua gente, a sua alma, o seu bem e o seu mal.'\"--Handbook of Latin American Studies, v. 58.",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL1756924W",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
-    "titulo": "Alguma poesia",
-    "autores": [
-      "Carlos Drummond de Andrade"
-    ],
-    "ano": 2001,
-    "paginas": null,
-    "editora": "Record",
-    "isbn": "9788501060440",
-    "capa_url": "https://covers.openlibrary.org/b/id/12864352-L.jpg",
-    "sinopse": "Sentimento do Mundo é o terceiro livro de poemas de Carlos Drummond de Andrade, publicado em 1940, escrito após Alguma poesia (1930) e Brejo das almas (1934). Drummond, considerado pela crítica nacional um dos maiores poetas brasileiros, mostra nessa obra sua faceta mais madura e atenta às fragilidades e angústias humanas.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Sentimento_do_Mundo",
-    "categorias": [
-      "Poesia"
-    ]
-  },
-  {
     "titulo": "Claro enigma",
     "autores": [
       "Carlos Drummond de Andrade"
@@ -738,22 +706,6 @@
     ]
   },
   {
-    "titulo": "Perfis De Mulher",
-    "autores": [
-      "José de Alencar"
-    ],
-    "ano": 1970,
-    "paginas": 469,
-    "editora": "Círculo Do Livro",
-    "isbn": null,
-    "capa_url": "https://covers.openlibrary.org/b/id/15138287-L.jpg",
-    "sinopse": "Lucíola é um romance do escritor brasileiro José de Alencar, publicado em 1862, sendo considerado uma das obras centrais de sua fase urbana. Com sua publicação, Alencar inaugura a série conhecida como Perfis de Mulher, na qual se dedica à análise psicológica de personagens femininas marcadas por conflitos morais e sociais, ao lado de Diva (1864) e Senhora (1875).",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Luc%C3%ADola",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
     "titulo": "Triste fim de Policarpo Quaresma",
     "autores": [
       "Lima Barreto"
@@ -781,22 +733,6 @@
     "capa_url": "https://covers.openlibrary.org/b/id/5314344-L.jpg",
     "sinopse": "Recordações do Escrivão Isaías Caminha é o primeiro romance do escritor brasileiro Lima Barreto. De referência autobiográfica, tem como tema central o racismo e a subordinação social, dividindo-se em dois núcleos narrativos: a infância e a viagem do protagonista ao Rio de Janeiro, marcadas pela discriminação racial, e sua posterior inserção no meio jornalístico carioca, retratado de forma satírica.",
     "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Recorda%C3%A7%C3%B5es_do_Escriv%C3%A3o_Isa%C3%ADas_Caminha",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
-    "titulo": "Contos",
-    "autores": [
-      "Lima Barreto"
-    ],
-    "ano": 2000,
-    "paginas": 115,
-    "editora": "Landy",
-    "isbn": "9788587731173",
-    "capa_url": "https://covers.openlibrary.org/b/id/6938532-L.jpg",
-    "sinopse": "Afonso Henriques de Lima Barreto foi um jornalista e escritor brasileiro, identificado com o pré-modernismo. Publicou romances, sátiras, contos, crônicas e uma vasta obra em periódicos, principalmente revistas populares ilustradas e periódicos anarquistas do início do século XX.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Lima_Barreto_(escritor)",
     "categorias": [
       "Literatura"
     ]
@@ -1092,22 +1028,6 @@
     ]
   },
   {
-    "titulo": "Filhos pródigos",
-    "autores": [
-      "Lygia Fagundes Telles"
-    ],
-    "ano": 1978,
-    "paginas": 182,
-    "editora": "Editora Nova Fronteira",
-    "isbn": "9788520903551",
-    "capa_url": "https://covers.openlibrary.org/b/id/3927144-L.jpg",
-    "sinopse": "\"A Estrutura da Bolha de Sabão\" é um dos contos mais famosos da escritora brasileira Lygia Fagundes Telles publicado pela primeira vez em 1978 no livro Filhos Pródigos, que foi reeditado em 1991 com o título deste conto devido à sua fama sobre todos os outros do volume.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/A_Estrutura_da_Bolha_de_Sab%C3%A3o",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
     "titulo": "Capitu",
     "autores": [
       "Lygia Fagundes Telles"
@@ -1173,22 +1093,6 @@
     ]
   },
   {
-    "titulo": "Seleta em prosa e verso",
-    "autores": [
-      "Ariano Suassuna"
-    ],
-    "ano": 1974,
-    "paginas": 195,
-    "editora": "JOSE OLYMPIO - GRUPO RECORD",
-    "isbn": "9788503007856",
-    "capa_url": "https://covers.openlibrary.org/b/id/7285156-L.jpg",
-    "sinopse": "O Rico Avarento é uma peça curta do escritor brasileiro Ariano Suassuna, publicada em 1954, baseada na obra do escritor francês Molière, O Avarento. A peça se encontra no livro \"Seleta em Prosa e Verso\", da editora José Olympio, junto com outras peças conhecidas, como O Castigo da Soberba, O Homem da Vaca e o Poder da Fortuna e Torturas de um Coração.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/O_Rico_Avarento",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
     "titulo": "Contos novos",
     "autores": [
       "Mário de Andrade"
@@ -1234,22 +1138,6 @@
     "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Macuna%C3%ADma",
     "categorias": [
       "Literatura"
-    ]
-  },
-  {
-    "titulo": "Na noite grávida de punhais",
-    "autores": [
-      "Mário de Andrade"
-    ],
-    "ano": 1977,
-    "paginas": 281,
-    "editora": "Livraria Sá da Costa",
-    "isbn": null,
-    "capa_url": "https://covers.openlibrary.org/b/id/15201911-L.jpg",
-    "sinopse": "A poesia africana de escrita portuguesa e crioula, sob o condicionamento da dominação colonialista, articula-se intimamente ao movimento de libertação nacional. Ela ritma o longo combate: negar a negação e realizar a emergência histórica dos povos. Utilizando o privilégio de serem investidos do verbo, os poetas da noite grávida de punhais exprimiram, até às suas derradeiras consequências, os sentimentos informulados que agitavam as massas, dominaram os elementos culturais de afirmação nacional através do grito, do canto e do apelo. Autor de vários ensaios de carácter político e literário, Mário de Andrade, actualizando as suas obras anteriores, apresenta-nos o primeiro tomo de uma antologia de poesia africana que privilegia os temas, mas considera também as particularidades geográficas e a ordem cronológica.",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL22626316W",
-    "categorias": [
-      "Poesia"
     ]
   },
   {
@@ -1312,22 +1200,6 @@
     "capa_url": "https://covers.openlibrary.org/b/id/6730899-L.jpg",
     "sinopse": "Coletânea de cartas, bilhetes, telegramas, poemas e cartões trocados por João Cabral de Melo Neto com Manuel Bandeira e Carlos Drummond de Andrade nas décadas de 40 e 50.",
     "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL15835505W",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
-    "titulo": "O vampiro de Curitiba",
-    "autores": [
-      "Dalton Trevisan"
-    ],
-    "ano": 1965,
-    "paginas": 120,
-    "editora": "Editôra Civilização Brasileira",
-    "isbn": "9789896413163",
-    "capa_url": "https://covers.openlibrary.org/b/id/12699798-L.jpg",
-    "sinopse": "Dalton Jérson Trevisan foi um advogado e escritor brasileiro, famoso por seus livros de contos, especialmente O Vampiro de Curitiba (1965), e por sua natureza reservada.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Dalton_Trevisan",
     "categorias": [
       "Literatura"
     ]
@@ -1560,22 +1432,6 @@
     ]
   },
   {
-    "titulo": "Brida",
-    "autores": [
-      "Paulo Coelho"
-    ],
-    "ano": 2008,
-    "paginas": 238,
-    "editora": "Paralela",
-    "isbn": "9789029566278",
-    "capa_url": "https://covers.openlibrary.org/b/id/12372778-L.jpg",
-    "sinopse": "Een Ierse secretaresse komt op haar zoektocht naar de zin van het leven in aanraking met hedendaagse hekserij.",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL26417514W",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
     "titulo": "Comedias para se Ler na Escola",
     "autores": [
       "Luis Fernando Verissimo"
@@ -1721,23 +1577,6 @@
     ]
   },
   {
-    "titulo": "Terra",
-    "autores": [
-      "Chico Buarque"
-    ],
-    "ano": 1997,
-    "paginas": 143,
-    "editora": "Caminho",
-    "isbn": "9780714837000",
-    "capa_url": "https://covers.openlibrary.org/b/id/453643-L.jpg",
-    "sinopse": "\"Terra\" é um compacto do músico brasileiro Chico Buarque, lançado em conjunto com o livro \"Terra\", do fotógrafo Sebastião Salgado. Foi lançado no ano de 1997.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Terra_(%C3%A1lbum_de_Chico_Buarque)",
-    "categorias": [
-      "Poesia",
-      "Ensaios"
-    ]
-  },
-  {
     "titulo": "Benjamim",
     "autores": [
       "Chico Buarque"
@@ -1830,22 +1669,6 @@
     "capa_url": "https://covers.openlibrary.org/b/id/14945671-L.jpg",
     "sinopse": "A ideia de futuro por vezes nos assombra com cenários apocalípticos. Por outras, ela se apresenta como possibilidade de redenção, como se todos os problemas do presente pudessem ser magicamente resolvidos depois. Em ambos os casos, as ilusões nos afastam do que está ao nosso redor. Nesta nova coleção de textos, produzidos entre 2020 e 2021, Ailton Krenak nos provoca com a radicalidade de seu pensamento insurgente, que demove o senso comum e invoca o maravilhamento. Diz ele: “Os rios, esses seres que sempre habitaram os mundos em diferentes formas, são quem me sugerem que, se há futuro a ser cogitado, esse futuro é ancestral, porque já estava aqui.” “Ailton Krenak é um filósofo originário: desentranha do pensamento indígena uma forma que os ocidentais se habituaram a reconhecer como 'filosofia’ e a confronta, à medida que também a aproxima, com os modos especulativos europeus e outras cosmovisões tradicionais.” ― Muniz Sodré",
     "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL43180158W",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
-    "titulo": "O amanhã não está à venda",
-    "autores": [
-      "Ailton Krenak"
-    ],
-    "ano": 2020,
-    "paginas": 22,
-    "editora": "Companhia das Letras",
-    "isbn": "9788554517328",
-    "capa_url": "https://covers.openlibrary.org/b/id/15258949-L.jpg",
-    "sinopse": "A Vida Não É Útil é um livro de Ailton Krenak, publicado pela Companhia das Letras. Trata-se de um conjunto de cinco textos elaborados pelo autor: Não se come dinheiro, Sonhos para adiar o fim do mundo, A máquina de fazer coisas, O amanhã não está à venda e A vida não é útil. A reunião desses escritos gerou o livro, lançado no ano de 2020.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/A_Vida_N%C3%A3o_%C3%89_%C3%9Atil",
     "categorias": [
       "Literatura"
     ]
@@ -2141,22 +1964,6 @@
     ]
   },
   {
-    "titulo": "Bernardo Guimarães",
-    "autores": [
-      "Bernardo Guimarães"
-    ],
-    "ano": 1914,
-    "paginas": 192,
-    "editora": "Impr. Official do Estado de Minas",
-    "isbn": null,
-    "capa_url": "https://covers.openlibrary.org/b/id/9797119-L.jpg",
-    "sinopse": "Bernardo Joaquim da Silva Guimarães foi um romancista e poeta brasileiro, conhecido pelo romance A Escrava Isaura, sendo o patrono da Cadeira nº 5 da Academia Brasileira de Letras.",
-    "sinopse_fonte": "Wikipedia (CC BY-SA): https://pt.wikipedia.org/wiki/Bernardo_Guimar%C3%A3es",
-    "categorias": [
-      "Literatura"
-    ]
-  },
-  {
     "titulo": "Memórias de um Sargento de Milícias",
     "autores": [
       "Manuel Antônio de Almeida"
@@ -2171,22 +1978,6 @@
     "categorias": [
       "Biografia e memórias",
       "Ficção"
-    ]
-  },
-  {
-    "titulo": "Boletim Cultural Da Câmara Municipal De Luanda nº2 1964",
-    "autores": [
-      "Manuel Antônio de Almeida"
-    ],
-    "ano": 1964,
-    "paginas": 100,
-    "editora": "Governo Portugês",
-    "isbn": null,
-    "capa_url": "https://covers.openlibrary.org/b/id/6597862-L.jpg",
-    "sinopse": "Actividades culturais e artísticas da cidade de Luanda, Angola no primeiro trimestre de 1964",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL15383107W",
-    "categorias": [
-      "Literatura"
     ]
   },
   {
@@ -2432,22 +2223,6 @@
     ]
   },
   {
-    "titulo": "O Homem Duplicado",
-    "autores": [
-      "José Saramago"
-    ],
-    "ano": 2002,
-    "paginas": 324,
-    "editora": "Vintage Books",
-    "isbn": "9780156032582",
-    "capa_url": "https://covers.openlibrary.org/b/id/4952270-L.jpg",
-    "sinopse": "A divorced, depressed history teacher becomes obsessed with pursuing a man who looks exactly like he did five years ago after seeing him in a video recommended by a friend.",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL7923009W",
-    "categorias": [
-      "Ficção"
-    ]
-  },
-  {
     "titulo": "As Intermitências da Morte",
     "autores": [
       "José Saramago"
@@ -2576,24 +2351,6 @@
     "sinopse": "Depois do baile de Carnaval, numa rua cheia de luar, o Diabo fala com Maria, para quem este é apenas um rapaz mascarado de Mefistófeles. Auto denominando-se \"Deus da Imaginação\", a quem Maria deve os seus pensamentos com o Príncipe Encantado, bem como os seus sonhos com o Homem Perfeito ou o amante interminável, o Diabo descreve-lhe as suas melhores criações, o luar e a ironia, explicando-lhe como os crentes temem o seu nome e as igrejas o abominam. Mas, em vez de impressionar Maria, esta demonstra-lhe a imensa pena que por si sente, e observa a expressão de angústia que perpassa pelo rosto e olhos do homem vermelho, ao deixar de súbito cair o braço que enlaçava o dela. Refere Teresa Rita Lopes, no posfácio a esta obra, que A Hora do Diabo, juntamente com Fausto, o poema dramático que Pessoa foi escrevendo ao longo da vida, é um dos mais longínquos projectos do jovem Pessoa, correspondendo este texto, não a uma curiosidade literária, mas a um tema que o poeta sempre desejou desenvolver.",
     "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL847113W",
     "categorias": [
-      "Ficção"
-    ]
-  },
-  {
-    "titulo": "Os cus de Judas",
-    "autores": [
-      "António Lobo Antunes"
-    ],
-    "ano": 1979,
-    "paginas": 200,
-    "editora": "Debolsillo",
-    "isbn": "9788556520111",
-    "capa_url": "https://covers.openlibrary.org/b/id/991063-L.jpg",
-    "sinopse": "Monologue décrivant le bourbier angolais dans lequel s'est enferrée l'armée coloniale portugaise au début des années 1970. Le narrateur, ancien médecin aux armées revenu détruit d'Angola, raconte son enfer à une inconnue, une nuit de beuverie. Adaptation du texte d'A. Lobo Antunes pour le théâtre.",
-    "sinopse_fonte": "Open Library: https://openlibrary.org/works/OL2071853W",
-    "categorias": [
-      "História",
-      "Biografia e memórias",
       "Ficção"
     ]
   },
