@@ -114,6 +114,24 @@ def test_finds_book_by_intent_in_synopsis(session: Session) -> None:
     assert _titulos(resultados)[0] == "Vidas Secas"
 
 
+class EncoderNeutro:
+    """Puxa toda consulta para "O Gato e o Escuro": só a busca textual leva outro livro ao topo."""
+
+    def encode(self, textos: list[str]) -> list[list[float]]:
+        return HashEncoder().encode(["gatinho medo noite escuro" for _ in textos])
+
+
+def test_text_search_matches_any_word_not_all(session: Session) -> None:
+    # "traição" não aparece em nenhuma sinopse; com E entre os termos, nada casaria.
+    resultados = buscar_livros(session, "romance de ciúme e traição", EncoderNeutro())
+    assert _titulos(resultados)[0] == "Dom Casmurro"
+
+
+def test_text_search_ignores_tsquery_syntax_in_user_text(session: Session) -> None:
+    resultados = buscar_livros(session, "ciúme | & ! ( ) : * '", EncoderNeutro())
+    assert _titulos(resultados)[0] == "Dom Casmurro"
+
+
 def test_category_filter(session: Session) -> None:
     resultados = buscar_livros(session, "memória", HashEncoder(), categoria="poesia")
     assert _titulos(resultados) == ["Claro Enigma"]
@@ -149,12 +167,15 @@ def test_only_available_excludes_fully_rented_books(session: Session) -> None:
     assert "Dom Casmurro" not in _titulos(resultados)
 
 
-def test_reranker_reorders_candidates(session: Session) -> None:
-    class Inverte:
-        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
-            return [float(i) for i in range(len(documentos))]  # nota cresce: última vira primeira
-
+def test_reranker_promotes_its_favourite_but_is_fused_not_absolute(session: Session) -> None:
     sem = _titulos(buscar_livros(session, "memória", HashEncoder()))
-    com = _titulos(buscar_livros(session, "memória", HashEncoder(), reranker=Inverte()))
-    assert len(sem) > 1
-    assert com == list(reversed(sem))
+    assert len(sem) > 2
+    favorito = sem[-1]
+
+    class Prefere:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            return [1.0 if favorito in doc else 0.0 for doc in documentos]
+
+    com = _titulos(buscar_livros(session, "memória", HashEncoder(), reranker=Prefere()))
+    assert com.index(favorito) < sem.index(favorito)  # subiu
+    assert com[0] == sem[0]  # mas a fusão com o RRF impede que o reranker sozinho mande no topo

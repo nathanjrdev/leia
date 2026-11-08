@@ -29,7 +29,7 @@
 {"id": "i09", "tipo": "intencao", "consulta": "memórias de um escritor preso pela ditadura de Vargas", "esperados": ["Memórias do cárcere"]}
 {"id": "i10", "tipo": "intencao", "consulta": "o herói sem nenhum caráter que nasce na floresta", "esperados": ["Macunaíma"]}
 {"id": "i11", "tipo": "intencao", "consulta": "um pastor que busca um tesouro perto das pirâmides", "esperados": ["O Alquimista"]}
-{"id": "i12", "tipo": "intencao", "consulta": "a guerra de Canudos no sertão da Bahia", "esperados": ["Os sertões"]}
+{"id": "i12", "tipo": "intencao", "consulta": "romance irônico que critica o positivismo e o cientificismo", "esperados": ["Quincas Borba"]}
 {"id": "i13", "tipo": "intencao", "consulta": "duas irmãs numa fazenda na Bahia, descendentes de escravos", "esperados": ["Torto Arado"]}
 {"id": "i14", "tipo": "intencao", "consulta": "meninos abandonados que vivem em bando em Salvador", "esperados": ["Capitães da Areia"]}
 {"id": "i15", "tipo": "intencao", "consulta": "uma fada invisível que cuida da floresta", "esperados": ["A Fada Oriana"]}

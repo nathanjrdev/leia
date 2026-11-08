@@ -1,8 +1,10 @@
 """Busca híbrida do catálogo: texto (tsvector) + vetores (pgvector), fundidos por RRF.
 
 Fluxo: três listas ranqueadas (título/sinopse, nome de autor, similaridade vetorial)
-→ Reciprocal Rank Fusion → os N primeiros candidatos → reranker opcional (cross-encoder)
-→ top `limite`. Disponibilidade vem da view `disponibilidade_livro`, nunca de coluna.
+→ Reciprocal Rank Fusion → os N primeiros candidatos → reranker opcional (cross-encoder),
+cuja ordem é fundida de novo por RRF com a anterior (não a substitui) → top `limite`.
+Na busca textual qualquer termo da consulta basta (OU); o ranking premia quem casa mais.
+Disponibilidade vem da view `disponibilidade_livro`, nunca de coluna.
 Somente leitura: o LLM chega aqui por ferramenta, nunca por SQL próprio.
 """
 
@@ -18,11 +20,18 @@ from leia_api.models import Livro
 
 RRF_K = 60
 CANDIDATOS_POR_LISTA = 50
-CANDIDATOS_RERANKER = 20
+CANDIDATOS_RERANKER = 50
 
 
 # Precisa ser idêntica à expressão do índice GIN `ix_livros_busca_texto`.
 _TSVECTOR = "to_tsvector('portuguese', coalesce(l.titulo, '') || ' ' || coalesce(l.sinopse, ''))"
+
+# Consulta em linguagem natural: qualquer termo basta (OU); `ts_rank_cd` premia quem casa mais.
+# `websearch_to_tsquery` nunca falha com o texto do usuário; só trocamos o E por OU.
+_TSQUERY_OU = (
+    "(SELECT CAST(replace(CAST(websearch_to_tsquery('portuguese', :q) AS text), ' & ', ' | ')"
+    " AS tsquery) AS q) AS t"
+)
 
 
 class Reranker(Protocol):
@@ -96,9 +105,9 @@ def buscar_livros(
 
     por_texto = _ids(
         session,
-        f"""SELECT l.id FROM livros l, websearch_to_tsquery('portuguese', :q) q
-            WHERE {_TSVECTOR} @@ q {filtro}
-            ORDER BY ts_rank_cd({_TSVECTOR}, q) DESC LIMIT :n""",  # noqa: S608
+        f"""SELECT l.id FROM livros l, {_TSQUERY_OU}
+            WHERE {_TSVECTOR} @@ t.q {filtro}
+            ORDER BY ts_rank_cd({_TSVECTOR}, t.q) DESC LIMIT :n""",  # noqa: S608
         base,
     )
     por_autor = _ids(
@@ -128,8 +137,10 @@ def buscar_livros(
     pontuacao = dict(fundidos)
     if reranker is not None:
         notas = reranker.score(consulta, [documento_do_livro(livros[i]) for i in ids])
-        pontuacao = {i: float(n) for i, n in zip(ids, notas, strict=True)}
-        ids = sorted(ids, key=lambda i: -pontuacao[i])
+        ordem_reranker = [i for i, _ in sorted(zip(ids, notas, strict=True), key=lambda p: -p[1])]
+        fundidos = fundir_rrf([ids, ordem_reranker])
+        ids = [livro_id for livro_id, _ in fundidos]
+        pontuacao = dict(fundidos)
 
     disponibilidade = {
         int(r.livro_id): (int(r.livres), int(r.fila))
