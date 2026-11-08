@@ -1,6 +1,7 @@
 """Busca híbrida do catálogo: texto (tsvector) + vetores (pgvector), fundidos por RRF.
 
-Fluxo: três listas ranqueadas (título/sinopse, nome de autor, similaridade vetorial)
+Fluxo: quatro listas ranqueadas (título/sinopse em OU, título/sinopse com todos os termos,
+nome de autor, similaridade vetorial)
 → Reciprocal Rank Fusion → os N primeiros candidatos → reranker opcional (cross-encoder),
 cuja ordem é fundida de novo por RRF com a anterior (não a substitui) → top `limite`.
 Na busca textual qualquer termo da consulta basta (OU); o ranking premia quem casa mais.
@@ -26,11 +27,16 @@ CANDIDATOS_RERANKER = 50
 # Precisa ser idêntica à expressão do índice GIN `ix_livros_busca_texto`.
 _TSVECTOR = "to_tsvector('portuguese', coalesce(l.titulo, '') || ' ' || coalesce(l.sinopse, ''))"
 # Consulta em linguagem natural: qualquer termo basta (OU); `ts_rank_cd` premia quem casa mais.
-# `websearch_to_tsquery` nunca falha com o texto do usuário; só trocamos o E por OU.
+# `websearch_to_tsquery` nunca falha com o texto do usuário; só trocamos o E por OU. Termos
+# negados (`-guerra`) saem antes: na tsquery viram `!guerr` e, com o OU, casariam com quase tudo.
+# (A lista estrita, em E, respeita a negação.)
 _TSQUERY_OU = (
-    "(SELECT CAST(replace(CAST(websearch_to_tsquery('portuguese', :q) AS text), ' & ', ' | ')"
+    "(SELECT CAST(replace(CAST(websearch_to_tsquery('portuguese', "
+    r"regexp_replace(:q, '(^|\s)-\S+', ' ', 'g')) AS text), ' & ', ' | ')"
     " AS tsquery) AS q) AS t"
 )
+# Todos os termos (E), com a negação interpretada pelo próprio `websearch_to_tsquery`.
+_TSQUERY_E = "(SELECT websearch_to_tsquery('portuguese', :q) AS q) AS t"
 
 
 class Reranker(Protocol):
@@ -87,6 +93,24 @@ def _ids(session: Session, sql: str, params: dict[str, object]) -> list[int]:
     return [int(linha[0]) for linha in session.execute(text(sql), params)]
 
 
+def _ranking_texto(
+    session: Session,
+    tsquery: str,
+    consulta: str,
+    filtro: str,
+    params: dict[str, object] | None,
+    n: int,
+) -> list[int]:
+    """`tsquery` é uma das constantes `_TSQUERY_*` deste módulo, nunca texto do usuário."""
+    return _ids(
+        session,
+        f"""SELECT l.id FROM livros l, {tsquery}
+            WHERE {_TSVECTOR} @@ t.q {filtro}
+            ORDER BY ts_rank_cd({_TSVECTOR}, t.q) DESC LIMIT :n""",  # noqa: S608
+        {**(params or {}), "q": consulta, "n": n},
+    )
+
+
 def ranking_texto(
     session: Session,
     consulta: str,
@@ -96,11 +120,52 @@ def ranking_texto(
     n: int = CANDIDATOS_POR_LISTA,
 ) -> list[int]:
     """Ids dos livros cuja título/sinopse casa com algum termo da consulta, melhor primeiro."""
+    return _ranking_texto(session, _TSQUERY_OU, consulta, filtro, params, n)
+
+
+def ranking_texto_estrito(
+    session: Session,
+    consulta: str,
+    *,
+    filtro: str = "",
+    params: dict[str, object] | None = None,
+    n: int = CANDIDATOS_POR_LISTA,
+) -> list[int]:
+    """Ids dos livros cuja título/sinopse contém TODOS os termos da consulta (E), melhor primeiro.
+
+    Sinal forte que a busca em OU dilui: quem casa tudo ganha crédito extra na fusão.
+    """
+    return _ranking_texto(session, _TSQUERY_E, consulta, filtro, params, n)
+
+
+def ranking_autor(
+    session: Session,
+    consulta: str,
+    *,
+    filtro: str = "",
+    params: dict[str, object] | None = None,
+    n: int = CANDIDATOS_POR_LISTA,
+) -> list[int]:
+    """Ids dos livros de autores cujo nome casa com algum termo da consulta.
+
+    Termos soltos, sem stopwords ("livros de Clarice Lispector" acha Clarice), sem radical
+    (para "branca" não casar com "Castelo Branco"). Quem casa mais termos do nome vem antes.
+    """
     return _ids(
         session,
-        f"""SELECT l.id FROM livros l, {_TSQUERY_OU}
-            WHERE {_TSVECTOR} @@ t.q {filtro}
-            ORDER BY ts_rank_cd({_TSVECTOR}, t.q) DESC LIMIT :n""",  # noqa: S608
+        f"""WITH termos AS (
+                SELECT w FROM unnest(tsvector_to_array(to_tsvector('simple', :q))) AS w
+                WHERE to_tsvector('portuguese', w) <> ''::tsvector
+            )
+            SELECT l.id FROM livros l
+            JOIN livro_autor la ON la.livro_id = l.id
+            JOIN autores a ON a.id = la.autor_id
+            JOIN LATERAL (
+                SELECT count(*) AS casados FROM termos
+                WHERE to_tsvector('simple', a.nome) @@ plainto_tsquery('simple', termos.w)
+            ) m ON m.casados > 0
+            WHERE true {filtro}
+            GROUP BY l.id ORDER BY max(m.casados) DESC, l.id LIMIT :n""",  # noqa: S608
         {**(params or {}), "q": consulta, "n": n},
     )
 
@@ -121,15 +186,8 @@ def buscar_livros(
     base = {**params, "q": consulta, "n": CANDIDATOS_POR_LISTA}
 
     por_texto = ranking_texto(session, consulta, filtro=filtro, params=params)
-    por_autor = _ids(
-        session,
-        f"""SELECT DISTINCT l.id FROM livros l
-            JOIN livro_autor la ON la.livro_id = l.id
-            JOIN autores a ON a.id = la.autor_id, websearch_to_tsquery('simple', :q) q
-            WHERE to_tsvector('simple', a.nome) @@ q {filtro}
-            ORDER BY l.id LIMIT :n""",  # noqa: S608
-        base,
-    )
+    por_texto_estrito = ranking_texto_estrito(session, consulta, filtro=filtro, params=params)
+    por_autor = ranking_autor(session, consulta, filtro=filtro, params=params)
     vetor = "[" + ",".join(f"{x:.6f}" for x in encoder.encode([consulta])[0]) + "]"
     por_vetor = _ids(
         session,
@@ -139,7 +197,8 @@ def buscar_livros(
         {**base, "v": vetor},
     )
 
-    fundidos = fundir_rrf([por_texto, por_autor, por_vetor])[:CANDIDATOS_RERANKER]
+    listas = [por_texto, por_texto_estrito, por_autor, por_vetor]
+    fundidos = fundir_rrf(listas)[:CANDIDATOS_RERANKER]
     if not fundidos:
         return []
 

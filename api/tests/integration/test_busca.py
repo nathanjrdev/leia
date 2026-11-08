@@ -9,9 +9,9 @@ import pytest
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
-from leia_api.busca import ResultadoBusca, buscar_livros, fundir_rrf
+from leia_api.busca import ResultadoBusca, buscar_livros, fundir_rrf, ranking_texto
 from leia_api.embeddings import gerar_embeddings
-from leia_api.models import EMBEDDING_DIM, Exemplar, Locacao, Usuario
+from leia_api.models import EMBEDDING_DIM, Exemplar, Livro, Locacao, Usuario
 from leia_api.seed import carregar_catalogo
 
 
@@ -125,6 +125,41 @@ def test_text_search_matches_any_word_not_all(session: Session) -> None:
     # "traição" não aparece em nenhuma sinopse; com E entre os termos, nada casaria.
     resultados = buscar_livros(session, "romance de ciúme e traição", EncoderNeutro())
     assert _titulos(resultados)[0] == "Dom Casmurro"
+
+
+class EncoderPoemas:
+    """Puxa toda consulta para "Claro Enigma", que também casa com "memória" no texto."""
+
+    def encode(self, textos: list[str]) -> list[list[float]]:
+        return HashEncoder().encode(["livro de poemas sobre o tempo e a perda" for _ in textos])
+
+
+def test_book_matching_every_term_beats_book_in_two_lists_by_partial_match(
+    session: Session,
+) -> None:
+    # "Claro Enigma" casa só com "memória" (texto) e lidera o vetor: duas listas.
+    # Só "Dom Casmurro" tem todos os termos; a correspondência estrita precisa compensar.
+    resultados = buscar_livros(session, "memória ciúme", EncoderPoemas())
+    assert _titulos(resultados)[0] == "Dom Casmurro"
+
+
+def test_negated_term_does_not_widen_the_or_text_list(session: Session) -> None:
+    # "-ciúme" vira `!ciúm` e, com E trocado por OU, casaria com quase todos os livros.
+    ids = ranking_texto(session, "memória -ciúme")
+    titulos = set(session.scalars(select(Livro.titulo).where(Livro.id.in_(ids))))
+    assert titulos == {"Dom Casmurro", "Claro Enigma"}  # só quem tem "memória"
+
+
+class EncoderCasmurro:
+    """Puxa toda consulta para "Dom Casmurro": só a lista de autor leva outro livro ao topo."""
+
+    def encode(self, textos: list[str]) -> list[list[float]]:
+        return HashEncoder().encode(["Bentinho duvida da fidelidade de Capitu" for _ in textos])
+
+
+def test_author_list_works_when_query_has_extra_words(session: Session) -> None:
+    resultados = buscar_livros(session, "obras de Mia Couto", EncoderCasmurro())
+    assert _titulos(resultados)[0] == "O Gato e o Escuro"
 
 
 def test_text_search_ignores_tsquery_syntax_in_user_text(session: Session) -> None:

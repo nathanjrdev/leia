@@ -57,7 +57,11 @@ def _nfc(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def _existente(session: Session, item: dict[str, Any]) -> Livro | None:
-    """Livro já carregado com o mesmo título e o mesmo autor principal."""
+    """Livro já carregado: pelo ISBN (sobrevive a renomear o título) ou por título + autor."""
+    if item.get("isbn"):
+        por_isbn = session.scalars(select(Livro).where(Livro.isbn == item["isbn"])).first()
+        if por_isbn is not None:
+            return por_isbn
     return session.scalars(
         select(Livro)
         .join(Livro.autores)
@@ -93,25 +97,61 @@ def carregar_catalogo(session: Session, livros: list[dict[str, Any]], *, seed: i
     return novos
 
 
-def atualizar_sinopses(session: Session, livros: list[dict[str, Any]]) -> int:
-    """Aplica sinopses revisadas a livros já carregados e invalida o embedding deles.
+_CAMPOS_SIMPLES = ("isbn", "sinopse", "sinopse_fonte", "ano", "editora", "paginas", "capa_url")
 
-    O vetor é apagado para que `gerar_embeddings` o recalcule com o texto novo.
-    Devolve quantos livros mudaram.
+
+def atualizar_livros(session: Session, livros: list[dict[str, Any]]) -> int:
+    """Propaga edições do catálogo para livros já carregados. Devolve quantos mudaram.
+
+    O livro é achado pelo ISBN ou por título + autor principal. Livros que não estão no banco
+    são ignorados (quem insere é `carregar_catalogo`). O embedding é apagado só quando muda algo
+    que entra no documento (título, autores, categorias, sinopse), para que `gerar_embeddings`
+    o recalcule; ano, editora, capa etc. não mexem no vetor.
     """
     mudados = 0
     for item in map(_nfc, livros):
         livro = _existente(session, item)
         if livro is None:
             continue
-        novo = (item["sinopse"], item.get("sinopse_fonte"))
-        if (livro.sinopse, livro.sinopse_fonte) == novo:
-            continue
-        livro.sinopse, livro.sinopse_fonte = novo
-        session.execute(delete(LivroEmbedding).where(LivroEmbedding.livro_id == livro.id))
-        mudados += 1
+        mudou_texto = livro.titulo != item["titulo"]
+        mudou = mudou_texto
+        livro.titulo = item["titulo"]
+        for campo in _CAMPOS_SIMPLES:
+            novo = item.get(campo)
+            if getattr(livro, campo) != novo:
+                mudou = True
+                mudou_texto = mudou_texto or campo == "sinopse"
+                setattr(livro, campo, novo)
+        # A ordem dos autores não é persistida (tabela de associação), então compara como conjunto.
+        if {a.nome for a in livro.autores} != set(item["autores"]):
+            livro.autores = [_autor(session, nome) for nome in item["autores"]]
+            mudou = mudou_texto = True
+        categorias = item.get("categorias", [])
+        if sorted(c.slug for c in livro.categorias) != sorted(_slug(n) for n in categorias):
+            livro.categorias = [_categoria(session, nome) for nome in categorias]
+            mudou = mudou_texto = True
+        if mudou_texto:
+            session.execute(delete(LivroEmbedding).where(LivroEmbedding.livro_id == livro.id))
+        mudados += mudou
     session.flush()
     return mudados
+
+
+def livros_fora_do_catalogo(session: Session, livros: list[dict[str, Any]]) -> list[str]:
+    """Livros do banco que não aparecem no catálogo ("título | autor"), para revisão manual.
+
+    Nunca apaga: exemplares podem ter locações e histórico. Aparecer aqui costuma ser um livro
+    removido de propósito ou um título editado sem ISBN (que duplicaria o livro). O autor mostrado
+    é o primeiro que o banco devolve, pois a ordem dos autores não é persistida.
+    """
+    ids_no_catalogo = {
+        livro.id for item in map(_nfc, livros) if (livro := _existente(session, item)) is not None
+    }
+    return [
+        f"{livro.titulo} | {livro.autores[0].nome if livro.autores else '?'}"
+        for livro in session.scalars(select(Livro).order_by(Livro.id))
+        if livro.id not in ids_no_catalogo
+    ]
 
 
 def carregar_catalogo_json(session: Session, caminho: Path = CATALOGO_PADRAO) -> int:

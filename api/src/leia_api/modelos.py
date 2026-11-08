@@ -6,7 +6,7 @@ São o único ponto que baixa e carrega modelos; o resto do código recebe `Enco
 
 from collections.abc import Sequence
 
-from leia_api.embeddings import MODELO_PADRAO
+from leia_api.embeddings import MAX_TOKENS_ENCODER, MODELO_PADRAO
 
 MODELO_RERANKER = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
@@ -16,6 +16,7 @@ class EncoderST:
         from sentence_transformers import SentenceTransformer
 
         self._modelo = SentenceTransformer(modelo)
+        self._modelo.max_seq_length = MAX_TOKENS_ENCODER
 
     def encode(self, textos: list[str]) -> list[list[float]]:
         vetores = self._modelo.encode(textos, normalize_embeddings=True)
