@@ -12,7 +12,6 @@ dependencies = [
     "fastapi>=0.162.2",
     "langgraph>=1.2.20",
     "litellm>=1.108.3",
-    "mcp>=2.3.0",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.8",
     "pydantic-settings>=2.16.2",
