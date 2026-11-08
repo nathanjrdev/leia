@@ -6,22 +6,22 @@
       "titulo": {
         "n": 12,
         "recall@5": 1.0,
-        "ndcg@10": 1.0
+        "ndcg@10": 0.958
       },
       "autor": {
         "n": 8,
         "recall@5": 1.0,
-        "ndcg@10": 0.998
+        "ndcg@10": 0.993
       },
       "intencao": {
-        "n": 30,
-        "recall@5": 0.7,
-        "ndcg@10": 0.608
+        "n": 31,
+        "recall@5": 0.935,
+        "ndcg@10": 0.865
       },
       "geral": {
-        "n": 50,
-        "recall@5": 0.82,
-        "ndcg@10": 0.764
+        "n": 51,
+        "recall@5": 0.961,
+        "ndcg@10": 0.907
       }
     },
     "casos": [
@@ -32,10 +32,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Dom Casmurro",
-          "Esau e Jacó",
           "Capitu",
+          "Casa velha",
           "Amor de Perdição",
-          "Pontos de fuga"
+          "Leite derramado"
         ],
         "esperados": [
           "Dom Casmurro"
@@ -48,10 +48,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Torto Arado",
-          "Tieta Do Agreste",
-          "Suor",
-          "Fogo Morto",
-          "Riacho Doce"
+          "Grande sertão",
+          "O Poço do Visconde",
+          "Cacau",
+          "Capitães da Areia"
         ],
         "esperados": [
           "Torto Arado"
@@ -64,10 +64,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Vidas secas",
-          "Desvio",
-          "Angústia",
-          "As Intermitências da Morte",
-          "Cartas de amor a Heloisa"
+          "A Vida Nao e Util",
+          "Um alpendre, uma rede, um açude",
+          "Cidades mortas",
+          "Adultério"
         ],
         "esperados": [
           "Vidas secas"
@@ -80,10 +80,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Macunaíma",
-          "Riacho Doce",
-          "Pontos de fuga",
-          "O continente vol. 1",
-          "Torto Arado"
+          "Mar Morto",
+          "Triste fim de Policarpo Quaresma",
+          "O ermitão de Muquém",
+          "Os sertões"
         ],
         "esperados": [
           "Macunaíma"
@@ -96,10 +96,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Auto da Compadecida",
+          "Ensaio Sobre a Cegueira",
+          "Bufo & Spallanzani",
           "Desvio",
-          "Cafute & Pena-de-Prata",
-          "Suor",
-          "Ensaio Sobre a Cegueira"
+          "Incidente em Antares"
         ],
         "esperados": [
           "Auto da Compadecida"
@@ -112,10 +112,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O Alquimista",
-          "Castro Alves",
-          "Durante aquele estranho chá",
-          "Ideias para Adiar o Fim do Mundo",
-          "Um alpendre, uma rede, um açude"
+          "O Alienista",
+          "O diário de um mago",
+          "O Zahir",
+          "São Bernardo"
         ],
         "esperados": [
           "O Alquimista"
@@ -128,10 +128,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ensaio Sobre a Cegueira",
-          "O gato e o escuro",
-          "Futuro ancestral",
+          "A Vida Nao e Util",
+          "O banquete dos deuses",
           "Ideias para Adiar o Fim do Mundo",
-          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1"
+          "O gato e o escuro"
         ],
         "esperados": [
           "Ensaio Sobre a Cegueira"
@@ -144,10 +144,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Capitães da Areia",
-          "Cafute & Pena-de-Prata",
-          "Mar Morto",
-          "Vidas secas",
-          "Desvio"
+          "As aventuras do avião vermelho",
+          "Fogo Morto",
+          "O continente vol. 1",
+          "O tempo e o vento"
         ],
         "esperados": [
           "Capitães da Areia"
@@ -160,10 +160,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O guarani",
-          "Riacho Doce",
-          "O ermitão de Muquém",
+          "O ermitão de Muquém",
           "Ubirajara",
-          "O banquete dos deuses"
+          "Grande sertão",
+          "Campo Geral"
         ],
         "esperados": [
           "O guarani"
@@ -175,11 +175,11 @@
         "consulta": "Os Sertões",
         "primeira_relevante": 1,
         "top5": [
-          "Os sertões",
-          "Futuro ancestral",
+          "Os sertões",
+          "O ermitão de Muquém",
           "Euclides da Cunha",
           "A hora do diabo",
-          "A Fada Oriana"
+          "Ontem Não Te Vi Em Babilónia"
         ],
         "esperados": [
           "Os sertões"
@@ -192,10 +192,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Memórias póstumas de Brás Cubas",
-          "O navio negreiro",
-          "Recordações do escrivão Isaías Caminha",
-          "Os escravos",
-          "Lima Barreto socialista"
+          "Memórias do cárcere",
+          "Leite derramado",
+          "As pequenas memórias",
+          "Memórias de um Sargento de Milícias"
         ],
         "esperados": [
           "Memórias póstumas de Brás Cubas"
@@ -205,13 +205,13 @@
         "id": "t12",
         "tipo": "titulo",
         "consulta": "Livro do Desassossego",
-        "primeira_relevante": 1,
+        "primeira_relevante": 3,
         "top5": [
+          "Flicts",
+          "Uma aprendizagem",
           "Livro do Desassossego",
-          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
-          "Ideias para Adiar o Fim do Mundo",
-          "Futuro ancestral",
-          "Vidas secas"
+          "Claro enigma",
+          "Felicidade clandestina"
         ],
         "esperados": [
           "Livro do Desassossego"
@@ -224,10 +224,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Uma aprendizagem",
-          "Um sopro de vida",
           "Todos os contos",
-          "Água viva",
-          "Durante aquele estranho chá"
+          "Um sopro de vida",
+          "Felicidade clandestina",
+          "Durante aquele estranho chá"
         ],
         "esperados": [
           "(autor) Clarice Lispector"
@@ -239,11 +239,11 @@
         "consulta": "Saramago",
         "primeira_relevante": 1,
         "top5": [
-          "O ano da morte de Ricardo Reis",
-          "Caim",
-          "As pequenas memórias",
+          "Memorial do Convento",
           "Ensaio Sobre a Cegueira",
-          "O evangelho segundo Jesus Cristo"
+          "As Intermitências da Morte",
+          "O ano da morte de Ricardo Reis",
+          "As pequenas memórias"
         ],
         "esperados": [
           "(autor) José Saramago"
@@ -255,10 +255,10 @@
         "consulta": "Jorge Amado",
         "primeira_relevante": 1,
         "top5": [
+          "Capitães da Areia",
+          "Tenda dos milagres",
           "Mar Morto",
           "Suor",
-          "Seara vermelha",
-          "Capitães da Areia",
           "A morte e a morte de Quincas Berro D'água"
         ],
         "esperados": [
@@ -271,11 +271,11 @@
         "consulta": "Ailton Krenak",
         "primeira_relevante": 1,
         "top5": [
-          "A Vida Nao e Util",
-          "Ideias para Adiar o Fim do Mundo",
           "Futuro ancestral",
+          "Ideias para Adiar o Fim do Mundo",
+          "A Vida Nao e Util",
           "Sabedoria das águas",
-          "A Fada Oriana"
+          "Ontem Não Te Vi Em Babilónia"
         ],
         "esperados": [
           "(autor) Ailton Krenak"
@@ -287,11 +287,11 @@
         "consulta": "Paulo Coelho",
         "primeira_relevante": 1,
         "top5": [
-          "Manual do guerreiro da luz",
           "O Alquimista",
-          "Veronika decide morrer",
+          "O diário de um mago",
+          "Manual do guerreiro da luz",
           "Onze minutos",
-          "O diário de um mago"
+          "Adultério"
         ],
         "esperados": [
           "(autor) Paulo Coelho"
@@ -304,10 +304,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Reinações de Narizinho",
-          "Viagem ao céu",
-          "Cidades mortas",
           "Urupês",
-          "A menina do narizinho arrebitado"
+          "Cidades mortas",
+          "A menina do narizinho arrebitado",
+          "O Poço do Visconde"
         ],
         "esperados": [
           "(autor) Monteiro Lobato"
@@ -319,11 +319,11 @@
         "consulta": "Machado de Assis",
         "primeira_relevante": 1,
         "top5": [
-          "Memórias póstumas de Brás Cubas",
           "Dom Casmurro",
           "Quincas Borba",
-          "Esau e Jacó",
-          "Casa velha"
+          "Casa velha",
+          "O Alienista",
+          "A mão e a luva"
         ],
         "esperados": [
           "(autor) Machado de Assis"
@@ -337,9 +337,9 @@
         "top5": [
           "Leite derramado",
           "Benjamim",
+          "Auto da Compadecida",
           "Chapeuzinho Amarelo",
-          "Tieta Do Agreste",
-          "O analista de Bagé"
+          "Quincas Borba"
         ],
         "esperados": [
           "(autor) Chico Buarque"
@@ -351,11 +351,11 @@
         "consulta": "um romance sobre ciúme e traição",
         "primeira_relevante": null,
         "top5": [
-          "Amor de Perdição",
-          "Vidas secas",
-          "Cafute & Pena-de-Prata",
-          "O avesso da pele",
-          "As horas nuas"
+          "Adultério",
+          "A sereia",
+          "Diva",
+          "Esau e Jacó",
+          "Bufo & Spallanzani"
         ],
         "esperados": [
           "Dom Casmurro"
@@ -365,13 +365,13 @@
         "id": "i02",
         "tipo": "intencao",
         "consulta": "retirantes fugindo da seca no sertão",
-        "primeira_relevante": 4,
+        "primeira_relevante": 1,
         "top5": [
-          "Ideias para Adiar o Fim do Mundo",
-          "Tieta Do Agreste",
-          "Ensaio Sobre a Cegueira",
           "Vidas secas",
-          "Torto Arado"
+          "Seara vermelha",
+          "Os sertões",
+          "Capitães da Areia",
+          "Grande sertão"
         ],
         "esperados": [
           "Vidas secas"
@@ -381,13 +381,13 @@
         "id": "i03",
         "tipo": "intencao",
         "consulta": "peça de teatro cômica ambientada no Nordeste",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Vidas secas",
-          "As horas nuas",
-          "Cafute & Pena-de-Prata",
-          "Ideias para Adiar o Fim do Mundo",
-          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1"
+          "Auto da Compadecida",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
+          "Suor",
+          "O analista de Bagé",
+          "Cidades mortas"
         ],
         "esperados": [
           "Auto da Compadecida"
@@ -400,10 +400,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util",
+          "O banquete dos deuses",
+          "Sabedoria das águas",
           "Futuro ancestral",
-          "As Intermitências da Morte",
-          "Ensaio Sobre a Cegueira"
+          "Sentimento do mundo"
         ],
         "esperados": [
           "Ideias para Adiar o Fim do Mundo",
@@ -418,10 +418,10 @@
         "primeira_relevante": 1,
         "top5": [
           "A escrava Isaura",
-          "O avesso da pele",
+          "Lima Barreto socialista",
+          "Seara vermelha",
           "Recordações do escrivão Isaías Caminha",
-          "O amigo do rei",
-          "O continente vol. 1"
+          "Tenda dos milagres"
         ],
         "esperados": [
           "A escrava Isaura",
@@ -436,10 +436,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ensaio Sobre a Cegueira",
-          "A Vida Nao e Util",
-          "Ideias para Adiar o Fim do Mundo",
-          "As Intermitências da Morte",
-          "O gato e o escuro"
+          "Sonhos tropicais",
+          "O judeu",
+          "A bruxa de Monte Córdova",
+          "A Vida Nao e Util"
         ],
         "esperados": [
           "Ensaio Sobre a Cegueira"
@@ -452,10 +452,10 @@
         "primeira_relevante": 1,
         "top5": [
           "As Intermitências da Morte",
-          "Ensaio Sobre a Cegueira",
-          "Ideias para Adiar o Fim do Mundo",
-          "Cidades mortas",
-          "A Vida Nao e Util"
+          "Veronika decide morrer",
+          "Incidente em Antares",
+          "O ano da morte de Ricardo Reis",
+          "A morte e a morte de Quincas Berro D'água"
         ],
         "esperados": [
           "As Intermitências da Morte"
@@ -468,10 +468,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O filho eterno",
-          "O amigo do rei",
-          "Ensaio Sobre a Cegueira",
-          "O menino maluquinho",
-          "As Melhores Tiradas do Menino Maluquinho"
+          "O avesso da pele",
+          "O tronco do ipê",
+          "Leite derramado",
+          "Campo Geral"
         ],
         "esperados": [
           "O filho eterno"
@@ -481,13 +481,13 @@
         "id": "i09",
         "tipo": "intencao",
         "consulta": "memórias de um escritor preso pela ditadura de Vargas",
-        "primeira_relevante": 2,
+        "primeira_relevante": 1,
         "top5": [
-          "Recordações do escrivão Isaías Caminha",
           "Memórias do cárcere",
-          "Os escravos",
+          "Segundo livro de crónicas",
+          "Livro de crónicas",
           "Pontos de fuga",
-          "Suor"
+          "Sentimento do mundo"
         ],
         "esperados": [
           "Memórias do cárcere"
@@ -500,10 +500,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Macunaíma",
-          "A Fada Oriana",
+          "Sabedoria das águas",
           "Ideias para Adiar o Fim do Mundo",
-          "Vidas secas",
-          "O Tempo do Cão"
+          "O filho eterno",
+          "A Fada Oriana"
         ],
         "esperados": [
           "Macunaíma"
@@ -513,13 +513,13 @@
         "id": "i11",
         "tipo": "intencao",
         "consulta": "um pastor que busca um tesouro perto das pirâmides",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
+          "O Alquimista",
+          "Casa velha",
+          "O evangelho segundo Jesus Cristo",
           "Tieta Do Agreste",
-          "Memorial do Convento",
-          "Ideias para Adiar o Fim do Mundo",
-          "A hora do diabo",
-          "Sabedoria das águas"
+          "O Zahir"
         ],
         "esperados": [
           "O Alquimista"
@@ -529,13 +529,13 @@
         "id": "i12",
         "tipo": "intencao",
         "consulta": "a guerra de Canudos no sertão da Bahia",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
+          "Os sertões",
+          "Grande sertão",
+          "O tempo e o vento",
           "Guerra dos mascates",
-          "O continente vol. 1",
-          "Cacau",
-          "Torto Arado",
-          "Triste fim de Policarpo Quaresma"
+          "Ubirajara"
         ],
         "esperados": [
           "Os sertões"
@@ -548,10 +548,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Torto Arado",
-          "Tieta Do Agreste",
-          "O amigo do rei",
-          "Cafute & Pena-de-Prata",
-          "Um alpendre, uma rede, um açude"
+          "A escrava Isaura",
+          "A cachoeira de Paulo Affonso",
+          "Seara vermelha",
+          "Vidas secas"
         ],
         "esperados": [
           "Torto Arado"
@@ -564,10 +564,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Capitães da Areia",
-          "Torto Arado",
-          "O avesso da pele",
-          "Pontos de fuga",
-          "O amigo do rei"
+          "Mar Morto",
+          "Vidas secas",
+          "Campo Geral",
+          "Til"
         ],
         "esperados": [
           "Capitães da Areia"
@@ -580,10 +580,10 @@
         "primeira_relevante": 1,
         "top5": [
           "A Fada Oriana",
-          "Menina bonita do laço de fita",
-          "O gato e o escuro",
-          "A árvore",
-          "O Tempo do Cão"
+          "Sabedoria das águas",
+          "A menina do narizinho arrebitado",
+          "Ideias para Adiar o Fim do Mundo",
+          "Cafute & Pena-de-Prata"
         ],
         "esperados": [
           "A Fada Oriana"
@@ -596,10 +596,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Menina bonita do laço de fita",
-          "A Fada Oriana",
-          "Cafute & Pena-de-Prata",
-          "Torto Arado",
-          "Tieta Do Agreste"
+          "O amigo do rei",
+          "Felicidade clandestina",
+          "Clara dos Anjos",
+          "Torto Arado"
         ],
         "esperados": [
           "Menina bonita do laço de fita"
@@ -609,13 +609,13 @@
         "id": "i17",
         "tipo": "intencao",
         "consulta": "gatinho com medo da noite",
-        "primeira_relevante": 1,
+        "primeira_relevante": 2,
         "top5": [
+          "Chapeuzinho Amarelo",
           "O gato e o escuro",
-          "O Tempo do Cão",
-          "Desvio",
-          "A Fada Oriana",
-          "Ensaio Sobre a Cegueira"
+          "Max e os Felinos",
+          "Ontem Não Te Vi Em Babilónia",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1"
         ],
         "esperados": [
           "O gato e o escuro"
@@ -625,13 +625,13 @@
         "id": "i18",
         "tipo": "intencao",
         "consulta": "jovem apaixonado num amor proibido que acaba em tragédia",
-        "primeira_relevante": 1,
+        "primeira_relevante": 2,
         "top5": [
+          "Declaracao de Amor",
           "Amor de Perdição",
-          "O filho eterno",
-          "Vidas secas",
-          "Cafute & Pena-de-Prata",
-          "Eu Hei-de Amar Uma Pedra"
+          "Cartas de amor a Heloisa",
+          "Onze minutos",
+          "O ermitão de Muquém"
         ],
         "esperados": [
           "Amor de Perdição"
@@ -644,10 +644,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Memorial do Convento",
-          "A hora do diabo",
-          "Tieta Do Agreste",
-          "Eu Hei-de Amar Uma Pedra",
-          "Amor de Perdição"
+          "O amigo do rei",
+          "O Cavaleiro da Dinamarca",
+          "Amor de Perdição",
+          "Memórias de um Sargento de Milícias"
         ],
         "esperados": [
           "Memorial do Convento"
@@ -661,8 +661,8 @@
         "top5": [
           "Riacho Doce",
           "Tieta Do Agreste",
-          "Eu Hei-de Amar Uma Pedra",
-          "Torto Arado",
+          "Angústia",
+          "A moreninha",
           "Amor de Perdição"
         ],
         "esperados": [
@@ -676,10 +676,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O analista de Bagé",
-          "O gato e o escuro",
-          "A Fada Oriana",
-          "O avesso da pele",
-          "A hora do diabo"
+          "O tempo e o vento",
+          "O Alienista",
+          "O continente vol. 1",
+          "O Alquimista"
         ],
         "esperados": [
           "O analista de Bagé"
@@ -692,10 +692,10 @@
         "primeira_relevante": 1,
         "top5": [
           "A hora do diabo",
-          "Menina bonita do laço de fita",
-          "Tieta Do Agreste",
-          "Amor de Perdição",
-          "O analista de Bagé"
+          "Felicidade clandestina",
+          "Clara dos Anjos",
+          "Auto da Compadecida",
+          "Mar Morto"
         ],
         "esperados": [
           "A hora do diabo"
@@ -705,13 +705,13 @@
         "id": "i23",
         "tipo": "intencao",
         "consulta": "diário de um ajudante de guarda-livros em Lisboa",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Eu Hei-de Amar Uma Pedra",
-          "Suor",
-          "Mensagem",
-          "A mão e a luva",
-          "Pontos de fuga"
+          "Livro do Desassossego",
+          "Segundo livro de crónicas",
+          "Livro de crónicas",
+          "Onze minutos",
+          "Diário do farol"
         ],
         "esperados": [
           "Livro do Desassossego"
@@ -721,12 +721,12 @@
         "id": "i24",
         "tipo": "intencao",
         "consulta": "malandro no Rio de Janeiro do tempo do rei",
-        "primeira_relevante": null,
+        "primeira_relevante": 2,
         "top5": [
-          "Pontos de fuga",
-          "O avesso da pele",
-          "O continente vol. 1",
-          "Lima Barreto socialista",
+          "O guarani",
+          "Memórias de um Sargento de Milícias",
+          "Memórias póstumas de Brás Cubas",
+          "Recordações do escrivão Isaías Caminha",
           "Triste fim de Policarpo Quaresma"
         ],
         "esperados": [
@@ -737,13 +737,13 @@
         "id": "i25",
         "tipo": "intencao",
         "consulta": "um patriota ingênuo que quer reformar o país",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util",
-          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
+          "Triste fim de Policarpo Quaresma",
+          "As Intermitências da Morte",
+          "Niketche",
           "Ensaio Sobre a Cegueira",
-          "Serafim Ponte Grande"
+          "Clara dos Anjos"
         ],
         "esperados": [
           "Triste fim de Policarpo Quaresma"
@@ -755,11 +755,11 @@
         "consulta": "contos sobre a vida de mulheres negras",
         "primeira_relevante": 1,
         "top5": [
+          "Ponciá Vicêncio",
           "Olhos D'Água",
-          "Menina bonita do laço de fita",
-          "Torto Arado",
-          "Recordações do escrivão Isaías Caminha",
-          "Vidas secas"
+          "Felicidade clandestina",
+          "Clara dos Anjos",
+          "A casa dos budas ditosos"
         ],
         "esperados": [
           "Olhos D'Água",
@@ -770,13 +770,13 @@
         "id": "i27",
         "tipo": "intencao",
         "consulta": "poligamia e mulheres em Moçambique",
-        "primeira_relevante": 2,
+        "primeira_relevante": 1,
         "top5": [
-          "Torto Arado",
           "Niketche",
-          "Olhos D'Água",
-          "Tieta Do Agreste",
-          "O amigo do rei"
+          "Ponciá Vicêncio",
+          "Mar Morto",
+          "A casa dos budas ditosos",
+          "Torto Arado"
         ],
         "esperados": [
           "Niketche"
@@ -786,13 +786,13 @@
         "id": "i28",
         "tipo": "intencao",
         "consulta": "boneca Emília e o Sítio do Picapau Amarelo",
-        "primeira_relevante": 3,
+        "primeira_relevante": 1,
         "top5": [
-          "A Fada Oriana",
-          "Menina bonita do laço de fita",
+          "Aritmética da Emília",
           "A menina do narizinho arrebitado",
-          "Torto Arado",
-          "O gato e o escuro"
+          "Chapeuzinho Amarelo",
+          "Viagem ao céu",
+          "O Minotauro"
         ],
         "esperados": [
           "Reinações de Narizinho",
@@ -806,13 +806,13 @@
         "id": "i29",
         "tipo": "intencao",
         "consulta": "mortos que se levantam porque os coveiros entraram em greve",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
+          "Incidente em Antares",
           "As Intermitências da Morte",
-          "Ensaio Sobre a Cegueira",
-          "Cidades mortas",
-          "Ideias para Adiar o Fim do Mundo",
-          "Suor"
+          "A morte e a morte de Quincas Berro D'água",
+          "Urupês",
+          "Cidades mortas"
         ],
         "esperados": [
           "Incidente em Antares"
@@ -822,17 +822,33 @@
         "id": "i30",
         "tipo": "intencao",
         "consulta": "saga de famílias gaúchas ao longo de dois séculos",
-        "primeira_relevante": null,
+        "primeira_relevante": 3,
         "top5": [
-          "Ideias para Adiar o Fim do Mundo",
-          "Torto Arado",
-          "O amigo do rei",
-          "Vidas secas",
-          "Cafute & Pena-de-Prata"
+          "Seara vermelha",
+          "Casa velha",
+          "O continente vol. 1",
+          "O tronco do ipê",
+          "Eu Hei-de Amar Uma Pedra"
         ],
         "esperados": [
           "O tempo e o vento",
           "O continente vol. 1"
+        ]
+      },
+      {
+        "id": "i31",
+        "tipo": "intencao",
+        "consulta": "romance irônico que critica o positivismo e o cientificismo",
+        "primeira_relevante": null,
+        "top5": [
+          "Guerra dos mascates",
+          "Segundo livro de crónicas",
+          "Tenda dos milagres",
+          "A Vida Nao e Util",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1"
+        ],
+        "esperados": [
+          "Quincas Borba"
         ]
       }
     ]
@@ -847,17 +863,17 @@
       "autor": {
         "n": 8,
         "recall@5": 1.0,
-        "ndcg@10": 0.999
+        "ndcg@10": 0.995
       },
       "intencao": {
-        "n": 30,
-        "recall@5": 0.733,
-        "ndcg@10": 0.675
+        "n": 31,
+        "recall@5": 0.935,
+        "ndcg@10": 0.94
       },
       "geral": {
-        "n": 50,
-        "recall@5": 0.84,
-        "ndcg@10": 0.805
+        "n": 51,
+        "recall@5": 0.961,
+        "ndcg@10": 0.962
       }
     },
     "casos": [
@@ -869,9 +885,9 @@
         "top5": [
           "Dom Casmurro",
           "Capitu",
-          "Esau e Jacó",
           "Casa velha",
-          "Pontos de fuga"
+          "Leite derramado",
+          "São Bernardo"
         ],
         "esperados": [
           "Dom Casmurro"
@@ -884,10 +900,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Torto Arado",
-          "O avesso da pele",
           "Seara vermelha",
-          "Til",
-          "Suor"
+          "Fogo Morto",
+          "Suor",
+          "Tieta Do Agreste"
         ],
         "esperados": [
           "Torto Arado"
@@ -900,10 +916,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Vidas secas",
-          "Um sopro de vida",
-          "Angústia",
-          "As horas nuas",
-          "Água viva"
+          "A Vida Nao e Util",
+          "Cidades mortas",
+          "Estrela da vida inteira",
+          "As horas nuas"
         ],
         "esperados": [
           "Vidas secas"
@@ -916,10 +932,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Macunaíma",
-          "Senhora",
-          "O avesso da pele",
-          "Suor",
-          "Til"
+          "Campo Geral",
+          "O Minotauro",
+          "Lusbela",
+          "Seara vermelha"
         ],
         "esperados": [
           "Macunaíma"
@@ -932,10 +948,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Auto da Compadecida",
-          "O avesso da pele",
-          "Torto Arado",
-          "Suor",
-          "O Poço do Visconde"
+          "Desvio",
+          "O Alienista",
+          "A casa dos budas ditosos",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1"
         ],
         "esperados": [
           "Auto da Compadecida"
@@ -950,8 +966,8 @@
           "O Alquimista",
           "O Alienista",
           "O diário de um mago",
-          "Garranchos",
-          "Bangüê"
+          "O Zahir",
+          "Bangüê"
         ],
         "esperados": [
           "O Alquimista"
@@ -964,10 +980,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ensaio Sobre a Cegueira",
-          "Livro do Desassossego",
-          "Olhos D'Água",
-          "O avesso da pele",
-          "Amar, Verbo Intransitivo"
+          "Vidas secas",
+          "Campo Geral",
+          "Diário do farol",
+          "O Tempo do Cão"
         ],
         "esperados": [
           "Ensaio Sobre a Cegueira"
@@ -980,10 +996,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Capitães da Areia",
-          "Torto Arado",
-          "Cafute & Pena-de-Prata",
           "Seara vermelha",
-          "Tieta Do Agreste"
+          "As aventuras do avião vermelho",
+          "Auto da Compadecida",
+          "Fogo Morto"
         ],
         "esperados": [
           "Capitães da Areia"
@@ -996,10 +1012,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O guarani",
-          "O navio negreiro",
           "Ubirajara",
-          "O ermitão de Muquém",
-          "Senhora"
+          "Campo Geral",
+          "O Clube dos Anjos",
+          "Macunaíma"
         ],
         "esperados": [
           "O guarani"
@@ -1011,11 +1027,11 @@
         "consulta": "Os Sertões",
         "primeira_relevante": 1,
         "top5": [
-          "Os sertões",
+          "Os sertões",
           "Euclides da Cunha",
           "O Clube dos Anjos",
-          "Vidas secas",
-          "O avesso da pele"
+          "Legião Estrangeira",
+          "O diário de um mago"
         ],
         "esperados": [
           "Os sertões"
@@ -1028,10 +1044,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Memórias póstumas de Brás Cubas",
+          "Memórias do cárcere",
           "Memórias de um Sargento de Milícias",
-          "Vidas secas",
-          "Lima Barreto socialista",
-          "O avesso da pele"
+          "Leite derramado",
+          "Coração, cabeça e estômago"
         ],
         "esperados": [
           "Memórias póstumas de Brás Cubas"
@@ -1044,10 +1060,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Livro do Desassossego",
-          "O avesso da pele",
-          "Vidas secas",
+          "Uma aprendizagem",
+          "Flicts",
           "Suor",
-          "Pontos de fuga"
+          "Vidas secas"
         ],
         "esperados": [
           "Livro do Desassossego"
@@ -1059,10 +1075,10 @@
         "consulta": "livros de Clarice Lispector",
         "primeira_relevante": 1,
         "top5": [
-          "Água viva",
-          "Uma aprendizagem",
           "Todos os contos",
-          "Legião Estrangeira",
+          "Uma aprendizagem",
+          "Água viva",
+          "Felicidade clandestina",
           "Um sopro de vida"
         ],
         "esperados": [
@@ -1075,11 +1091,11 @@
         "consulta": "Saramago",
         "primeira_relevante": 1,
         "top5": [
-          "O evangelho segundo Jesus Cristo",
-          "Caim",
+          "Ensaio Sobre a Cegueira",
           "As pequenas memórias",
-          "O ano da morte de Ricardo Reis",
-          "Ensaio Sobre a Cegueira"
+          "Memorial do Convento",
+          "As Intermitências da Morte",
+          "Caim"
         ],
         "esperados": [
           "(autor) José Saramago"
@@ -1091,11 +1107,11 @@
         "consulta": "Jorge Amado",
         "primeira_relevante": 1,
         "top5": [
-          "Tenda dos milagres",
           "Capitães da Areia",
           "Suor",
-          "Seara vermelha",
-          "A morte e a morte de Quincas Berro D'água"
+          "Mar Morto",
+          "Tenda dos milagres",
+          "Seara vermelha"
         ],
         "esperados": [
           "(autor) Jorge Amado"
@@ -1107,11 +1123,11 @@
         "consulta": "Ailton Krenak",
         "primeira_relevante": 1,
         "top5": [
-          "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util",
           "Futuro ancestral",
-          "Garranchos",
-          "O avesso da pele"
+          "A Vida Nao e Util",
+          "Ideias para Adiar o Fim do Mundo",
+          "Claro enigma",
+          "Flicts"
         ],
         "esperados": [
           "(autor) Ailton Krenak"
@@ -1123,11 +1139,11 @@
         "consulta": "Paulo Coelho",
         "primeira_relevante": 1,
         "top5": [
-          "Adultério",
+          "O diário de um mago",
           "Manual do guerreiro da luz",
+          "O Alquimista",
           "Onze minutos",
-          "O Zahir",
-          "O diário de um mago"
+          "Adultério"
         ],
         "esperados": [
           "(autor) Paulo Coelho"
@@ -1140,9 +1156,9 @@
         "primeira_relevante": 1,
         "top5": [
           "Urupês",
-          "A menina do narizinho arrebitado",
+          "Cidades mortas",
           "Reinações de Narizinho",
-          "O Minotauro",
+          "A menina do narizinho arrebitado",
           "Viagem ao céu"
         ],
         "esperados": [
@@ -1155,11 +1171,11 @@
         "consulta": "Machado de Assis",
         "primeira_relevante": 1,
         "top5": [
-          "Esau e Jacó",
-          "A mão e a luva",
-          "O Alienista",
           "Dom Casmurro",
-          "Casa velha"
+          "Casa velha",
+          "Quincas Borba",
+          "O Alienista",
+          "A mão e a luva"
         ],
         "esperados": [
           "(autor) Machado de Assis"
@@ -1171,11 +1187,11 @@
         "consulta": "o que tem do Chico Buarque",
         "primeira_relevante": 1,
         "top5": [
-          "Benjamim",
-          "Chapeuzinho Amarelo",
           "Leite derramado",
-          "Lima Barreto socialista",
-          "Senhora"
+          "Benjamim",
+          "Auto da Compadecida",
+          "Chapeuzinho Amarelo",
+          "Recordações do escrivão Isaías Caminha"
         ],
         "esperados": [
           "(autor) Chico Buarque"
@@ -1185,13 +1201,13 @@
         "id": "i01",
         "tipo": "intencao",
         "consulta": "um romance sobre ciúme e traição",
-        "primeira_relevante": null,
+        "primeira_relevante": 7,
         "top5": [
-          "Cafute & Pena-de-Prata",
-          "O avesso da pele",
-          "Amar, Verbo Intransitivo",
-          "Torto Arado",
-          "Amor de Perdição"
+          "Adultério",
+          "Diva",
+          "Esau e Jacó",
+          "Angústia",
+          "Capitu"
         ],
         "esperados": [
           "Dom Casmurro"
@@ -1204,10 +1220,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Vidas secas",
-          "Tieta Do Agreste",
-          "Torto Arado",
+          "Seara vermelha",
           "Capitães da Areia",
-          "Pontos de fuga"
+          "Tieta Do Agreste",
+          "Os sertões"
         ],
         "esperados": [
           "Vidas secas"
@@ -1217,13 +1233,13 @@
         "id": "i03",
         "tipo": "intencao",
         "consulta": "peça de teatro cômica ambientada no Nordeste",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Torto Arado",
-          "Cafute & Pena-de-Prata",
-          "Desvio",
-          "Vidas secas",
-          "O avesso da pele"
+          "Auto da Compadecida",
+          "Tieta Do Agreste",
+          "Lusbela",
+          "Suor",
+          "Um alpendre, uma rede, um açude"
         ],
         "esperados": [
           "Auto da Compadecida"
@@ -1236,10 +1252,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util",
           "Futuro ancestral",
-          "Sabedoria das águas",
-          "Desvio"
+          "A Vida Nao e Util",
+          "Sentimento do mundo",
+          "Ubirajara"
         ],
         "esperados": [
           "Ideias para Adiar o Fim do Mundo",
@@ -1253,11 +1269,11 @@
         "consulta": "romance sobre a escravidão no Brasil",
         "primeira_relevante": 1,
         "top5": [
+          "Os escravos",
           "A escrava Isaura",
           "Recordações do escrivão Isaías Caminha",
           "O amigo do rei",
-          "Torto Arado",
-          "O ermitão de Muquém"
+          "Suor"
         ],
         "esperados": [
           "A escrava Isaura",
@@ -1272,10 +1288,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Ensaio Sobre a Cegueira",
-          "O avesso da pele",
-          "Torto Arado",
+          "Sonhos tropicais",
           "A Vida Nao e Util",
-          "Ideias para Adiar o Fim do Mundo"
+          "A bruxa de Monte Córdova",
+          "Todos os contos"
         ],
         "esperados": [
           "Ensaio Sobre a Cegueira"
@@ -1285,13 +1301,13 @@
         "id": "i07",
         "tipo": "intencao",
         "consulta": "a morte decide parar de matar as pessoas",
-        "primeira_relevante": 2,
+        "primeira_relevante": 1,
         "top5": [
-          "Veronika decide morrer",
           "As Intermitências da Morte",
-          "O avesso da pele",
-          "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util"
+          "Veronika decide morrer",
+          "O ano da morte de Ricardo Reis",
+          "Incidente em Antares",
+          "A morte e a morte de Quincas Berro D'água"
         ],
         "esperados": [
           "As Intermitências da Morte"
@@ -1304,10 +1320,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O filho eterno",
-          "O menino maluquinho",
           "Torto Arado",
-          "Tieta Do Agreste",
-          "Suor"
+          "Amar, Verbo Intransitivo",
+          "Leite derramado",
+          "O amigo do rei"
         ],
         "esperados": [
           "O filho eterno"
@@ -1321,9 +1337,9 @@
         "top5": [
           "Memórias do cárcere",
           "Memórias póstumas de Brás Cubas",
-          "Lima Barreto socialista",
-          "Livro do Desassossego",
-          "Memórias de um Sargento de Milícias"
+          "O tempo e o vento",
+          "Leite derramado",
+          "Livro de crónicas"
         ],
         "esperados": [
           "Memórias do cárcere"
@@ -1337,9 +1353,9 @@
         "top5": [
           "Macunaíma",
           "A Fada Oriana",
-          "Serafim Ponte Grande",
-          "Capitães da Areia",
-          "Vidas secas"
+          "Sabedoria das águas",
+          "O guarani",
+          "O filho eterno"
         ],
         "esperados": [
           "Macunaíma"
@@ -1349,13 +1365,13 @@
         "id": "i11",
         "tipo": "intencao",
         "consulta": "um pastor que busca um tesouro perto das pirâmides",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
+          "O Alquimista",
           "Tieta Do Agreste",
-          "Ideias para Adiar o Fim do Mundo",
-          "Caim",
-          "Vidas secas",
-          "Capitães da Areia"
+          "O diário de um mago",
+          "Cacau",
+          "Memorial do Convento"
         ],
         "esperados": [
           "O Alquimista"
@@ -1365,13 +1381,13 @@
         "id": "i12",
         "tipo": "intencao",
         "consulta": "a guerra de Canudos no sertão da Bahia",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Torto Arado",
+          "Os sertões",
+          "Grande sertão",
           "Guerra dos mascates",
-          "Cacau",
-          "Incidente em Antares",
-          "O avesso da pele"
+          "Fogo Morto",
+          "Torto Arado"
         ],
         "esperados": [
           "Os sertões"
@@ -1384,10 +1400,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Torto Arado",
-          "Tieta Do Agreste",
-          "O amigo do rei",
-          "Olhos D'Água",
-          "Cafute & Pena-de-Prata"
+          "A cachoeira de Paulo Affonso",
+          "Vidas secas",
+          "A escrava Isaura",
+          "Cacau"
         ],
         "esperados": [
           "Torto Arado"
@@ -1400,10 +1416,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Capitães da Areia",
-          "Torto Arado",
-          "Tieta Do Agreste",
-          "Pontos de fuga",
-          "Amor de Perdição"
+          "Mar Morto",
+          "Vidas secas",
+          "A morte e a morte de Quincas Berro D'água",
+          "Campo Geral"
         ],
         "esperados": [
           "Capitães da Areia"
@@ -1416,10 +1432,10 @@
         "primeira_relevante": 1,
         "top5": [
           "A Fada Oriana",
-          "Tieta Do Agreste",
-          "Torto Arado",
-          "Ideias para Adiar o Fim do Mundo",
-          "Macunaíma"
+          "Sabedoria das águas",
+          "A menina do narizinho arrebitado",
+          "Til",
+          "O Cavaleiro da Dinamarca"
         ],
         "esperados": [
           "A Fada Oriana"
@@ -1432,10 +1448,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Menina bonita do laço de fita",
-          "Amor de Perdição",
-          "Cafute & Pena-de-Prata",
+          "O amigo do rei",
           "Olhos D'Água",
-          "Torto Arado"
+          "Clara dos Anjos",
+          "Amor de Perdição"
         ],
         "esperados": [
           "Menina bonita do laço de fita"
@@ -1448,7 +1464,7 @@
         "primeira_relevante": 1,
         "top5": [
           "O gato e o escuro",
-          "Cafute & Pena-de-Prata",
+          "Chapeuzinho Amarelo",
           "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
           "As horas nuas",
           "A hora do diabo"
@@ -1464,10 +1480,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Amor de Perdição",
-          "Amar, Verbo Intransitivo",
-          "Pontos de fuga",
-          "Eu Hei-de Amar Uma Pedra",
-          "Torto Arado"
+          "O ermitão de Muquém",
+          "Onze minutos",
+          "Helena",
+          "Capão pecado"
         ],
         "esperados": [
           "Amor de Perdição"
@@ -1481,9 +1497,9 @@
         "top5": [
           "Memorial do Convento",
           "Amor de Perdição",
-          "A sereia",
-          "Pontos de fuga",
-          "Tieta Do Agreste"
+          "O amigo do rei",
+          "Memórias de um Sargento de Milícias",
+          "Casa velha"
         ],
         "esperados": [
           "Memorial do Convento"
@@ -1496,10 +1512,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Riacho Doce",
+          "São Bernardo",
+          "Cartas de amor a Heloisa",
           "Amor de Perdição",
-          "Eu Hei-de Amar Uma Pedra",
-          "Tieta Do Agreste",
-          "Cafute & Pena-de-Prata"
+          "Auto da Compadecida"
         ],
         "esperados": [
           "Riacho Doce"
@@ -1512,10 +1528,10 @@
         "primeira_relevante": 1,
         "top5": [
           "O analista de Bagé",
-          "Ideias para Adiar o Fim do Mundo",
-          "Cafute & Pena-de-Prata",
-          "O gato e o escuro",
-          "Serafim Ponte Grande"
+          "O Alienista",
+          "São Bernardo",
+          "Max e os Felinos",
+          "Leite derramado"
         ],
         "esperados": [
           "O analista de Bagé"
@@ -1528,10 +1544,10 @@
         "primeira_relevante": 1,
         "top5": [
           "A hora do diabo",
-          "Cafute & Pena-de-Prata",
-          "Tieta Do Agreste",
-          "Torto Arado",
-          "Olhos D'Água"
+          "Diva",
+          "Auto da Compadecida",
+          "Felicidade clandestina",
+          "Eu Hei-de Amar Uma Pedra"
         ],
         "esperados": [
           "A hora do diabo"
@@ -1541,13 +1557,13 @@
         "id": "i23",
         "tipo": "intencao",
         "consulta": "diário de um ajudante de guarda-livros em Lisboa",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Memórias de um Sargento de Milícias",
-          "Eu Hei-de Amar Uma Pedra",
+          "Livro do Desassossego",
+          "Segundo livro de crónicas",
+          "Diário do farol",
           "O diário de um mago",
-          "Casa velha",
-          "Pontos de fuga"
+          "Livro de crónicas"
         ],
         "esperados": [
           "Livro do Desassossego"
@@ -1557,13 +1573,13 @@
         "id": "i24",
         "tipo": "intencao",
         "consulta": "malandro no Rio de Janeiro do tempo do rei",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "Pontos de fuga",
-          "O avesso da pele",
-          "Suor",
-          "Olhos D'Água",
-          "Til"
+          "Memórias de um Sargento de Milícias",
+          "Dom Casmurro",
+          "Casa velha",
+          "Leite derramado",
+          "Recordações do escrivão Isaías Caminha"
         ],
         "esperados": [
           "Memórias de um Sargento de Milícias"
@@ -1573,13 +1589,13 @@
         "id": "i25",
         "tipo": "intencao",
         "consulta": "um patriota ingênuo que quer reformar o país",
-        "primeira_relevante": 8,
+        "primeira_relevante": 1,
         "top5": [
-          "Ideias para Adiar o Fim do Mundo",
-          "A Vida Nao e Util",
-          "Pontos de fuga",
-          "Lima Barreto socialista",
-          "Serafim Ponte Grande"
+          "Triste fim de Policarpo Quaresma",
+          "Leite derramado",
+          "Serafim Ponte Grande",
+          "Futuro ancestral",
+          "Benjamim"
         ],
         "esperados": [
           "Triste fim de Policarpo Quaresma"
@@ -1591,11 +1607,11 @@
         "consulta": "contos sobre a vida de mulheres negras",
         "primeira_relevante": 1,
         "top5": [
+          "Ponciá Vicêncio",
           "Olhos D'Água",
-          "Torto Arado",
-          "O avesso da pele",
-          "Cafute & Pena-de-Prata",
-          "Vidas secas"
+          "Clara dos Anjos",
+          "Todos os contos",
+          "A cachoeira de Paulo Affonso"
         ],
         "esperados": [
           "Olhos D'Água",
@@ -1609,10 +1625,10 @@
         "primeira_relevante": 1,
         "top5": [
           "Niketche",
-          "Torto Arado",
+          "Ponciá Vicêncio",
+          "Vidas secas",
           "Olhos D'Água",
-          "Tieta Do Agreste",
-          "O avesso da pele"
+          "Ensaio Sobre a Cegueira"
         ],
         "esperados": [
           "Niketche"
@@ -1624,11 +1640,11 @@
         "consulta": "boneca Emília e o Sítio do Picapau Amarelo",
         "primeira_relevante": 1,
         "top5": [
+          "Aritmética da Emília",
           "A menina do narizinho arrebitado",
-          "A Fada Oriana",
-          "Torto Arado",
-          "Olhos D'Água",
-          "O avesso da pele"
+          "Viagem ao céu",
+          "Reinações de Narizinho",
+          "O Minotauro"
         ],
         "esperados": [
           "Reinações de Narizinho",
@@ -1642,13 +1658,13 @@
         "id": "i29",
         "tipo": "intencao",
         "consulta": "mortos que se levantam porque os coveiros entraram em greve",
-        "primeira_relevante": null,
+        "primeira_relevante": 1,
         "top5": [
-          "O avesso da pele",
-          "Tieta Do Agreste",
-          "Torto Arado",
-          "Vidas secas",
-          "Cafute & Pena-de-Prata"
+          "Incidente em Antares",
+          "A morte e a morte de Quincas Berro D'água",
+          "Fogo Morto",
+          "As Intermitências da Morte",
+          "Memórias póstumas de Brás Cubas"
         ],
         "esperados": [
           "Incidente em Antares"
@@ -1658,17 +1674,33 @@
         "id": "i30",
         "tipo": "intencao",
         "consulta": "saga de famílias gaúchas ao longo de dois séculos",
-        "primeira_relevante": 1,
+        "primeira_relevante": 2,
         "top5": [
+          "Seara vermelha",
           "O continente vol. 1",
-          "Torto Arado",
+          "O tempo e o vento",
           "Vidas secas",
-          "O avesso da pele",
-          "Tieta Do Agreste"
+          "Casa velha"
         ],
         "esperados": [
           "O tempo e o vento",
           "O continente vol. 1"
+        ]
+      },
+      {
+        "id": "i31",
+        "tipo": "intencao",
+        "consulta": "romance irônico que critica o positivismo e o cientificismo",
+        "primeira_relevante": 6,
+        "top5": [
+          "As Intermitências da Morte",
+          "Tenda dos milagres",
+          "O Alquimista",
+          "Diário do farol",
+          "Caim"
+        ],
+        "esperados": [
+          "Quincas Borba"
         ]
       }
     ]

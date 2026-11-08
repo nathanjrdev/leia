@@ -48,3 +48,4 @@
 {"id": "i28", "tipo": "intencao", "consulta": "boneca Emília e o Sítio do Picapau Amarelo", "esperados": ["Reinações de Narizinho", "A menina do narizinho arrebitado", "Viagem ao céu", "Aritmética da Emília", "O Poço do Visconde"]}
 {"id": "i29", "tipo": "intencao", "consulta": "mortos que se levantam porque os coveiros entraram em greve", "esperados": ["Incidente em Antares"]}
 {"id": "i30", "tipo": "intencao", "consulta": "saga de famílias gaúchas ao longo de dois séculos", "esperados": ["O tempo e o vento", "O continente vol. 1"]}
+{"id": "i31", "tipo": "intencao", "consulta": "romance irônico que critica o positivismo e o cientificismo", "esperados": ["Quincas Borba"]}
