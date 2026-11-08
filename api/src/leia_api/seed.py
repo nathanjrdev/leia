@@ -13,11 +13,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from leia_api.config import settings
-from leia_api.models import Autor, Categoria, Exemplar, Livro, Locacao, Usuario
+from leia_api.models import Autor, Categoria, Exemplar, Livro, LivroEmbedding, Locacao, Usuario
 
 CATALOGO_PADRAO = Path(__file__).resolve().parents[3] / "data" / "catalogo.json"
 # Hash inválido de propósito: usuários fictícios não fazem login.
@@ -47,18 +47,30 @@ def _categoria(session: Session, nome: str) -> Categoria:
     return categoria
 
 
+def _nfc(item: dict[str, Any]) -> dict[str, Any]:
+    """Título e autores em NFC: fontes às vezes trazem acentos decompostos (NFD)."""
+    return {
+        **item,
+        "titulo": unicodedata.normalize("NFC", item["titulo"]),
+        "autores": [unicodedata.normalize("NFC", nome) for nome in item["autores"]],
+    }
+
+
+def _existente(session: Session, item: dict[str, Any]) -> Livro | None:
+    """Livro já carregado com o mesmo título e o mesmo autor principal."""
+    return session.scalars(
+        select(Livro)
+        .join(Livro.autores)
+        .where(Livro.titulo == item["titulo"], Autor.nome == item["autores"][0])
+    ).first()
+
+
 def carregar_catalogo(session: Session, livros: list[dict[str, Any]], *, seed: int = 42) -> int:
     """Insere os livros que ainda não existem (idempotente). Devolve quantos entraram."""
     rng = random.Random(seed)  # noqa: S311 - dados fictícios, não é criptografia
     novos = 0
-    for item in livros:
-        principal = item["autores"][0]
-        existe = session.scalars(
-            select(Livro.id)
-            .join(Livro.autores)
-            .where(Livro.titulo == item["titulo"], Autor.nome == principal)
-        ).first()
-        if existe is not None:
+    for item in map(_nfc, livros):
+        if _existente(session, item) is not None:
             continue
         livro = Livro(
             titulo=item["titulo"],
@@ -79,6 +91,27 @@ def carregar_catalogo(session: Session, livros: list[dict[str, Any]], *, seed: i
         novos += 1
     session.flush()
     return novos
+
+
+def atualizar_sinopses(session: Session, livros: list[dict[str, Any]]) -> int:
+    """Aplica sinopses revisadas a livros já carregados e invalida o embedding deles.
+
+    O vetor é apagado para que `gerar_embeddings` o recalcule com o texto novo.
+    Devolve quantos livros mudaram.
+    """
+    mudados = 0
+    for item in map(_nfc, livros):
+        livro = _existente(session, item)
+        if livro is None:
+            continue
+        novo = (item["sinopse"], item.get("sinopse_fonte"))
+        if (livro.sinopse, livro.sinopse_fonte) == novo:
+            continue
+        livro.sinopse, livro.sinopse_fonte = novo
+        session.execute(delete(LivroEmbedding).where(LivroEmbedding.livro_id == livro.id))
+        mudados += 1
+    session.flush()
+    return mudados
 
 
 def carregar_catalogo_json(session: Session, caminho: Path = CATALOGO_PADRAO) -> int:

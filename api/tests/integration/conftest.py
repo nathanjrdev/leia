@@ -11,12 +11,16 @@ os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 
 @pytest.fixture(scope="session")
-def engine() -> Iterator[Engine]:
+def alembic_cfg() -> Iterator[Config]:
     with PostgresContainer("pgvector/pgvector:pg16", driver="psycopg") as pg:
-        url = pg.get_connection_url()
         cfg = Config("alembic.ini")
-        cfg.set_main_option("sqlalchemy.url", url)
+        cfg.set_main_option("sqlalchemy.url", pg.get_connection_url())
         command.upgrade(cfg, "head")
-        eng = create_engine(url)
-        yield eng
-        eng.dispose()
+        yield cfg
+
+
+@pytest.fixture(scope="session")
+def engine(alembic_cfg: Config) -> Iterator[Engine]:
+    eng = create_engine(alembic_cfg.get_main_option("sqlalchemy.url") or "")
+    yield eng
+    eng.dispose()

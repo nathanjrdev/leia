@@ -25,7 +25,6 @@ CANDIDATOS_RERANKER = 50
 
 # Precisa ser idêntica à expressão do índice GIN `ix_livros_busca_texto`.
 _TSVECTOR = "to_tsvector('portuguese', coalesce(l.titulo, '') || ' ' || coalesce(l.sinopse, ''))"
-
 # Consulta em linguagem natural: qualquer termo basta (OU); `ts_rank_cd` premia quem casa mais.
 # `websearch_to_tsquery` nunca falha com o texto do usuário; só trocamos o E por OU.
 _TSQUERY_OU = (
@@ -88,6 +87,24 @@ def _ids(session: Session, sql: str, params: dict[str, object]) -> list[int]:
     return [int(linha[0]) for linha in session.execute(text(sql), params)]
 
 
+def ranking_texto(
+    session: Session,
+    consulta: str,
+    *,
+    filtro: str = "",
+    params: dict[str, object] | None = None,
+    n: int = CANDIDATOS_POR_LISTA,
+) -> list[int]:
+    """Ids dos livros cuja título/sinopse casa com algum termo da consulta, melhor primeiro."""
+    return _ids(
+        session,
+        f"""SELECT l.id FROM livros l, {_TSQUERY_OU}
+            WHERE {_TSVECTOR} @@ t.q {filtro}
+            ORDER BY ts_rank_cd({_TSVECTOR}, t.q) DESC LIMIT :n""",  # noqa: S608
+        {**(params or {}), "q": consulta, "n": n},
+    )
+
+
 def buscar_livros(
     session: Session,
     consulta: str,
@@ -103,13 +120,7 @@ def buscar_livros(
     filtro, params = _filtros(categoria, ano_min, ano_max, apenas_disponiveis)
     base = {**params, "q": consulta, "n": CANDIDATOS_POR_LISTA}
 
-    por_texto = _ids(
-        session,
-        f"""SELECT l.id FROM livros l, {_TSQUERY_OU}
-            WHERE {_TSVECTOR} @@ t.q {filtro}
-            ORDER BY ts_rank_cd({_TSVECTOR}, t.q) DESC LIMIT :n""",  # noqa: S608
-        base,
-    )
+    por_texto = ranking_texto(session, consulta, filtro=filtro, params=params)
     por_autor = _ids(
         session,
         f"""SELECT DISTINCT l.id FROM livros l

@@ -1,11 +1,17 @@
+import unicodedata
 from collections.abc import Iterator
 
 import pytest
 from sqlalchemy import Engine, func, select
 from sqlalchemy.orm import Session
 
-from leia_api.models import Autor, Exemplar, Livro, Locacao, Usuario
-from leia_api.seed import carregar_catalogo, criar_locacoes_ficticias, criar_usuarios_ficticios
+from leia_api.models import EMBEDDING_DIM, Autor, Exemplar, Livro, LivroEmbedding, Locacao, Usuario
+from leia_api.seed import (
+    atualizar_sinopses,
+    carregar_catalogo,
+    criar_locacoes_ficticias,
+    criar_usuarios_ficticios,
+)
 
 CATALOGO = [
     {
@@ -56,6 +62,53 @@ def test_loads_books_authors_and_copies(session: Session) -> None:
         select(func.count()).select_from(Exemplar).where(Exemplar.livro_id == livro.id)
     )
     assert copies is not None and 1 <= copies <= 3
+
+
+def _com_embeddings(session: Session) -> None:
+    for livro in session.scalars(select(Livro)):
+        session.add(LivroEmbedding(livro_id=livro.id, modelo="m", vetor=[0.0] * EMBEDDING_DIM))
+    session.flush()
+
+
+def test_update_synopses_changes_text_and_invalidates_only_that_embedding(
+    session: Session,
+) -> None:
+    carregar_catalogo(session, CATALOGO)
+    _com_embeddings(session)
+    revisado = [
+        {**CATALOGO[0], "sinopse": "Nova sinopse do enredo.", "sinopse_fonte": "Revisão Léia"},
+        CATALOGO[1],
+    ]
+
+    assert atualizar_sinopses(session, revisado) == 1
+
+    dom = session.scalars(select(Livro).where(Livro.titulo == "Dom Casmurro")).one()
+    quincas = session.scalars(select(Livro).where(Livro.titulo == "Quincas Borba")).one()
+    assert dom.sinopse == "Nova sinopse do enredo."
+    assert dom.sinopse_fonte == "Revisão Léia"
+    assert session.get(LivroEmbedding, dom.id) is None
+    assert session.get(LivroEmbedding, quincas.id) is not None
+
+
+def test_update_synopses_ignores_books_not_in_database(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO[:1])
+    assert atualizar_sinopses(session, [{**CATALOGO[1], "sinopse": "outra"}]) == 0
+    assert session.scalar(select(func.count()).select_from(Livro)) == 1
+
+
+def test_loading_normalizes_title_and_author_to_nfc(session: Session) -> None:
+    nfd = {
+        **CATALOGO[0],
+        "titulo": unicodedata.normalize("NFD", "Bangüê"),
+        "autores": [unicodedata.normalize("NFD", "José Lins do Rego")],
+    }
+    carregar_catalogo(session, [nfd])
+    livro = session.scalars(select(Livro)).one()
+    assert livro.titulo == "Bangüê"
+    assert livro.autores[0].nome == "José Lins do Rego"
+    # A mesma entrada em NFD é reconhecida como já carregada.
+    assert carregar_catalogo(session, [nfd]) == 0
+    assert atualizar_sinopses(session, [{**nfd, "sinopse": "outra"}]) == 1
 
 
 def test_loading_twice_is_idempotent(session: Session) -> None:
