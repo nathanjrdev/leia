@@ -47,5 +47,27 @@
 {"id": "i27", "tipo": "intencao", "consulta": "poligamia e mulheres em Moçambique", "esperados": ["Niketche"]}
 {"id": "i28", "tipo": "intencao", "consulta": "boneca Emília e o Sítio do Picapau Amarelo", "esperados": ["Reinações de Narizinho", "A menina do narizinho arrebitado", "Viagem ao céu", "Aritmética da Emília", "O Poço do Visconde"]}
 {"id": "i29", "tipo": "intencao", "consulta": "mortos que se levantam porque os coveiros entraram em greve", "esperados": ["Incidente em Antares"]}
-{"id": "i30", "tipo": "intencao", "consulta": "saga de famílias gaúchas ao longo de dois séculos", "esperados": ["O tempo e o vento", "O continente vol. 1"]}
+{"id": "i30", "tipo": "intencao", "consulta": "saga de famílias gaúchas ao longo de dois séculos", "esperados": ["O tempo e o vento", "O continente (O tempo e o vento, vol. 1)"]}
 {"id": "i31", "tipo": "intencao", "consulta": "romance irônico que critica o positivismo e o cientificismo", "esperados": ["Quincas Borba"]}
+{"id": "t13", "tipo": "titulo", "consulta": "dom casmuro", "esperados": ["Dom Casmurro"]}
+{"id": "t14", "tipo": "titulo", "consulta": "grande sertao veredas", "esperados": ["Grande sertão: veredas"]}
+{"id": "t15", "tipo": "titulo", "consulta": "Memorial do Convento", "esperados": ["Memorial do Convento"]}
+{"id": "t16", "tipo": "titulo", "consulta": "amor de perdicao", "esperados": ["Amor de Perdição"]}
+{"id": "t17", "tipo": "titulo", "consulta": "Quincas Borba", "esperados": ["Quincas Borba"]}
+{"id": "t18", "tipo": "titulo", "consulta": "o menino maluquinho", "esperados": ["O menino maluquinho"]}
+{"id": "a09", "tipo": "autor", "consulta": "poemas do Drummond", "autor_esperado": "Carlos Drummond de Andrade"}
+{"id": "a10", "tipo": "autor", "consulta": "quero ler Lima Barreto", "autor_esperado": "Lima Barreto"}
+{"id": "a11", "tipo": "autor", "consulta": "Mia Couto", "autor_esperado": "Mia Couto"}
+{"id": "a12", "tipo": "autor", "consulta": "Guimarães Rosa", "autor_esperado": "João Guimarães Rosa"}
+{"id": "a13", "tipo": "autor", "consulta": "livros da Conceição Evaristo", "autor_esperado": "Conceição Evaristo"}
+{"id": "a14", "tipo": "autor", "consulta": "camilo castelo branco", "autor_esperado": "Camilo Castelo Branco"}
+{"id": "i32", "tipo": "intencao", "consulta": "quero ler poesia", "esperados": ["Claro enigma", "Sentimento do mundo", "Declaração de amor", "Ou isto ou aquilo", "Estrela da vida inteira", "Espumas flutuantes", "O navio negreiro", "Os escravos", "A cachoeira de Paulo Affonso", "Três vezes Hilda", "Toda poesia", "Mensagem"]}
+{"id": "i33", "tipo": "intencao", "consulta": "poemas para crianças", "esperados": ["Ou isto ou aquilo"]}
+{"id": "i34", "tipo": "intencao", "consulta": "crônicas sobre o dia a dia", "esperados": ["Um alpendre, uma rede, um açude", "Livro de crónicas", "Segundo livro de crónicas", "Comedias para se Ler na Escola", "Pontos de fuga"]}
+{"id": "i35", "tipo": "intencao", "consulta": "cartas de um escritor para a esposa", "esperados": ["Cartas de amor a Heloisa"]}
+{"id": "i36", "tipo": "intencao", "consulta": "médico que manda trancar a cidade inteira no hospício", "esperados": ["O Alienista"]}
+{"id": "i37", "tipo": "intencao", "consulta": "moça rica que compra um marido", "esperados": ["Senhora"]}
+{"id": "i38", "tipo": "intencao", "consulta": "índio que protege uma moça branca, filha de fidalgo", "esperados": ["O guarani"]}
+{"id": "i39", "tipo": "intencao", "consulta": "garota brasileira que vira prostituta na Suíça", "esperados": ["Onze minutos"]}
+{"id": "i40", "tipo": "intencao", "consulta": "velho centenário num leito de hospital relembra a decadência da família", "esperados": ["Leite derramado"]}
+{"id": "i41", "tipo": "intencao", "consulta": "fazendeiro rude que trata a esposa como propriedade e termina sozinho", "esperados": ["São Bernardo"]}
