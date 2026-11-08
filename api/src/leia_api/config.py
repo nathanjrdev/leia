@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     busca_limite_maximo: int = Field(default=10, ge=1)
     sinopse_max_caracteres: int = Field(default=1500, ge=1)
     pendente_ttl_segundos: int = Field(default=300, ge=1)
+    prompt_versao: str = "v1"
+    llm_timeout_segundos: float = Field(default=30.0, gt=0)
+    turno_timeout_segundos: float = Field(default=90.0, gt=0)
+    max_regeracoes_grounding: int = Field(default=1, ge=0)
     max_pendentes_por_usuario: int = Field(default=5, ge=1)
 
 

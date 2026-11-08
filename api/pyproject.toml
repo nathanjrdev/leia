@@ -64,4 +64,5 @@ omit = [
     "src/leia_api/carga.py",
     "src/leia_api/modelos.py",
     "src/leia_api/cli_busca.py",
+    "src/leia_api/llm.py",
 ]
