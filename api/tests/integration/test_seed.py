@@ -7,10 +7,11 @@ from sqlalchemy.orm import Session
 
 from leia_api.models import EMBEDDING_DIM, Autor, Exemplar, Livro, LivroEmbedding, Locacao, Usuario
 from leia_api.seed import (
-    atualizar_sinopses,
+    atualizar_livros,
     carregar_catalogo,
     criar_locacoes_ficticias,
     criar_usuarios_ficticios,
+    livros_fora_do_catalogo,
 )
 
 CATALOGO = [
@@ -80,7 +81,7 @@ def test_update_synopses_changes_text_and_invalidates_only_that_embedding(
         CATALOGO[1],
     ]
 
-    assert atualizar_sinopses(session, revisado) == 1
+    assert atualizar_livros(session, revisado) == 1
 
     dom = session.scalars(select(Livro).where(Livro.titulo == "Dom Casmurro")).one()
     quincas = session.scalars(select(Livro).where(Livro.titulo == "Quincas Borba")).one()
@@ -92,8 +93,88 @@ def test_update_synopses_changes_text_and_invalidates_only_that_embedding(
 
 def test_update_synopses_ignores_books_not_in_database(session: Session) -> None:
     carregar_catalogo(session, CATALOGO[:1])
-    assert atualizar_sinopses(session, [{**CATALOGO[1], "sinopse": "outra"}]) == 0
+    assert atualizar_livros(session, [{**CATALOGO[1], "sinopse": "outra"}]) == 0
     assert session.scalar(select(func.count()).select_from(Livro)) == 1
+
+
+def _livro(session: Session, titulo: str) -> Livro:
+    return session.scalars(select(Livro).where(Livro.titulo == titulo)).one()
+
+
+def test_update_without_changes_reports_zero(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO)
+    _com_embeddings(session)
+    assert atualizar_livros(session, CATALOGO) == 0
+    assert session.scalar(select(func.count()).select_from(LivroEmbedding)) == 2
+
+
+def test_update_applies_metadata_edits_and_keeps_embedding(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO)
+    _com_embeddings(session)
+    editado = {
+        **CATALOGO[1],
+        "ano": 1892,
+        "paginas": 300,
+        "editora": "Garnier",
+        "isbn": "9788535911999",
+        "capa_url": "https://covers.openlibrary.org/b/id/2-L.jpg",
+    }
+
+    assert atualizar_livros(session, [CATALOGO[0], editado]) == 1
+
+    quincas = _livro(session, "Quincas Borba")
+    assert (quincas.ano, quincas.paginas, quincas.editora) == (1892, 300, "Garnier")
+    assert quincas.isbn == "9788535911999"
+    assert quincas.capa_url == "https://covers.openlibrary.org/b/id/2-L.jpg"
+    # Metadado que não entra no documento do embedding não invalida o vetor.
+    assert session.get(LivroEmbedding, quincas.id) is not None
+
+
+def test_update_categories_and_authors_invalidates_embedding(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO)
+    _com_embeddings(session)
+    editado = {
+        **CATALOGO[0],
+        "autores": ["Machado de Assis", "Autor Convidado"],
+        "categorias": ["Romance", "Clássico"],
+    }
+
+    assert atualizar_livros(session, [editado, CATALOGO[1]]) == 1
+
+    dom = _livro(session, "Dom Casmurro")
+    assert [a.nome for a in dom.autores] == ["Machado de Assis", "Autor Convidado"]
+    assert sorted(c.nome for c in dom.categorias) == ["Clássico", "Romance"]
+    assert session.get(LivroEmbedding, dom.id) is None
+    assert session.get(LivroEmbedding, _livro(session, "Quincas Borba").id) is not None
+
+
+def test_update_ignores_author_order_since_it_is_not_persisted(session: Session) -> None:
+    coletanea = {**CATALOGO[0], "titulo": "Coletânea", "isbn": None, "autores": ["Ana", "Bia"]}
+    carregar_catalogo(session, [coletanea])
+
+    assert atualizar_livros(session, [{**coletanea, "autores": ["Bia", "Ana"]}]) == 0
+
+
+def test_renamed_title_is_matched_by_isbn_without_duplicating(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO)
+    _com_embeddings(session)
+    renomeado = {**CATALOGO[0], "titulo": "Dom Casmurro (edição revista)"}
+
+    assert carregar_catalogo(session, [renomeado]) == 0  # não duplica nem viola o ISBN único
+    assert atualizar_livros(session, [renomeado]) == 1
+
+    assert session.scalar(select(func.count()).select_from(Livro)) == 2
+    livro = _livro(session, "Dom Casmurro (edição revista)")
+    assert livro.isbn == "9788535911664"
+    assert session.get(LivroEmbedding, livro.id) is None
+
+
+def test_books_missing_from_catalog_are_reported_not_deleted(session: Session) -> None:
+    carregar_catalogo(session, CATALOGO)
+
+    assert livros_fora_do_catalogo(session, CATALOGO[:1]) == ["Quincas Borba | Machado de Assis"]
+    assert livros_fora_do_catalogo(session, CATALOGO) == []
+    assert session.scalar(select(func.count()).select_from(Livro)) == 2
 
 
 def test_loading_normalizes_title_and_author_to_nfc(session: Session) -> None:
@@ -108,7 +189,7 @@ def test_loading_normalizes_title_and_author_to_nfc(session: Session) -> None:
     assert livro.autores[0].nome == "José Lins do Rego"
     # A mesma entrada em NFD é reconhecida como já carregada.
     assert carregar_catalogo(session, [nfd]) == 0
-    assert atualizar_sinopses(session, [{**nfd, "sinopse": "outra"}]) == 1
+    assert atualizar_livros(session, [{**nfd, "sinopse": "outra"}]) == 1
 
 
 def test_loading_twice_is_idempotent(session: Session) -> None:

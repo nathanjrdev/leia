@@ -2559,5 +2559,2204 @@
       "Romance",
       "Ficção"
     ]
+  },
+  {
+    "titulo": "O Código Da Vinci",
+    "autores": [
+      "Dan Brown"
+    ],
+    "ano": 2003,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller de mistério: o simbologista Robert Langdon é chamado ao Louvre após o assassinato do curador e, com a criptóloga Sophie Neveu, segue uma trilha de enigmas, obras de arte e sociedades secretas que envolveria um segredo guardado há séculos pela Igreja. Perseguição, códigos e reviravoltas num único dia frenético por Paris e Londres.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Garota Exemplar",
+    "autores": [
+      "Gillian Flynn"
+    ],
+    "ano": 2012,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller psicológico: no dia do quinto aniversário de casamento, Amy Dunne desaparece e o marido, Nick, vira o principal suspeito. A narrativa alterna as versões dos dois e vai desmontando a imagem do casal perfeito, revelando manipulação, mentiras e uma vingança meticulosamente arquitetada.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Iluminado",
+    "autores": [
+      "Stephen King"
+    ],
+    "ano": 1977,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Terror psicológico: Jack Torrance aceita cuidar do isolado Hotel Overlook durante o inverno, levando a mulher e o filho, Danny, um menino com um dom paranormal chamado 'a iluminação'. Preso pela neve, o hotel desperta e empurra Jack à loucura, ameaçando a própria família.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Terror",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Silêncio dos Inocentes",
+    "autores": [
+      "Thomas Harris"
+    ],
+    "ano": 1988,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller policial: a jovem agente do FBI Clarice Starling recorre ao brilhante e perverso psiquiatra preso Hannibal Lecter para traçar o perfil de um serial killer conhecido como Buffalo Bill. Um duelo mental tenso enquanto o tempo corre para salvar uma vítima sequestrada.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Garota no Trem",
+    "autores": [
+      "Paula Hawkins"
+    ],
+    "ano": 2015,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller psicológico: Rachel observa todos os dias, do trem, a vida de um casal que lhe parece perfeito. Quando a mulher desaparece, ela se envolve na investigação, mas suas lembranças alcoólicas e pouco confiáveis embaralham o que é real, suspeita e culpa.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Dias Perfeitos",
+    "autores": [
+      "Raphael Montes"
+    ],
+    "ano": 2014,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller brasileiro: Téo, um estudante de medicina solitário e obcecado, sequestra Clarice, por quem se apaixona, e tenta forjar um relacionamento perfeito enquanto cruza o país. Narrativa perturbadora e irônica sobre fixação, controle e violência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Assassinato no Expresso do Oriente",
+    "autores": [
+      "Agatha Christie"
+    ],
+    "ano": 1934,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance policial clássico: o detetive Hercule Poirot viaja no luxuoso Expresso do Oriente quando um passageiro é encontrado morto a facadas e o trem fica preso na neve. Com todos os suspeitos a bordo, Poirot desvenda um crime de solução surpreendente.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "E Não Sobrou Nenhum",
+    "autores": [
+      "Agatha Christie"
+    ],
+    "ano": 1939,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Mistério clássico: dez desconhecidos são atraídos a uma ilha isolada e, um a um, começam a morrer seguindo os versos de uma velha cantiga. Sem como fugir e sem saber quem é o assassino entre eles, a tensão cresce até o desfecho.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Cão dos Baskerville",
+    "autores": [
+      "Arthur Conan Doyle"
+    ],
+    "ano": 1902,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Aventura policial de Sherlock Holmes: uma lenda fala de um cão demoníaco que amaldiçoa a família Baskerville nos pântanos de Devonshire. Holmes e Watson investigam a morte suspeita de Sir Charles e separam a superstição do crime calculado por trás dela.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Os Homens que Não Amavam as Mulheres",
+    "autores": [
+      "Stieg Larsson"
+    ],
+    "ano": 2005,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Thriller policial sueco: o jornalista Mikael Blomkvist e a hacker Lisbeth Salander investigam o desaparecimento, décadas antes, da herdeira de uma poderosa família. A apuração revela segredos sombrios, crimes em série e corrupção. Primeiro volume da trilogia Millennium.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Matador",
+    "autores": [
+      "Patrícia Melo"
+    ],
+    "ano": 1995,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance policial brasileiro: Máiquel, um homem comum da periferia de São Paulo, mata por acaso e descobre que a violência lhe traz respeito, dinheiro e poder, tornando-se matador de aluguel. Narrativa seca e irônica sobre crime, justiça e ascensão social.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Xangô de Baker Street",
+    "autores": [
+      "Jô Soares"
+    ],
+    "ano": 1995,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance policial histórico e bem-humorado: no Rio de Janeiro de 1886, Sherlock Holmes e Watson são convidados por Dom Pedro II para caçar um assassino em série. O choque entre o método inglês e o Brasil tropical rende mistério e sátira.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "É Assim que Acaba",
+    "autores": [
+      "Colleen Hoover"
+    ],
+    "ano": 2016,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance contemporâneo: Lily reconstrói a vida em Boston e se apaixona pelo neurocirurgião Ryle, mas o reaparecimento de um primeiro amor e os sinais de violência no relacionamento a forçam a decisões difíceis. História sobre amor, abuso e a coragem de recomeçar.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Pessoas Normais",
+    "autores": [
+      "Sally Rooney"
+    ],
+    "ano": 2018,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance contemporâneo: Connell e Marianne vêm de mundos sociais opostos numa cidade pequena da Irlanda e mantêm, dos anos de escola à universidade, uma ligação intensa e intermitente. Retrato preciso de intimidade, classe, silêncios e a dificuldade de se pertencer.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Diário de uma Paixão",
+    "autores": [
+      "Nicholas Sparks"
+    ],
+    "ano": 1996,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance: nos anos 1940, o operário Noah e a jovem rica Allie vivem um amor de verão interrompido pela família e pela guerra. Décadas depois, um caderno lido num asilo reconstrói essa história de reencontro, memória e devoção.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Como Eu Era Antes de Você",
+    "autores": [
+      "Jojo Moyes"
+    ],
+    "ano": 2012,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance contemporâneo: Louisa é contratada como cuidadora de Will, um jovem bem-sucedido que ficou tetraplégico após um acidente e perdeu a vontade de viver. A convivência transforma os dois e levanta questões sobre amor, autonomia e dignidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Me Chame Pelo Seu Nome",
+    "autores": [
+      "André Aciman"
+    ],
+    "ano": 2007,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance: num verão na costa italiana dos anos 1980, o adolescente Elio se apaixona por Oliver, um acadêmico hospedado na casa da família. Narrativa sensível sobre desejo, descoberta e a intensidade de um primeiro amor que marca a vida.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Código Limpo",
+    "autores": [
+      "Robert C. Martin"
+    ],
+    "ano": 2008,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Guia de boas práticas de programação: apresenta princípios e técnicas para escrever código legível, simples e sustentável, com exemplos de refatoração, nomes claros, funções pequenas, tratamento de erros e testes. Referência sobre qualidade de software e artesanato de código.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Programação"
+    ]
+  },
+  {
+    "titulo": "O Programador Pragmático",
+    "autores": [
+      "Andrew Hunt",
+      "David Thomas"
+    ],
+    "ano": 1999,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Clássico de engenharia de software: reúne conselhos práticos sobre carreira, design, automação, testes e manutenção, incentivando o programador a assumir responsabilidade, evitar duplicação e se adaptar. Cheio de dicas atemporais para desenvolvimento profissional.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Programação"
+    ]
+  },
+  {
+    "titulo": "Padrões de Projeto",
+    "autores": [
+      "Erich Gamma",
+      "Richard Helm",
+      "Ralph Johnson",
+      "John Vlissides"
+    ],
+    "ano": 1994,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Obra de referência da 'Gangue dos Quatro': cataloga 23 padrões de projeto reutilizáveis para programação orientada a objetos, agrupados em criacionais, estruturais e comportamentais. Base conceitual amplamente usada no design de software.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Programação"
+    ]
+  },
+  {
+    "titulo": "Refatoração",
+    "autores": [
+      "Martin Fowler"
+    ],
+    "ano": 1999,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Manual sobre melhorar a estrutura interna do código sem alterar seu comportamento: define 'maus cheiros' de código e um catálogo de refatorações passo a passo, apoiadas por testes. Fundamenta a prática de evoluir sistemas de forma segura.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Programação"
+    ]
+  },
+  {
+    "titulo": "Algoritmos: Teoria e Prática",
+    "autores": [
+      "Thomas H. Cormen",
+      "Charles E. Leiserson",
+      "Ronald L. Rivest",
+      "Clifford Stein"
+    ],
+    "ano": 1990,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Livro-texto abrangente de algoritmos e estruturas de dados (conhecido como CLRS): cobre ordenação, grafos, programação dinâmica, complexidade e muito mais, com rigor matemático e pseudocódigo. Referência de cursos de ciência da computação.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Programação"
+    ]
+  },
+  {
+    "titulo": "A Startup Enxuta",
+    "autores": [
+      "Eric Ries"
+    ],
+    "ano": 2011,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Método para criar negócios inovadores sob incerteza: propõe o ciclo construir-medir-aprender, o produto mínimo viável e a validação contínua de hipóteses para evitar desperdício. Influente na cultura de startups e inovação de produto.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Negócios"
+    ]
+  },
+  {
+    "titulo": "Steve Jobs",
+    "autores": [
+      "Walter Isaacson"
+    ],
+    "ano": 2011,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Biografia autorizada do cofundador da Apple: baseada em entrevistas com Jobs e seu círculo, narra sua infância, a criação e o exílio da Apple, a Pixar e o retorno triunfal, retratando um visionário genial e difícil que moldou a tecnologia de consumo.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Biografia e memórias",
+      "Tecnologia"
+    ]
+  },
+  {
+    "titulo": "Trabalho Focado",
+    "autores": [
+      "Cal Newport"
+    ],
+    "ano": 2016,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Ensaio prático sobre produtividade: defende o 'trabalho focado' — concentração profunda e sem distrações — como vantagem rara e valiosa na economia do conhecimento, e oferece estratégias para cultivá-lo contra o excesso de notificações e redes.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Tecnologia",
+      "Negócios"
+    ]
+  },
+  {
+    "titulo": "A Bíblia Sagrada",
+    "autores": [
+      "Vários autores"
+    ],
+    "ano": null,
+    "paginas": null,
+    "editora": "Sociedade Bíblica do Brasil",
+    "isbn": "9788531102738",
+    "capa_url": null,
+    "sinopse": "Coletânea de textos sagrados do cristianismo, reunidos em Antigo e Novo Testamento. O Antigo Testamento reúne escritos da tradição judaica, como a criação do mundo, a história dos patriarcas, o êxodo do Egito, a Lei, os profetas, os salmos e a literatura sapiencial. O Novo Testamento apresenta a vida e os ensinamentos de Jesus nos quatro Evangelhos, os Atos dos Apóstolos, as cartas e o Apocalipse. Referência central da fé cristã, é a tradução Almeida Revista e Atualizada, da Sociedade Bíblica do Brasil.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Religião"
+    ]
+  },
+  {
+    "titulo": "O Alcorão",
+    "autores": [
+      "Maomé (Profeta)"
+    ],
+    "ano": null,
+    "paginas": 490,
+    "editora": "BestBolso",
+    "isbn": "9788577991686",
+    "capa_url": null,
+    "sinopse": "Livro sagrado do islamismo, que os muçulmanos consideram a palavra de Deus revelada ao profeta Maomé. Organiza-se em 114 suras (capítulos) de extensões variadas, com orientações de fé, culto, moral, família, justiça e conduta social, além de relatos de profetas anteriores como Abraão, Moisés e Jesus. Trata de temas como a unicidade de Deus, o Juízo Final, a caridade e a oração. Nesta edição, a tradução para o português é de Mansour Challita.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Religião"
+    ]
+  },
+  {
+    "titulo": "O Pequeno Livro Vermelho (Citações do Presidente Mao Tsé-Tung)",
+    "autores": [
+      "Mao Tsé-Tung"
+    ],
+    "ano": 1964,
+    "paginas": 224,
+    "editora": "Martin Claret",
+    "isbn": "9788572325608",
+    "capa_url": null,
+    "sinopse": "Coletânea de citações extraídas de discursos e escritos de Mao Tsé-Tung, organizada em capítulos temáticos. Os trechos tratam do Partido Comunista, da luta de classes, da guerra e do papel do exército, do trabalho com as massas, da disciplina e da educação. Difundido em larga escala na China durante a Revolução Cultural, tornou-se símbolo do maoísmo e do culto à personalidade do líder. Obra de caráter político e doutrinário, não uma narrativa.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Ensaios"
+    ]
+  },
+  {
+    "titulo": "Dom Quixote de La Mancha",
+    "autores": [
+      "Miguel de Cervantes"
+    ],
+    "ano": 1605,
+    "paginas": 752,
+    "editora": "Editora 34",
+    "isbn": "9788573262612",
+    "capa_url": null,
+    "sinopse": "Romance de Miguel de Cervantes sobre Alonso Quijano, fidalgo pobre da região da Mancha que enlouquece de tanto ler romances de cavalaria. Convencido de que deve reviver a cavalaria andante, adota o nome de Dom Quixote, arma-se de maneira improvisada e sai pelo mundo ao lado do escudeiro Sancho Pança, tomando moinhos de vento por gigantes e estalagens por castelos. Entre aventuras e desastres, a obra mistura humor, sátira, ideal e realidade. Considerada um dos marcos do romance moderno. Esta edição reúne o Primeiro Livro, publicado em 1605.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Um Conto de Duas Cidades",
+    "autores": [
+      "Charles Dickens"
+    ],
+    "ano": 1859,
+    "paginas": 352,
+    "editora": "Principis",
+    "isbn": "9786550970383",
+    "capa_url": null,
+    "sinopse": "Romance histórico de Charles Dickens ambientado em Londres e Paris, antes e durante a Revolução Francesa. O médico Alexandre Manette, preso injustamente por 18 anos na Bastilha, é libertado e reencontra a filha Lucie. A trama cruza o destino de Charles Darnay, aristocrata francês exilado, e de Sydney Carton, advogado desiludido que ama Lucie. Com a Revolução em curso, um passado de acusações reaparece. Temas: sacrifício, redenção, injustiça social e violência política.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Senhor dos Anéis",
+    "autores": [
+      "J.R.R. Tolkien"
+    ],
+    "ano": 1954,
+    "paginas": 1272,
+    "editora": "HarperCollins Brasil",
+    "isbn": "9786555112559",
+    "capa_url": null,
+    "sinopse": "Romance de fantasia épica de J.R.R. Tolkien, ambientado na Terra-média. O hobbit Frodo Bolseiro herda o Um Anel, criado pelo Senhor do Escuro Sauron, e precisa destruí-lo na Montanha da Perdição, em Mordor. Acompanhado pela Sociedade do Anel (hobbits, um mago, um elfo, um anão e homens), enfrenta perseguições, traições e guerras. Entre os temas estão o poder e sua corrupção, a amizade, a coragem dos pequenos e o fim de uma era. Esta edição reúne os três volumes em um só.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Pequeno Príncipe",
+    "autores": [
+      "Antoine de Saint-Exupéry"
+    ],
+    "ano": 1943,
+    "paginas": 93,
+    "editora": "Agir",
+    "isbn": "9788522005239",
+    "capa_url": null,
+    "sinopse": "Novela de Antoine de Saint-Exupéry narrada por um aviador que cai com seu avião no deserto do Saara e encontra um menininho de cabelos dourados. O Pequeno Príncipe vem de um asteroide minúsculo, onde cuida de um vulcão e de uma rosa vaidosa, e conta sua viagem por outros planetas, onde conheceu adultos estranhos, até chegar à Terra. Ali conhece a raposa, que lhe ensina o sentido de cativar. Conto filosófico sobre amizade, amor, responsabilidade e o olhar da infância.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e a Pedra Filosofal",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 1997,
+    "paginas": 263,
+    "editora": "Rocco",
+    "isbn": "9788532511010",
+    "capa_url": null,
+    "sinopse": "Primeiro livro da série de J.K. Rowling. Harry Potter, órfão criado pelos tios Dursley, descobre no aniversário de 11 anos que é bruxo e foi aceito na Escola de Magia e Bruxaria de Hogwarts. Lá faz amizade com Rony Weasley e Hermione Granger e aprende sobre o passado de seus pais e o bruxo Voldemort. Ao longo do ano, os três investigam a Pedra Filosofal, guardada na escola, que alguém tenta roubar. Temas: amizade, coragem, perda e o bem contra o mal.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Hobbit",
+    "autores": [
+      "J.R.R. Tolkien"
+    ],
+    "ano": 1937,
+    "paginas": 336,
+    "editora": "HarperCollins Brasil",
+    "isbn": "9788595084742",
+    "capa_url": null,
+    "sinopse": "Romance de fantasia de J.R.R. Tolkien que antecede O Senhor dos Anéis. O hobbit Bilbo Bolseiro, avesso a aventuras, é recrutado pelo mago Gandalf para acompanhar treze anões chefiados por Thorin Escudo de Carvalho, que querem retomar seu tesouro e o reino de Erebor, ocupados pelo dragão Smaug. Pelo caminho há trolls, orcs, elfos, aranhas gigantes e Gollum, de quem Bilbo obtém um anel mágico. Temas: coragem, cobiça, amizade e amadurecimento.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Sonho da Câmara Vermelha",
+    "autores": [
+      "Cao Xueqin"
+    ],
+    "ano": 1791,
+    "paginas": null,
+    "editora": null,
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Romance clássico chinês do século XVIII, atribuído a Cao Xueqin, que acompanha o declínio da poderosa família Jia, de Pequim. No centro está o jovem Jia Baoyu, herdeiro mimado e sensível, dividido entre a prima Lin Daiyu, frágil e poética, e a prima Xue Baochai, mais ajuizada. O pano de fundo é o Jardim da Ampla Vista, com dezenas de personagens, festas, poemas, intrigas e doenças. A obra trata de amor, destino, ilusão, hierarquia social e a efemeridade da riqueza.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Leão, a Feiticeira e o Guarda-Roupa",
+    "autores": [
+      "C.S. Lewis"
+    ],
+    "ano": 1950,
+    "paginas": 184,
+    "editora": "WMF Martins Fontes",
+    "isbn": "9788578270889",
+    "capa_url": null,
+    "sinopse": "Primeiro livro publicado das Crônicas de Nárnia, de C.S. Lewis. Durante a Segunda Guerra, quatro irmãos, Pedro, Susana, Edmundo e Lúcia, são enviados para uma casa no campo e descobrem num guarda-roupa a passagem para Nárnia, terra mágica de animais falantes sob um inverno eterno imposto pela Feiticeira Branca. Segundo uma profecia, eles devem ajudar o leão Aslam a libertar o reino. Entre traição, sacrifício e batalha, a história fala de coragem, lealdade e redenção.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Ela, a Feiticeira",
+    "autores": [
+      "H. Rider Haggard"
+    ],
+    "ano": 1887,
+    "paginas": 464,
+    "editora": "Record",
+    "isbn": "9788501067784",
+    "capa_url": null,
+    "sinopse": "Romance de aventura de H. Rider Haggard, publicado em 1887. O professor Horace Holly e seu pupilo Leo Vincey viajam à África em busca de um reino perdido, de que fala um antigo manuscrito. Nas montanhas, encontram os amahagger e a rainha Ayesha, chamada Ela, que reina há séculos e diz ter vencido a morte graças a uma chama misteriosa. Ela acredita reconhecer em Leo o amor que perdeu na Antiguidade. Temas: imortalidade, paixão, poder e desconhecido.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e o Enigma do Príncipe",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 2005,
+    "paginas": 472,
+    "editora": "Rocco",
+    "isbn": "9788532519474",
+    "capa_url": null,
+    "sinopse": "Sexto livro da série de J.K. Rowling. Com Voldemort de volta e o mundo bruxo em tensão, Harry Potter retorna a Hogwarts para o sexto ano. O diretor Dumbledore passa a lhe mostrar lembranças do passado de Tom Riddle, para descobrir como o vilão se tornou imortal. Harry encontra um velho livro de Poções anotado pelo misterioso Príncipe Mestiço, enquanto Draco Malfoy age de modo suspeito. O livro trata de amadurecimento, primeiros amores, segredos e perdas graves.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Apanhador no Campo de Centeio",
+    "autores": [
+      "J.D. Salinger"
+    ],
+    "ano": 1951,
+    "paginas": 207,
+    "editora": "Editora do Autor",
+    "isbn": "9788587575012",
+    "capa_url": null,
+    "sinopse": "Romance de J.D. Salinger narrado por Holden Caulfield, adolescente de 16 anos expulso de mais um colégio interno. Em vez de voltar direto para casa, ele passa dois dias em Nova York, vagando por hotéis, bares e encontros, entre eles com uma ex-professora e a irmã caçula, Phoebe. Em tom coloquial e crítico, Holden despreza a falsidade dos adultos enquanto lida com luto, solidão e medo de crescer. Sua fantasia é proteger crianças à beira de um penhasco, num campo de centeio.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e a Câmara Secreta",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 1998,
+    "paginas": 287,
+    "editora": "Rocco",
+    "isbn": "9788532523068",
+    "capa_url": null,
+    "sinopse": "Segundo livro da série de J.K. Rowling. No segundo ano em Hogwarts, Harry Potter ouve vozes nas paredes e vê colegas serem petrificados. Uma inscrição anuncia que a Câmara Secreta foi aberta, e os alunos de origem trouxa se tornam alvo de um monstro. Com Rony e Hermione, Harry investiga o passado da escola, um diário misterioso e a lenda do herdeiro de Slytherin. Temas: preconceito, identidade, amizade e as escolhas que definem quem somos.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e o Prisioneiro de Azkaban",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 1999,
+    "paginas": 318,
+    "editora": "Rocco",
+    "isbn": "9788532529978",
+    "capa_url": null,
+    "sinopse": "Terceiro livro da série de J.K. Rowling. Sirius Black, acusado de ter ajudado Voldemort e de assassinar treze pessoas, escapa da prisão de Azkaban, e todos acreditam que ele busca Harry Potter. Hogwarts passa a ser vigiada pelos dementadores, e o garoto conhece o professor Lupin, que o ensina a se defender deles. Aos poucos, Harry descobre verdades sobre o passado de seus pais e a traição que os atingiu. Temas: justiça, medo, lealdade e família.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e o Cálice de Fogo",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 2000,
+    "paginas": 584,
+    "editora": "Rocco",
+    "isbn": "9788532512529",
+    "capa_url": null,
+    "sinopse": "Quarto livro da série de J.K. Rowling. Hogwarts sedia o Torneio Tribruxo, competição entre três escolas que exige tarefas perigosas dos campeões. O Cálice de Fogo seleciona, para surpresa de todos, o nome de Harry Potter, ainda menor de idade, ao lado dos campeões oficiais. Enquanto enfrenta dragão, lago e labirinto, Harry suspeita que alguém armou o torneio contra ele. O livro marca uma virada sombria, com o retorno de Voldemort e uma perda trágica.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e a Ordem da Fênix",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 2003,
+    "paginas": 702,
+    "editora": "Rocco",
+    "isbn": "9788532516220",
+    "capa_url": null,
+    "sinopse": "Quinto livro da série de J.K. Rowling. Depois do retorno de Voldemort, o Ministério da Magia se recusa a acreditar em Harry Potter e em Dumbledore. Em Hogwarts, a funcionária ministerial Dolores Umbridge assume a escola e impõe regras rígidas. Harry forma com colegas um grupo secreto de treino, o Exército de Dumbledore, enquanto a Ordem da Fênix se reorganiza. Temas: autoridade, negação, resistência, raiva adolescente e luto, até o confronto no Ministério.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Harry Potter e as Relíquias da Morte",
+    "autores": [
+      "J.K. Rowling"
+    ],
+    "ano": 2007,
+    "paginas": 592,
+    "editora": "Rocco",
+    "isbn": "9788532522610",
+    "capa_url": null,
+    "sinopse": "Sétimo e último livro da série de J.K. Rowling. Com Voldemort no poder, Harry, Rony e Hermione abandonam Hogwarts para caçar as Horcruxes, objetos que guardam partes da alma do vilão e que precisam ser destruídos. Ao mesmo tempo, descobrem a lenda das Relíquias da Morte e segredos do passado de Dumbledore. Perseguidos e isolados, enfrentam o desgaste da busca e o risco constante. A história culmina na batalha de Hogwarts. Temas: sacrifício, morte, amizade e coragem.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Cem Anos de Solidão",
+    "autores": [
+      "Gabriel García Márquez"
+    ],
+    "ano": 1967,
+    "paginas": 432,
+    "editora": "Record",
+    "isbn": "9788501110367",
+    "capa_url": null,
+    "sinopse": "Romance de Gabriel García Márquez que narra sete gerações da família Buendía em Macondo, povoado fundado por José Arcadio Buendía e Úrsula Iguarán. Entre guerras civis, a chegada da companhia bananeira, amores impossíveis, repetição de nomes e destinos e uma peste de insônia, a vida cotidiana se mistura ao fantástico. Obra central do realismo mágico, aborda solidão, memória, destino, poder e o isolamento da América Latina.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Lolita",
+    "autores": [
+      "Vladimir Nabokov"
+    ],
+    "ano": 1955,
+    "paginas": 392,
+    "editora": "Alfaguara",
+    "isbn": "9788579620560",
+    "capa_url": null,
+    "sinopse": "Romance de Vladimir Nabokov narrado por Humbert Humbert, professor europeu que escreve de uma cela e relata sua obsessão por Dolores Haze, de 12 anos, a quem chama de Lolita. Para ficar perto dela, casa-se com a mãe da menina e, após a morte dela, parte com Lolita numa longa viagem pelos Estados Unidos. A narrativa elegante e manipuladora expõe a autojustificação do narrador e o abuso que ele pratica. Temas: obsessão, manipulação, culpa e o poder da linguagem.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Heidi",
+    "autores": [
+      "Johanna Spyri"
+    ],
+    "ano": 1880,
+    "paginas": 240,
+    "editora": "Novo Século",
+    "isbn": "9786555613445",
+    "capa_url": null,
+    "sinopse": "Romance infantil de Johanna Spyri. Heidi, órfã de 5 anos, é levada pela tia Dete para viver com o avô, um velho solitário, numa cabana nos Alpes suíços. Entre as montanhas, o pastor Pedro e as cabras, a menina conquista o avô e vive feliz. Tempos depois, é mandada para Frankfurt para ser companheira de Clara, menina doente que usa cadeira de rodas, e sente forte saudade dos Alpes. Temas: natureza, saudade, amizade, fé e cura.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Meu Filho, Meu Tesouro",
+    "autores": [
+      "Benjamin Spock"
+    ],
+    "ano": 1946,
+    "paginas": null,
+    "editora": "Europa-América",
+    "isbn": null,
+    "capa_url": null,
+    "sinopse": "Guia de cuidados com bebês e crianças escrito pelo pediatra norte-americano Benjamin Spock, publicado originalmente em 1946 como The Common Sense Book of Baby and Child Care. Reúne orientações sobre alimentação, sono, saúde, doenças comuns, desenvolvimento e disciplina, do nascimento à adolescência. Defendeu uma abordagem baseada na confiança dos pais no próprio bom senso e no afeto. Foi um dos livros de mais vendas do século XX.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Autoajuda"
+    ]
+  },
+  {
+    "titulo": "Anne de Green Gables",
+    "autores": [
+      "Lucy Maud Montgomery"
+    ],
+    "ano": 1908,
+    "paginas": 480,
+    "editora": "Martins Editora",
+    "isbn": "9788580632699",
+    "capa_url": null,
+    "sinopse": "Romance infantojuvenil de Lucy Maud Montgomery. Os irmãos idosos Matthew e Marilla Cuthbert, de Avonlea, na Ilha do Príncipe Eduardo, pedem um menino órfão para ajudar na fazenda, mas chega Anne Shirley, menina ruiva de 11 anos, falante e sonhadora. Entre travessuras, amizades e rivalidades escolares, ela conquista a comunidade e os dois irmãos e se destaca nos estudos. Temas: imaginação, pertencimento, amadurecimento e a vida numa pequena comunidade rural.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Beleza Negra",
+    "autores": [
+      "Anna Sewell"
+    ],
+    "ano": 1877,
+    "paginas": 228,
+    "editora": "Dracaena",
+    "isbn": "9788582180815",
+    "capa_url": null,
+    "sinopse": "Romance de Anna Sewell narrado em primeira pessoa por um cavalo, Beleza Negra. Nascido numa fazenda inglesa, ele recebe bom tratamento na juventude, mas, ao longo da vida, passa por vários donos, entre eles cocheiros cruéis, o trabalho pesado em carruagens de aluguel e um acidente que o fere. Ao lado de companheiros como Ginger, o cavalo observa a bondade e a crueldade dos humanos. Livro pioneiro na defesa do bom trato aos animais. Temas: compaixão, dignidade e injustiça.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Nome da Rosa",
+    "autores": [
+      "Umberto Eco"
+    ],
+    "ano": 1980,
+    "paginas": 560,
+    "editora": "Record",
+    "isbn": "9788501081407",
+    "capa_url": null,
+    "sinopse": "Romance de Umberto Eco ambientado em 1327, numa abadia beneditina do norte da Itália. O frade franciscano Guilherme de Baskerville e seu noviço Adso de Melk chegam para um encontro teológico e se veem investigando mortes misteriosas entre os monges, ligadas a uma biblioteca labiríntica e a um livro proibido. Mistura romance policial, história medieval, teologia e semiótica, com debates sobre o riso, o poder da Igreja e o controle do saber.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Policial",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Águia Pousou",
+    "autores": [
+      "Jack Higgins"
+    ],
+    "ano": 1975,
+    "paginas": 394,
+    "editora": "Record",
+    "isbn": "9788501002563",
+    "capa_url": null,
+    "sinopse": "Romance de suspense de Jack Higgins, ambientado em 1943, na Segunda Guerra Mundial. Alemães planejam sequestrar Winston Churchill, que passará uma temporada numa aldeia no leste da Inglaterra. Uma equipe de paraquedistas comandada pelo coronel Kurt Steiner, aliada a um agente irlandês e a espiões já infiltrados, tenta executar a operação disfarçada de tropa polonesa. A história mostra os preparativos, os imprevistos e o dilema dos soldados envolvidos. Temas: guerra, lealdade e traição.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Uma Vida com Propósitos",
+    "autores": [
+      "Rick Warren"
+    ],
+    "ano": 2002,
+    "paginas": 352,
+    "editora": "Vida",
+    "isbn": "9786555844900",
+    "capa_url": null,
+    "sinopse": "Livro religioso do pastor norte-americano Rick Warren, organizado em 40 capítulos, um para cada dia de leitura. Parte da ideia de que a vida só faz sentido quando orientada pelos propósitos que Deus teria definido para cada pessoa e propõe cinco: adorar a Deus, fazer parte de uma comunidade de fé, ser semelhante a Cristo, servir e testemunhar sua fé. Escrito em tom de aconselhamento pastoral, com estudos bíblicos e perguntas para reflexão.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Religião"
+    ]
+  },
+  {
+    "titulo": "A História de Pedro Coelho",
+    "autores": [
+      "Beatrix Potter"
+    ],
+    "ano": 1902,
+    "paginas": 60,
+    "editora": "Edições Barbatana",
+    "isbn": "9788564155114",
+    "capa_url": null,
+    "sinopse": "Livro infantil de Beatrix Potter, publicado em 1902. Pedro Coelho vive com a mãe e as irmãs Flopsy, Mopsy e Rabo-de-Algodão, mas desobedece à advertência de não entrar na horta do Sr. McGregor. Ele come verduras, é perseguido, perde o casaco e os sapatos, esconde-se numa regadora e quase é pego. Volta para casa exausto e é posto na cama, enquanto as irmãs, obedientes, tomam chá de camomila. Temas: desobediência, travessura e consequências.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Uma lagarta muito comilona",
+    "autores": [
+      "Eric Carle"
+    ],
+    "ano": 1969,
+    "paginas": null,
+    "editora": "Companhia das Letrinhas",
+    "isbn": "9786554850926",
+    "capa_url": null,
+    "sinopse": "Livro ilustrado infantil de Eric Carle. Uma pequena lagarta nasce de um ovo num domingo, com muita fome, e a cada dia come uma quantidade maior de frutas e, no sábado, vários alimentos variados, o que lhe dá dor de barriga. No domingo seguinte, come uma folha, fica grande e gorda, constrói um casulo e, depois de duas semanas, se transforma numa borboleta. A obra ensina dias da semana, números e a metamorfose.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Cinquenta Tons de Cinza",
+    "autores": [
+      "E.L. James"
+    ],
+    "ano": 2011,
+    "paginas": 480,
+    "editora": "Intrínseca",
+    "isbn": "9788580576207",
+    "capa_url": null,
+    "sinopse": "Romance erótico de E.L. James, primeiro da trilogia. A estudante de literatura Anastasia Steele entrevista o jovem bilionário Christian Grey e fica fascinada. Ele propõe a ela um contrato de relacionamento dominador-submissa, com regras de controle e sigilo. Ela hesita entre desejo e receio, enquanto descobre os traumas e o passado do homem. A trama gira em torno de poder, consentimento, ciúme e do conflito entre desejo e afeto.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Teia de Charlotte",
+    "autores": [
+      "E.B. White"
+    ],
+    "ano": 1952,
+    "paginas": 216,
+    "editora": "WMF Martins Fontes",
+    "isbn": "9788578272968",
+    "capa_url": null,
+    "sinopse": "Clássico infantil de E.B. White. A menina Fern salva um porquinho recém-nascido, Wilbur, de ser sacrificado; ele vai então para o celeiro do tio dela. Ali, Wilbur se sente sozinho até fazer amizade com a aranha Charlotte, que, ao saber que ele será abatido no inverno, tece palavras em sua teia, como 'Que porco!', para convencer os humanos de que o animal é especial. Temas: amizade, lealdade, ciclo da vida e morte.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "As Pontes de Madison",
+    "autores": [
+      "Robert James Waller"
+    ],
+    "ano": 1992,
+    "paginas": 192,
+    "editora": "Única",
+    "isbn": "9788567028590",
+    "capa_url": null,
+    "sinopse": "Romance de Robert James Waller. Em 1965, o fotógrafo da National Geographic Robert Kincaid vai ao condado de Madison, em Iowa, fotografar pontes cobertas e pede informação a Francesca Johnson, dona de casa italiana que está sozinha na fazenda porque o marido e os filhos viajaram. Os dois vivem quatro dias de intensa paixão e precisam decidir se ela deixa a família. A história é revelada décadas depois por meio de cartas e diários. Temas: amor, dever, escolhas e renúncia.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Diário de Anne Frank",
+    "autores": [
+      "Anne Frank"
+    ],
+    "ano": 1947,
+    "paginas": 349,
+    "editora": "Record",
+    "isbn": "9788501044457",
+    "capa_url": null,
+    "sinopse": "Diário escrito por Anne Frank, menina judia de 13 anos, entre 1942 e 1944, durante os dois anos em que ela, a família e outras quatro pessoas se esconderam num anexo secreto em Amsterdã, durante a ocupação nazista. Nos textos, dirigidos a uma amiga imaginária, Kitty, ela relata a rotina, o medo, as discussões, o amadurecimento e os sonhos de ser escritora. O grupo foi descoberto em agosto de 1944 e Anne morreu num campo de concentração. Edição definitiva, com trechos antes omitidos.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Biografia e memórias"
+    ]
+  },
+  {
+    "titulo": "Como Fazer Amigos e Influenciar Pessoas",
+    "autores": [
+      "Dale Carnegie"
+    ],
+    "ano": 1936,
+    "paginas": 336,
+    "editora": "Companhia Editora Nacional",
+    "isbn": "9788504020267",
+    "capa_url": null,
+    "sinopse": "Livro de autoajuda e relações humanas de Dale Carnegie, publicado em 1936. Com base em histórias reais e exemplos de figuras históricas, ensina princípios práticos para lidar com pessoas: evitar críticas e reclamações, demonstrar apreço sincero, interessar-se pelos outros, sorrir, lembrar nomes, ouvir com atenção, persuadir sem discutir e liderar sem provocar ressentimentos. Muito usado em treinamentos de comunicação e liderança.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Autoajuda"
+    ]
+  },
+  {
+    "titulo": "Quem Pensa Enriquece",
+    "autores": [
+      "Napoleon Hill"
+    ],
+    "ano": 1937,
+    "paginas": 248,
+    "editora": "Fundamento",
+    "isbn": "9788576766308",
+    "capa_url": null,
+    "sinopse": "Livro de autoajuda e desenvolvimento pessoal de Napoleon Hill, publicado em 1937. Segundo o autor, resultado de anos de estudo de homens bem-sucedidos, como Andrew Carnegie, o sucesso material começa por um desejo definido, fé e persistência. Apresenta 13 princípios, entre eles planejamento, tomada de decisão, poder do grupo de aliados (mastermind) e controle do pensamento. Obra de grande influência no gênero e também alvo de críticas por suas afirmações pouco comprovadas.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Autoajuda",
+      "Negócios"
+    ]
+  },
+  {
+    "titulo": "E o Vento Levou",
+    "autores": [
+      "Margaret Mitchell"
+    ],
+    "ano": 1936,
+    "paginas": 952,
+    "editora": "Record",
+    "isbn": "9788501087300",
+    "capa_url": null,
+    "sinopse": "Romance de Margaret Mitchell ambientado na Geórgia, no Sul dos Estados Unidos, antes, durante e depois da Guerra Civil. Scarlett O'Hara, jovem sulista mimada e determinada, ama Ashley Wilkes, que se casa com Melanie. Com a guerra, a ruína e a fome, Scarlett luta para salvar a fazenda Tara, casa-se várias vezes e se envolve com o aventureiro Rhett Butler. A obra trata de sobrevivência, ambição, amor e do fim do modo de vida do Sul escravocrata, tratado de modo idealizado pela autora.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "1984",
+    "autores": [
+      "George Orwell"
+    ],
+    "ano": 1949,
+    "paginas": 416,
+    "editora": "Companhia das Letras",
+    "isbn": "9788535914849",
+    "capa_url": null,
+    "sinopse": "Romance distópico de George Orwell. Em Oceânia, num futuro sob o regime do Partido e do onipresente Grande Irmão, Winston Smith trabalha no Ministério da Verdade, reescrevendo documentos para adaptar o passado ao discurso oficial. Vigiado por teletelas e pela Polícia das Ideias, ele começa a duvidar do sistema, escreve um diário e se envolve com Julia, o que o leva a ser punido. Temas: totalitarismo, vigilância, manipulação da verdade e da linguagem, e controle do pensamento.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Mundo de Sofia",
+    "autores": [
+      "Jostein Gaarder"
+    ],
+    "ano": 1991,
+    "paginas": 568,
+    "editora": "Companhia das Letras",
+    "isbn": "9788535921892",
+    "capa_url": null,
+    "sinopse": "Romance de Jostein Gaarder que conta a história da filosofia. Perto dos 15 anos, a norueguesa Sofia Amundsen recebe bilhetes anônimos com perguntas como 'Quem é você?' e passa a ter aulas por correspondência com o filósofo Alberto Knox, que a leva dos pré-socráticos aos pensadores do século XX. Ao mesmo tempo, aparecem postais endereçados a uma tal Hilde, e Sofia começa a desconfiar da natureza da própria realidade. Mistura ensino de filosofia e enredo de mistério.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Anjos e Demônios",
+    "autores": [
+      "Dan Brown"
+    ],
+    "ano": 2000,
+    "paginas": 416,
+    "editora": "Arqueiro",
+    "isbn": "9788599296394",
+    "capa_url": null,
+    "sinopse": "Thriller de Dan Brown, a primeira aventura do professor de simbologia Robert Langdon. Chamado ao laboratório de física CERN, na Suíça, para examinar um símbolo marcado no corpo de um físico assassinado, ele descobre que a sociedade secreta dos Illuminati ressurgiu e roubou uma arma de antimatéria. A ameaça é destruir o Vaticano durante o conclave. Com a cientista Vittoria Vetra, Langdon corre por Roma, entre igrejas e monumentos. Temas: ciência contra religião e conspiração.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Menina que Roubava Livros",
+    "autores": [
+      "Markus Zusak"
+    ],
+    "ano": 2005,
+    "paginas": 480,
+    "editora": "Intrínseca",
+    "isbn": "9788598078175",
+    "capa_url": null,
+    "sinopse": "Romance de Markus Zusak narrado pela Morte, na Alemanha nazista entre 1939 e 1943. Liesel Meminger, menina enviada à família adotiva Hubermann, em Molching, aprende a ler com o pai adotivo, Hans, e começa a roubar livros. Faz amizade com Rudy Steiner, e a família passa a esconder no porão o judeu Max Vandenburg. Em meio à guerra, aos bombardeios e à propaganda, os livros e as palavras se tornam um modo de resistir. Temas: guerra, perda, linguagem e humanidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Guerra e Paz",
+    "autores": [
+      "Liev Tolstói"
+    ],
+    "ano": 1869,
+    "paginas": 1544,
+    "editora": "Companhia das Letras",
+    "isbn": "9788535930047",
+    "capa_url": null,
+    "sinopse": "Romance épico de Liev Tolstói, ambientado na Rússia entre 1805 e 1820, durante as guerras napoleônicas. Acompanha cinco famílias aristocráticas, entre elas Pierre Bezukhov, em busca de sentido, o príncipe André Bolkonski, Natacha Rostova e Nikolai Rostov. Os personagens vivem amores, casamentos, decepções e batalhas, como Austerlitz e Borodino, e a invasão de Moscou por Napoleão em 1812. A obra mistura ficção e reflexões históricas e filosóficas sobre destino, poder e liberdade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "As Aventuras de Pinóquio",
+    "autores": [
+      "Carlo Collodi"
+    ],
+    "ano": 1883,
+    "paginas": 192,
+    "editora": "Companhia das Letrinhas",
+    "isbn": "9788574061313",
+    "capa_url": null,
+    "sinopse": "Romance infantil de Carlo Collodi, publicado em folhetim a partir de 1881. O marceneiro Gepeto esculpe um boneco de madeira falante, Pinóquio, que foge de casa, vende o abecedário e é levado a más companhias, como a Raposa e o Gato. A Fada de cabelos azuis o ajuda, o Grilo-Falante o aconselha, e seu nariz cresce quando mente. Depois de passar pelo País dos Brinquedos e pelo ventre de um tubarão, ele só se torna menino de verdade ao aprender obediência e responsabilidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Caçador de Pipas",
+    "autores": [
+      "Khaled Hosseini"
+    ],
+    "ano": 2003,
+    "paginas": 365,
+    "editora": "Nova Fronteira",
+    "isbn": "9788520917671",
+    "capa_url": null,
+    "sinopse": "Romance de Khaled Hosseini. Em Cabul, nos anos 1970, Amir, filho de um rico pashtun, e Hassan, filho hazara de seu empregado, são amigos inseparáveis e adoram pipas. Num torneio de pipas, em 1975, Amir não defende Hassan de uma violência e vive anos de culpa. Com a invasão soviética e depois o Talibã, ele foge para os Estados Unidos. Já adulto, volta ao Afeganistão para tentar se redimir. Temas: amizade, traição, culpa, redenção e guerra.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Jogos Vorazes",
+    "autores": [
+      "Suzanne Collins"
+    ],
+    "ano": 2008,
+    "paginas": 400,
+    "editora": "Rocco",
+    "isbn": "9788579800245",
+    "capa_url": null,
+    "sinopse": "Romance de Suzanne Collins, primeiro da trilogia. Na nação de Panem, governada pela Capital, cada um dos 12 distritos precisa enviar anualmente um menino e uma menina para os Jogos Vorazes, torneio televisionado em que os jovens lutam até a morte. Katniss Everdeen, de 16 anos, se voluntaria no lugar da irmã Prim e parte para a arena com Peeta Mellark. Temas: sobrevivência, desigualdade, controle midiático e rebelião.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Crepúsculo",
+    "autores": [
+      "Stephenie Meyer"
+    ],
+    "ano": 2005,
+    "paginas": 416,
+    "editora": "Intrínseca",
+    "isbn": "9788598078304",
+    "capa_url": null,
+    "sinopse": "Romance de Stephenie Meyer, primeiro da saga. Bella Swan, adolescente de 17 anos, vai morar com o pai na chuvosa Forks, em Washington, e se interessa por Edward Cullen, colega reservado e misterioso. Ela descobre que ele e sua família são vampiros que não se alimentam de humanos. Os dois se apaixonam e a relação é ameaçada por um vampiro nômade que decide caçar Bella. Temas: amor proibido, perigo e escolhas.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Culpa é das Estrelas",
+    "autores": [
+      "John Green"
+    ],
+    "ano": 2012,
+    "paginas": 288,
+    "editora": "Intrínseca",
+    "isbn": "9788580572261",
+    "capa_url": null,
+    "sinopse": "Romance de John Green. Hazel Grace Lancaster, de 16 anos, tem câncer de tireoide com metástase nos pulmões e depende de um tanque de oxigênio. Num grupo de apoio, conhece Augustus Waters, sobrevivente de câncer ósseo, e os dois se aproximam por meio de um livro, 'Uma aflição imperial'. Juntos viajam a Amsterdã para tentar conhecer o autor. Temas: doença, finitude, amor jovem, sentido da vida e o desejo de deixar marca.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Revolução dos Bichos",
+    "autores": [
+      "George Orwell"
+    ],
+    "ano": 1945,
+    "paginas": 150,
+    "editora": "Companhia das Letras",
+    "isbn": "9788535909555",
+    "capa_url": null,
+    "sinopse": "Fábula política de George Orwell. Cansados da exploração do fazendeiro Jones, os animais da Granja do Solar expulsam os humanos e criam um governo próprio, guiado pelo princípio de que todos os animais são iguais. Aos poucos, os porcos, liderados por Napoleão, concentram o poder, reescrevem as regras e passam a oprimir os demais. Temas: corrupção do poder, totalitarismo, propaganda e traição dos ideais revolucionários.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Crime e Castigo",
+    "autores": [
+      "Fiódor Dostoiévski"
+    ],
+    "ano": 1866,
+    "paginas": 568,
+    "editora": "Editora 34",
+    "isbn": "9788573262087",
+    "capa_url": null,
+    "sinopse": "Romance de Fiódor Dostoiévski ambientado em São Petersburgo. Raskólnikov, jovem estudante pobre, assassina uma velha agiota convencido de que um homem superior pode transgredir a lei por um fim maior. Tomado por culpa e paranoia, é perseguido pelo juiz Porfíri e encontra apoio em Sônia, jovem que se prostitui para sustentar a família. Temas: culpa, moral, miséria, redenção e os limites da razão.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Os Irmãos Karamázov",
+    "autores": [
+      "Fiódor Dostoiévski"
+    ],
+    "ano": 1880,
+    "paginas": 1040,
+    "editora": "Editora 34",
+    "isbn": "9788573264104",
+    "capa_url": null,
+    "sinopse": "Último romance de Dostoiévski. Na Rússia do século XIX, o pai Fiódor Karamázov é assassinado, e seus filhos, o sensual Dmitri, o racional Ivan e o devoto Aliócha, além do bastardo Smierdiakov, ficam sob suspeita. Dmitri é julgado pelo crime, e a trama se entrelaça a debates sobre Deus, livre-arbítrio e sofrimento. Temas: fé e dúvida, culpa, responsabilidade moral e conflito entre pais e filhos.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Anna Kariênina",
+    "autores": [
+      "Liev Tolstói"
+    ],
+    "ano": 1877,
+    "paginas": 808,
+    "editora": "Companhia das Letras",
+    "isbn": "9788535929225",
+    "capa_url": null,
+    "sinopse": "Romance de Liev Tolstói. Anna, mulher da alta sociedade russa casada com o funcionário Aleksei Kariênin, apaixona-se pelo oficial Vronski e rompe com as convenções, sofrendo o isolamento social. Em paralelo, o proprietário rural Liévin busca sentido para a vida no casamento e no trabalho com a terra. Temas: adultério, hipocrisia social, amor, família e sentido da existência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Orgulho e Preconceito",
+    "autores": [
+      "Jane Austen"
+    ],
+    "ano": 1813,
+    "paginas": 320,
+    "editora": "Faro Editorial",
+    "isbn": "9786559572625",
+    "capa_url": null,
+    "sinopse": "Romance de Jane Austen. Elizabeth Bennet, segunda de cinco irmãs de uma família de poucos recursos na Inglaterra rural, conhece o rico e reservado Sr. Darcy. Os dois se desentendem por julgamentos precipitados e por diferenças de classe, até que revelações os obrigam a rever suas opiniões. Temas: casamento e dinheiro, classe social, orgulho, preconceito e amadurecimento.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Razão e Sensibilidade",
+    "autores": [
+      "Jane Austen"
+    ],
+    "ano": 1811,
+    "paginas": 340,
+    "editora": "Martin Claret",
+    "isbn": "9788572327596",
+    "capa_url": null,
+    "sinopse": "Romance de Jane Austen. Após a morte do pai, as irmãs Elinor e Marianne Dashwood ficam com poucos recursos e se mudam para o campo. A prudente Elinor esconde a decepção por Edward Ferrars, enquanto a impulsiva Marianne se entrega à paixão por Willoughby, que a abandona. Temas: equilíbrio entre razão e emoção, dinheiro e casamento, e condição feminina.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Morro dos Ventos Uivantes",
+    "autores": [
+      "Emily Brontë"
+    ],
+    "ano": 1847,
+    "paginas": 368,
+    "editora": "Principis",
+    "isbn": "9788594318244",
+    "capa_url": null,
+    "sinopse": "Romance de Emily Brontë ambientado nos pântanos de Yorkshire. Heathcliff, órfão recolhido pelos Earnshaw, ama Catherine, que escolhe casar-se com o rico Edgar Linton. Humilhado, ele volta rico e se vinga das duas famílias ao longo de gerações, na narrativa contada pela criada Nelly. Temas: amor obsessivo, vingança, classe social e natureza selvagem.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Jane Eyre",
+    "autores": [
+      "Charlotte Brontë"
+    ],
+    "ano": 1847,
+    "paginas": 576,
+    "editora": "Principis",
+    "isbn": "9786555521184",
+    "capa_url": null,
+    "sinopse": "Romance de Charlotte Brontë. Órfã maltratada pela tia, Jane passa pelo internato de Lowood e se torna governanta em Thornfield, onde se apaixona pelo patrão, Rochester. No dia do casamento, descobre um segredo que torna a união impossível e foge, tendo de decidir entre amor e dignidade. Temas: independência feminina, moralidade, classe social e identidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Grande Gatsby",
+    "autores": [
+      "F. Scott Fitzgerald"
+    ],
+    "ano": 1925,
+    "paginas": 272,
+    "editora": "Record",
+    "isbn": "9788501063519",
+    "capa_url": null,
+    "sinopse": "Romance de F. Scott Fitzgerald ambientado nos anos 1920, em Long Island. O narrador, Nick Carraway, torna-se vizinho do misterioso milionário Jay Gatsby, que dá festas luxuosas na esperança de reconquistar Daisy, seu antigo amor, agora casada com Tom Buchanan. A busca de Gatsby termina em tragédia. Temas: sonho americano, riqueza, ilusão, amor e decadência moral.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Amor nos Tempos do Cólera",
+    "autores": [
+      "Gabriel García Márquez"
+    ],
+    "ano": 1985,
+    "paginas": 432,
+    "editora": "Record",
+    "isbn": "9788501028723",
+    "capa_url": null,
+    "sinopse": "Romance de Gabriel García Márquez. Florentino Ariza apaixona-se na juventude por Fermina Daza, que o rejeita e se casa com o médico Juvenal Urbino. Ele a espera por mais de cinquenta anos, tendo inúmeros casos amorosos, até que ela fica viúva. Ambientado numa cidade do Caribe colombiano. Temas: amor persistente, velhice, tempo e desejo.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Velho e o Mar",
+    "autores": [
+      "Ernest Hemingway"
+    ],
+    "ano": 1952,
+    "paginas": 126,
+    "editora": "Bertrand Brasil",
+    "isbn": "9788528617986",
+    "capa_url": null,
+    "sinopse": "Novela de Ernest Hemingway. O velho pescador cubano Santiago passou 84 dias sem pegar peixe quando se afasta da costa e fisga um enorme marlim, com quem luta por dias. Já na volta, os tubarões devoram a presa, restando apenas o esqueleto. O jovem Manolin permanece leal a ele. Temas: perseverança, dignidade na derrota, solidão e relação entre homem e natureza.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Novela",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Por Quem os Sinos Dobram",
+    "autores": [
+      "Ernest Hemingway"
+    ],
+    "ano": 1940,
+    "paginas": 672,
+    "editora": "Bertrand Brasil",
+    "isbn": "9788528618341",
+    "capa_url": null,
+    "sinopse": "Romance de Ernest Hemingway ambientado na Guerra Civil Espanhola. O norte-americano Robert Jordan, dinamitador a serviço dos republicanos, recebe a missão de explodir uma ponte e se junta a um grupo de guerrilheiros nas montanhas. Em poucos dias, apaixona-se por María e enfrenta o conflito entre dever e desejo de viver. Temas: guerra, sacrifício, amor e morte.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "As Vinhas da Ira",
+    "autores": [
+      "John Steinbeck"
+    ],
+    "ano": 1939,
+    "paginas": 572,
+    "editora": "Record",
+    "isbn": "9788501023643",
+    "capa_url": null,
+    "sinopse": "Romance de John Steinbeck ambientado na Grande Depressão. Expulsa de suas terras em Oklahoma, a família Joad parte para a Califórnia em busca de trabalho, com Tom Joad à frente. No caminho, enfrenta fome, exploração e perdas. Temas: pobreza, injustiça social, dignidade dos trabalhadores e solidariedade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Ratos e Homens",
+    "autores": [
+      "John Steinbeck"
+    ],
+    "ano": 1937,
+    "paginas": 142,
+    "editora": "L&PM",
+    "isbn": "9788525413789",
+    "capa_url": null,
+    "sinopse": "Novela de John Steinbeck. Durante a Depressão, George Milton e Lennie Small, trabalhadores itinerantes, sonham com uma pequena terra. Lennie, forte e de inteligência limitada, não mede sua força e se mete em problemas. A chegada a uma fazenda na Califórnia leva a um desfecho trágico. Temas: amizade, sonho, solidão e marginalidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Novela",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Moby Dick",
+    "autores": [
+      "Herman Melville"
+    ],
+    "ano": 1851,
+    "paginas": 656,
+    "editora": "Cosac Naify",
+    "isbn": "9788575036709",
+    "capa_url": null,
+    "sinopse": "Romance de Herman Melville. O marinheiro Ismael embarca no baleeiro Pequod, comandado pelo capitão Ahab, que perdeu a perna para a baleia branca Moby Dick e quer vingar-se. A viagem mistura aventura, cenas da vida a bordo e digressões sobre a caça à baleia, até o confronto final. Temas: obsessão, vingança, destino e relação entre o homem e a natureza.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "As Aventuras de Huckleberry Finn",
+    "autores": [
+      "Mark Twain"
+    ],
+    "ano": 1884,
+    "paginas": 320,
+    "editora": "L&PM",
+    "isbn": "9788525421630",
+    "capa_url": null,
+    "sinopse": "Romance de Mark Twain, continuação de Tom Sawyer. Huck, menino criado de forma livre às margens do Mississippi, foge do pai violento e se junta a Jim, escravizado que também escapa. Os dois descem o rio numa balsa, vivendo situações cômicas e perigosas, enquanto Huck questiona o que lhe ensinaram sobre certo e errado. Temas: liberdade, racismo, amizade e consciência moral.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção",
+      "Infantojuvenil"
+    ]
+  },
+  {
+    "titulo": "As Aventuras de Tom Sawyer",
+    "autores": [
+      "Mark Twain"
+    ],
+    "ano": 1876,
+    "paginas": 240,
+    "editora": "Autêntica",
+    "isbn": "9788551302859",
+    "capa_url": null,
+    "sinopse": "Romance de Mark Twain ambientado na cidade ribeirinha de St. Petersburg, no Missouri. Tom, menino travesso criado pela tia Polly, vive aventuras com Huck Finn e Becky Thatcher, presencia um crime no cemitério e acaba perdido numa caverna. Temas: infância, travessura, aventura, amizade e vida no interior norte-americano.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção",
+      "Infantojuvenil"
+    ]
+  },
+  {
+    "titulo": "O Retrato de Dorian Gray",
+    "autores": [
+      "Oscar Wilde"
+    ],
+    "ano": 1890,
+    "paginas": 264,
+    "editora": "Penguin-Companhia",
+    "isbn": "9788563560438",
+    "capa_url": null,
+    "sinopse": "Romance de Oscar Wilde. O jovem Dorian Gray, de beleza notável, posa para um retrato e, influenciado pelo cínico lorde Henry, deseja ficar sempre jovem enquanto o quadro envelhece. O desejo se realiza e, entre excessos e crimes, só o retrato registra a corrupção de sua alma. Temas: vaidade, estética, hedonismo e consequências morais.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Os Miseráveis",
+    "autores": [
+      "Victor Hugo"
+    ],
+    "ano": 1862,
+    "paginas": 1974,
+    "editora": "Cosac Naify",
+    "isbn": "9788540502321",
+    "capa_url": null,
+    "sinopse": "Romance de Victor Hugo ambientado na França do século XIX. Jean Valjean, preso por roubar pão, é solto após dezenove anos e, depois de ser acolhido por um bispo, tenta recomeçar com nova identidade, perseguido pelo inspetor Javert. Cuida de Cosette, filha da infeliz Fantine, e a história atravessa as barricadas de 1832. Temas: justiça, redenção, pobreza e compaixão.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Corcunda de Notre-Dame",
+    "autores": [
+      "Victor Hugo"
+    ],
+    "ano": 1831,
+    "paginas": 496,
+    "editora": "Zahar",
+    "isbn": "9788537810880",
+    "capa_url": null,
+    "sinopse": "Romance de Victor Hugo ambientado na Paris de 1482. Quasímodo, sineiro corcunda e surdo da catedral de Notre-Dame, é protegido pelo arquidiácono Claude Frollo, que se obceca pela cigana Esmeralda. A moça é amada ainda por Quasímodo e pelo poeta Gringoire, e o desejo de Frollo leva à tragédia. Temas: exclusão, desejo, fanatismo religioso e injustiça.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Conde de Monte Cristo",
+    "autores": [
+      "Alexandre Dumas"
+    ],
+    "ano": 1844,
+    "paginas": 1376,
+    "editora": "Zahar",
+    "isbn": "9788537801130",
+    "capa_url": null,
+    "sinopse": "Romance de Alexandre Dumas. Edmond Dantès, jovem marinheiro de Marselha, é preso injustamente por inveja e ambição e passa catorze anos no Castelo de If. Após fugir e encontrar um tesouro, assume a identidade do Conde de Monte Cristo e planeja vingar-se dos que o traíram. Temas: vingança, justiça, traição e perdão.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Os Três Mosqueteiros",
+    "autores": [
+      "Alexandre Dumas"
+    ],
+    "ano": 1844,
+    "paginas": 688,
+    "editora": "Zahar",
+    "isbn": "9788537802786",
+    "capa_url": null,
+    "sinopse": "Romance de aventura de Alexandre Dumas ambientado na França de Luís XIII. O jovem gascão d'Artagnan vai a Paris para ser mosqueteiro e conhece Athos, Porthos e Aramis. Juntos, defendem a rainha Ana da Áustria de intrigas do cardeal Richelieu e da misteriosa Milady de Winter. Temas: lealdade, honra, amizade e intriga política.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Metamorfose",
+    "autores": [
+      "Franz Kafka"
+    ],
+    "ano": 1915,
+    "paginas": 112,
+    "editora": "Faro Editorial",
+    "isbn": "9786559571055",
+    "capa_url": null,
+    "sinopse": "Novela de Franz Kafka. Gregor Samsa, caixeiro-viajante que sustenta a família, acorda transformado num inseto monstruoso. A família passa do espanto à repulsa, e ele vai sendo isolado em seu quarto, enquanto a casa se reorganiza em torno da sua ausência. Temas: alienação, trabalho, culpa, isolamento e dependência familiar.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Novela",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Processo",
+    "autores": [
+      "Franz Kafka"
+    ],
+    "ano": 1925,
+    "paginas": 302,
+    "editora": "L&PM",
+    "isbn": "9788525415653",
+    "capa_url": null,
+    "sinopse": "Romance de Franz Kafka. Josef K., funcionário de banco, é preso numa manhã sem saber de que é acusado. Passa a lutar contra um sistema judicial opaco e burocrático, sem acesso à acusação, às provas ou aos juízes. Temas: burocracia, culpa, poder e absurdo da existência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Estrangeiro",
+    "autores": [
+      "Albert Camus"
+    ],
+    "ano": 1942,
+    "paginas": 128,
+    "editora": "Record",
+    "isbn": "9788501101129",
+    "capa_url": null,
+    "sinopse": "Romance de Albert Camus. Meursault, funcionário em Argel, mostra indiferença no enterro da mãe, mantém um caso com Marie e acaba matando um árabe numa praia. No julgamento, é condenado mais por sua frieza do que pelo crime em si. Temas: absurdo, indiferença, moral social e sentido da vida.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Peste",
+    "autores": [
+      "Albert Camus"
+    ],
+    "ano": 1947,
+    "paginas": 288,
+    "editora": "Record",
+    "isbn": "9788501111241",
+    "capa_url": null,
+    "sinopse": "Romance de Albert Camus ambientado em Orã, na Argélia. Uma epidemia de peste leva à quarentena da cidade, e o médico Rieux, com Tarrou, Rambert e outros, luta contra a doença sem perspectiva de vitória definitiva. Temas: solidariedade, sofrimento, absurdo, responsabilidade coletiva e resistência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Ulisses",
+    "autores": [
+      "James Joyce"
+    ],
+    "ano": 1922,
+    "paginas": 1112,
+    "editora": "Penguin-Companhia",
+    "isbn": "9788563560421",
+    "capa_url": null,
+    "sinopse": "Romance de James Joyce que narra um único dia, 16 de junho de 1904, em Dublin. Leopold Bloom, publicitário judeu, e Stephen Dedalus, jovem professor e escritor, percorrem a cidade, em paralelo com a Odisseia de Homero, e se encontram ao fim do dia. Estilos e técnicas variam de capítulo a capítulo, incluindo fluxo de consciência. Temas: cotidiano, identidade, paternidade e vida urbana.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Em Busca do Tempo Perdido",
+    "autores": [
+      "Marcel Proust"
+    ],
+    "ano": 1913,
+    "paginas": null,
+    "editora": "Biblioteca Azul",
+    "isbn": "9788525062093",
+    "capa_url": null,
+    "sinopse": "Obra em sete volumes de Marcel Proust, aqui o primeiro, No caminho de Swann. O narrador evoca, a partir do gosto de uma madeleine mergulhada no chá, a infância em Combray, o amor de Charles Swann por Odette e as primeiras impressões de Gilberte. Temas: memória, tempo, amor, ciúme e sociedade parisiense.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Divina Comédia",
+    "autores": [
+      "Dante Alighieri"
+    ],
+    "ano": 1320,
+    "paginas": 736,
+    "editora": "Editora 34",
+    "isbn": "9788573264241",
+    "capa_url": null,
+    "sinopse": "Poema épico de Dante Alighieri. O poeta, guiado primeiro por Virgílio e depois por Beatriz, percorre o Inferno, o Purgatório e o Paraíso, encontrando personagens históricos, mitológicos e contemporâneos punidos ou recompensados por suas ações. Temas: pecado, justiça divina, redenção, política e amor espiritual.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Poesia"
+    ]
+  },
+  {
+    "titulo": "Odisseia",
+    "autores": [
+      "Homero"
+    ],
+    "ano": -700,
+    "paginas": 576,
+    "editora": "Penguin-Companhia",
+    "isbn": "9788563560278",
+    "capa_url": null,
+    "sinopse": "Poema épico atribuído a Homero. Depois da Guerra de Troia, Odisseu (Ulisses) demora dez anos para voltar a Ítaca, enfrentando Polifemo, as sereias, Circe e Calipso. Em casa, Penélope e o filho Telêmaco resistem aos pretendentes, até que ele retorna disfarçado e retoma o que é seu. Temas: retorno, astúcia, hospitalidade e fidelidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Poesia"
+    ]
+  },
+  {
+    "titulo": "Ilíada",
+    "autores": [
+      "Homero"
+    ],
+    "ano": -750,
+    "paginas": 603,
+    "editora": "Nova Fronteira",
+    "isbn": "9788520927137",
+    "capa_url": null,
+    "sinopse": "Poema épico atribuído a Homero que narra um episódio do décimo ano da Guerra de Troia. A ira de Aquiles contra Agamêmnon o afasta da batalha, os gregos sofrem perdas e Pátroclo morre, o que leva Aquiles a voltar ao combate e matar Heitor. O poema termina com os funerais de Heitor. Temas: ira, honra, destino, glória e mortalidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Poesia"
+    ]
+  },
+  {
+    "titulo": "Fausto",
+    "autores": [
+      "Johann Wolfgang von Goethe"
+    ],
+    "ano": 1808,
+    "paginas": 552,
+    "editora": "Editora 34",
+    "isbn": "9788573262919",
+    "capa_url": null,
+    "sinopse": "Tragédia em verso de Goethe. O sábio Fausto, insatisfeito com o conhecimento, faz um pacto com o demônio Mefistófeles em troca de experiências que o satisfaçam. Seduz a jovem Margarida, o que a leva à ruína, e segue a busca por novos horizontes. Temas: ambição, conhecimento, pacto e redenção.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Teatro",
+      "Poesia"
+    ]
+  },
+  {
+    "titulo": "O Sol é para Todos",
+    "autores": [
+      "Harper Lee"
+    ],
+    "ano": 1960,
+    "paginas": 350,
+    "editora": "José Olympio",
+    "isbn": "9788503009492",
+    "capa_url": null,
+    "sinopse": "Romance de Harper Lee ambientado no Alabama dos anos 1930. A menina Scout Finch narra o julgamento em que seu pai, o advogado Atticus Finch, defende Tom Robinson, homem negro acusado injustamente de estuprar uma mulher branca. Ao mesmo tempo, os irmãos se intrigam com o vizinho recluso Boo Radley. Temas: racismo, justiça, infância e coragem moral.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Admirável Mundo Novo",
+    "autores": [
+      "Aldous Huxley"
+    ],
+    "ano": 1932,
+    "paginas": 312,
+    "editora": "Biblioteca Azul",
+    "isbn": "9788525056009",
+    "capa_url": null,
+    "sinopse": "Romance distópico de Aldous Huxley. Num Estado mundial do futuro, os seres humanos são produzidos em laboratório, condicionados e mantidos felizes com o consumo, o sexo livre e a droga soma. Bernard Marx leva John, o Selvagem, criado numa reserva, a esse mundo, e o choque expõe o custo da estabilidade. Temas: controle social, tecnologia, felicidade e liberdade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Fahrenheit 451",
+    "autores": [
+      "Ray Bradbury"
+    ],
+    "ano": 1953,
+    "paginas": 216,
+    "editora": "Biblioteca Azul",
+    "isbn": "9788525052247",
+    "capa_url": null,
+    "sinopse": "Romance distópico de Ray Bradbury. Num futuro em que os livros são proibidos, o bombeiro Guy Montag queima casas que os escondem. Após conhecer a jovem Clarisse e ver uma mulher morrer junto de seus livros, passa a questioná-los e guarda alguns, tornando-se perseguido. Temas: censura, alienação pela mídia, conhecimento e pensamento crítico.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Duna",
+    "autores": [
+      "Frank Herbert"
+    ],
+    "ano": 1965,
+    "paginas": 680,
+    "editora": "Aleph",
+    "isbn": "9788576573135",
+    "capa_url": null,
+    "sinopse": "Romance de ficção científica de Frank Herbert. No planeta desértico Arrakis, único produtor da especiaria melange, a Casa Atreides assume o controle por ordem do imperador e é traída pelos Harkonnen. O jovem Paul Atreides se une aos fremen e se torna líder messiânico. Temas: poder, religião, ecologia e política.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Fundação",
+    "autores": [
+      "Isaac Asimov"
+    ],
+    "ano": 1951,
+    "paginas": null,
+    "editora": "Aleph",
+    "isbn": "9788576570660",
+    "capa_url": null,
+    "sinopse": "Romance de ficção científica de Isaac Asimov. O matemático Hari Seldon, com a psico-história, prevê a queda do Império Galáctico e uma longa era de barbárie. Para reduzir esse período, cria a Fundação, num planeta remoto, e a história acompanha crises ao longo de séculos. Temas: declínio de impérios, ciência, destino e poder.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Eu, Robô",
+    "autores": [
+      "Isaac Asimov"
+    ],
+    "ano": 1950,
+    "paginas": 320,
+    "editora": "Aleph",
+    "isbn": "9788576572008",
+    "capa_url": null,
+    "sinopse": "Coletânea de contos de ficção científica de Isaac Asimov, unidos por entrevistas com a robopsicóloga Susan Calvin. Os contos exploram, com as Três Leis da Robótica, situações em que robôs agem de maneiras inesperadas. Temas: ética da tecnologia, inteligência artificial e relação entre humanos e máquinas.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Contos",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Guia do Mochileiro das Galáxias",
+    "autores": [
+      "Douglas Adams"
+    ],
+    "ano": 1979,
+    "paginas": 208,
+    "editora": "Arqueiro",
+    "isbn": "9788599296776",
+    "capa_url": null,
+    "sinopse": "Romance de ficção científica humorística de Douglas Adams. Pouco antes de a Terra ser demolida para dar lugar a uma via expressa intergaláctica, Arthur Dent é salvo por seu amigo Ford Prefect, pesquisador do Guia. Juntos viajam com Zaphod Beeblebrox, Trillian e o robô Marvin, em busca da Pergunta para a resposta 42. Temas: absurdo, sátira e sentido da vida.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Neuromancer",
+    "autores": [
+      "William Gibson"
+    ],
+    "ano": 1984,
+    "paginas": 304,
+    "editora": "Aleph",
+    "isbn": "9788585887902",
+    "capa_url": null,
+    "sinopse": "Romance de William Gibson, marco do ciberpunk. Case, hacker que perdeu a capacidade de acessar a matriz por dano neurológico, é recrutado pelo misterioso Armitage e pela mercenária Molly para uma invasão. A missão serve a uma inteligência artificial que busca se libertar. Temas: tecnologia, inteligência artificial, corporações e identidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Laranja Mecânica",
+    "autores": [
+      "Anthony Burgess"
+    ],
+    "ano": 1962,
+    "paginas": 224,
+    "editora": "Aleph",
+    "isbn": "9788576570035",
+    "capa_url": null,
+    "sinopse": "Romance de Anthony Burgess. Alex, adolescente violento que fala o dialeto nadsat, comanda uma gangue e comete crimes, até ser preso e submetido a um tratamento de condicionamento que o impede de agir com violência. Temas: livre-arbítrio, violência, controle do Estado e moralidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Conto da Aia",
+    "autores": [
+      "Margaret Atwood"
+    ],
+    "ano": 1985,
+    "paginas": 368,
+    "editora": "Rocco",
+    "isbn": "9788532520661",
+    "capa_url": null,
+    "sinopse": "Romance distópico de Margaret Atwood. Na república teocrática de Gilead, Offred é uma aia, mulher fértil forçada a gerar filhos para um comandante e sua esposa. Narrando sua vida, relembra a antiga liberdade e planeja resistir. Temas: controle do corpo feminino, autoritarismo religioso e resistência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Frankenstein",
+    "autores": [
+      "Mary Shelley"
+    ],
+    "ano": 1818,
+    "paginas": 317,
+    "editora": "Landmark",
+    "isbn": "9788580700343",
+    "capa_url": null,
+    "sinopse": "Romance de Mary Shelley. O cientista Victor Frankenstein dá vida a uma criatura montada com partes de cadáveres e a abandona, horrorizado. Rejeitada por todos, ela pede um companheiro e, negada, persegue o criador e a família dele. Temas: ambição científica, responsabilidade, solidão e limites da ciência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Terror"
+    ]
+  },
+  {
+    "titulo": "Drácula",
+    "autores": [
+      "Bram Stoker"
+    ],
+    "ano": 1897,
+    "paginas": 580,
+    "editora": "DarkSide Books",
+    "isbn": "9788566636239",
+    "capa_url": null,
+    "sinopse": "Romance epistolar de Bram Stoker. O advogado Jonathan Harker visita o conde Drácula na Transilvânia e percebe que ele é um vampiro. O conde se muda para a Inglaterra, ataca Lucy Westenra e ameaça Mina Harker, e um grupo liderado pelo professor Van Helsing o persegue. Temas: medo, desejo, superstição e modernidade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Terror"
+    ]
+  },
+  {
+    "titulo": "O Médico e o Monstro",
+    "autores": [
+      "Robert Louis Stevenson"
+    ],
+    "ano": 1886,
+    "paginas": 96,
+    "editora": "Nova Fronteira",
+    "isbn": "9788520935767",
+    "capa_url": null,
+    "sinopse": "Novela de Robert Louis Stevenson. O advogado Utterson investiga a ligação entre seu amigo, o respeitado dr. Jekyll, e o violento Edward Hyde. Descobre que Jekyll criou uma poção que o transforma em Hyde, e perde o controle da transformação. Temas: dualidade humana, repressão, hipocrisia e ciência.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Novela",
+      "Terror"
+    ]
+  },
+  {
+    "titulo": "It: A Coisa",
+    "autores": [
+      "Stephen King"
+    ],
+    "ano": 1986,
+    "paginas": 1104,
+    "editora": "Suma",
+    "isbn": "9788560280940",
+    "capa_url": null,
+    "sinopse": "Romance de terror de Stephen King. Em Derry, no Maine, sete amigos da infância, o Clube dos Perdedores, enfrentam uma entidade que assume a forma de um palhaço, Pennywise, e mata crianças. Vinte e sete anos depois, retornam já adultos para cumprir a promessa de destruí-la. Temas: medo, infância, amizade, trauma e memória.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Terror",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "O Nome do Vento",
+    "autores": [
+      "Patrick Rothfuss"
+    ],
+    "ano": 2007,
+    "paginas": null,
+    "editora": "Arqueiro",
+    "isbn": "9788599296493",
+    "capa_url": null,
+    "sinopse": "Romance de fantasia de Patrick Rothfuss, primeiro livro de A Crônica do Matador do Rei. Kvothe, dono de uma estalagem sob o nome Kote, narra a um cronista sua vida: infância numa trupe de artistas, a tragédia que o deixa órfão, os anos de miséria e a entrada na Universidade, escola de magia. Temas: lenda e verdade, música, magia e perda.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Guerra dos Tronos",
+    "autores": [
+      "George R. R. Martin"
+    ],
+    "ano": 1996,
+    "paginas": 592,
+    "editora": "Leya",
+    "isbn": "9788562936524",
+    "capa_url": null,
+    "sinopse": "Romance de fantasia de George R. R. Martin, primeiro livro de As Crônicas de Gelo e Fogo. Nos Sete Reinos de Westeros, o rei Robert Baratheon nomeia Eddard Stark Mão do Rei, e intrigas pelo Trono de Ferro se intensificam, enquanto Daenerys Targaryen sonha com a reconquista e uma ameaça cresce no Norte. Temas: poder, traição, honra e guerra.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Percy Jackson e o Ladrão de Raios",
+    "autores": [
+      "Rick Riordan"
+    ],
+    "ano": 2005,
+    "paginas": 400,
+    "editora": "Intrínseca",
+    "isbn": "9788598078397",
+    "capa_url": null,
+    "sinopse": "Romance infantojuvenil de Rick Riordan, primeiro da série Percy Jackson e os Olimpianos. Percy, garoto de 12 anos com dislexia e TDAH, descobre ser filho de Poseidon. Acusado de roubar o raio de Zeus, parte com Annabeth e Grover numa missão para impedir uma guerra entre os deuses. Temas: identidade, amizade, mitologia grega e herança familiar.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "As Crônicas de Nárnia",
+    "autores": [
+      "C. S. Lewis"
+    ],
+    "ano": 1950,
+    "paginas": 752,
+    "editora": "WMF Martins Fontes",
+    "isbn": "9788578270698",
+    "capa_url": null,
+    "sinopse": "Série de sete livros de fantasia de C. S. Lewis reunida em volume único. Crianças do nosso mundo chegam por passagens mágicas, como um guarda-roupa, ao reino de Nárnia, onde animais falam, e ajudam o leão Aslan contra forças do mal, da criação ao fim do mundo narniano. Temas: coragem, sacrifício, bem e mal e alegoria cristã.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Infantojuvenil",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Cidade do Sol",
+    "autores": [
+      "Khaled Hosseini"
+    ],
+    "ano": 2007,
+    "paginas": 364,
+    "editora": "Nova Fronteira",
+    "isbn": "9788520920107",
+    "capa_url": null,
+    "sinopse": "Romance de Khaled Hosseini ambientado no Afeganistão. Mariam, filha ilegítima, e Laila, jovem de família instruída, são casadas com o mesmo homem, Rashid, após a morte dos pais de Laila num bombardeio. Entre a rivalidade inicial e a amizade, enfrentam violência doméstica, a guerra e o regime Talibã. Temas: condição feminina, sacrifício, guerra e solidariedade.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Romance",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "A Sombra do Vento",
+    "autores": [
+      "Carlos Ruiz Zafón"
+    ],
+    "ano": 2001,
+    "paginas": 399,
+    "editora": "Suma de Letras",
+    "isbn": "9788560280094",
+    "capa_url": null,
+    "sinopse": "Romance de Carlos Ruiz Zafón ambientado na Barcelona do pós-guerra. O menino Daniel Sempere escolhe, no Cemitério dos Livros Esquecidos, o romance A sombra do vento, de Julián Carax, e descobre que alguém queima todos os exemplares do autor. Ao investigar, depara-se com amor, segredos e perigo. Temas: livros, memória, amor e mistério.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Suspense",
+      "Romance"
+    ]
+  },
+  {
+    "titulo": "A Hora da Estrela",
+    "autores": [
+      "Clarice Lispector"
+    ],
+    "ano": 1977,
+    "paginas": 88,
+    "editora": "Rocco",
+    "isbn": "9788532508126",
+    "capa_url": null,
+    "sinopse": "Novela de Clarice Lispector, narrada pelo escritor Rodrigo S.M. Macabéa, jovem alagoana pobre e ingênua, datilógrafa no Rio de Janeiro, vive de modo precário até consultar uma cartomante, que lhe prevê um futuro promissor. Temas: invisibilidade social, miséria, linguagem e a própria escrita.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Novela",
+      "Ficção"
+    ]
+  },
+  {
+    "titulo": "Sapiens",
+    "autores": [
+      "Yuval Noah Harari"
+    ],
+    "ano": 2011,
+    "paginas": 464,
+    "editora": "L&PM",
+    "isbn": "9788525432186",
+    "capa_url": null,
+    "sinopse": "Livro de divulgação histórica de Yuval Noah Harari. Percorre a trajetória do Homo sapiens da Revolução Cognitiva, passando pela Agrícola, até a Científica, explicando como mitos compartilhados, dinheiro e impérios permitiram cooperação em grande escala. Temas: história humana, evolução, religião, economia e futuro da espécie.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "História",
+      "Ensaios"
+    ]
+  },
+  {
+    "titulo": "A Arte da Guerra",
+    "autores": [
+      "Sun Tzu"
+    ],
+    "ano": -500,
+    "paginas": 152,
+    "editora": "L&PM Pocket",
+    "isbn": "9788525410597",
+    "capa_url": null,
+    "sinopse": "Tratado militar chinês atribuído a Sun Tzu, dividido em treze capítulos. Reúne princípios de estratégia, como planejamento, conhecimento do inimigo e do terreno, uso de espiões e a vitória sem combate. Também é lido como guia para liderança e negócios. Temas: estratégia, disciplina e liderança.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Ensaios",
+      "Negócios"
+    ]
+  },
+  {
+    "titulo": "O Príncipe",
+    "autores": [
+      "Nicolau Maquiavel"
+    ],
+    "ano": 1532,
+    "paginas": 176,
+    "editora": "L&PM",
+    "isbn": "9788525437754",
+    "capa_url": null,
+    "sinopse": "Tratado político de Nicolau Maquiavel, escrito por volta de 1513 e dedicado a Lourenço de Médici. Analisa como um governante conquista e conserva o poder, com exemplos históricos e a discussão sobre virtù e fortuna, e propõe que a eficácia política se separe da moral. Temas: poder, Estado, liderança e realismo político.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Ensaios"
+    ]
+  },
+  {
+    "titulo": "Hábitos Atômicos",
+    "autores": [
+      "James Clear"
+    ],
+    "ano": 2018,
+    "paginas": 322,
+    "editora": "Alta Life",
+    "isbn": "9788550807560",
+    "capa_url": null,
+    "sinopse": "Livro de James Clear sobre formação de hábitos. Defende que pequenas mudanças diárias geram grandes resultados e apresenta um sistema de quatro leis: tornar o hábito óbvio, atraente, fácil e satisfatório. Também trata de identidade, ambiente e como abandonar maus hábitos. Temas: produtividade, comportamento e desenvolvimento pessoal.",
+    "sinopse_fonte": "Léia: resumo do enredo redigido com IA (Claude), revisão humana pendente",
+    "categorias": [
+      "Autoajuda",
+      "Negócios"
+    ]
   }
 ]
