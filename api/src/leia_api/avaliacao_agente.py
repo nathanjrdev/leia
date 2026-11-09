@@ -35,6 +35,7 @@ from leia_api.agente import (
     titulos_sem_origem,
 )
 from leia_api.busca import Reranker
+from leia_api.canal import EventoApp
 from leia_api.cli_conversa import aplicar_botao, botoes, locacoes_ativas, zerar_usuario
 from leia_api.embeddings import Encoder
 from leia_api.ferramentas import ESPECIFICACOES, ContextoFerramentas
@@ -512,17 +513,20 @@ def executar_caso(
         abertas: list[Proposta] = []
         gravador.zerar()
         for i, turno in enumerate(caso.turnos, 1):
+            enviar: str | None
+            eventos: list[EventoApp] = []
             if turno.botao:
                 if not abertas:
                     falhas.append(f"turno {i}: clicou em {turno.botao} sem botão aberto")
                     break
-                enviar = aplicar_botao(ctx, turno.botao, abertas)
-                transcricao.append({"quem": "app", "texto": enviar})
+                linha, evento = aplicar_botao(ctx, turno.botao, abertas)
+                eventos, enviar = [evento], None  # o clique vai pelo canal do servidor
+                transcricao.append({"quem": "app", "texto": linha})
             else:
                 enviar = str(turno.fala)
                 transcricao.append({"quem": "leitor", "texto": enviar})
             dormir(pausa)
-            resposta = agente.responder(ctx, historico, enviar)
+            resposta = agente.responder(ctx, historico, enviar, eventos)
             historico = resposta.historico
             abertas = resposta.propostas
             chamadas = gravador.zerar()

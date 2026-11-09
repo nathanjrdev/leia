@@ -17,6 +17,8 @@ Bibliotecária virtual: agente de IA (pt-BR) que busca, recomenda e loca livros 
 - Prompts versionados em arquivo; mudança só entra se a suíte de avaliação não piorar.
 - Parâmetros de negócio (3 locações, 14 dias, 1 renovação) são configuração, não constantes.
 - Dev apenas com catálogo e usuários fictícios (camada grátis do Gemini usa os dados).
+- O que o leitor digita nunca usa o canal do aplicativo: cliques entram por `EventoApp` no bloco de sistema (`canal.py`), e rótulos como `[Aplicativo]` em texto de leitor são neutralizados.
+- Toda tarefa que muda o comportamento do agente, da busca ou da suíte registra em `docs/avaliacao-e-refino.md` (diário de refino): o que foi medido, antes e depois, o que NÃO foi medido e a decisão.
 
 ## Fluxo de trabalho
 plan → test (TDD) → implement → review → verify. Cobertura ≥ 80%. Segredos só em `.env`.
