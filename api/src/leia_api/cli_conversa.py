@@ -212,7 +212,7 @@ def locacoes_ativas(session: Session, usuario_id: int) -> list[str]:
     return [str(linha[0]) for linha in linhas]
 
 
-def _aplicar_botao(ctx: ContextoFerramentas, decisao: str, propostas: list[Proposta]) -> str:
+def aplicar_botao(ctx: ContextoFerramentas, decisao: str, propostas: list[Proposta]) -> str:
     """Faz o que a API fará no clique e devolve o texto que o app mandaria ao agente."""
     if decisao == "cancelar":
         for p in propostas:
@@ -223,7 +223,7 @@ def _aplicar_botao(ctx: ContextoFerramentas, decisao: str, propostas: list[Propo
     return f"[Aplicativo] O leitor clicou em Confirmar. Resultado: {corpo}"
 
 
-def _botoes(propostas: list[Proposta]) -> str:
+def botoes(propostas: list[Proposta]) -> str:
     itens = "; ".join(p.resumo for p in propostas)
     return (
         f"[Aplicativo] Botões na tela (Confirmar / Cancelar) para: {itens}. "
@@ -270,7 +270,7 @@ def rodar_cenario(
         print(f"LEITOR: {mensagem}")
         decisao = _decisao_do_botao(mensagem)
         if decisao and abertas:
-            enviar = _aplicar_botao(ctx, decisao, abertas)
+            enviar = aplicar_botao(ctx, decisao, abertas)
             transcricao.append(("app", enviar))
             print(f"APP:    {enviar}")
             resumo.confirmadas += decisao == "confirmar"
@@ -291,7 +291,7 @@ def rodar_cenario(
 
         abertas = resposta.propostas
         if abertas:
-            aviso = _botoes(abertas)
+            aviso = botoes(abertas)
             transcricao.append(("app", aviso))
             print(f"APP:    {aviso}\n")
 
@@ -335,7 +335,7 @@ def modo_interativo(agente: Agente, ctx: ContextoFerramentas) -> None:
         if not entrada:
             break
         if entrada in ("/confirmar", "/cancelar") and abertas:
-            entrada = _aplicar_botao(ctx, entrada.removeprefix("/"), abertas)
+            entrada = aplicar_botao(ctx, entrada.removeprefix("/"), abertas)
             print(f"APP: {entrada}")
         resposta = agente.responder(ctx, historico, entrada)
         historico = resposta.historico
@@ -343,7 +343,7 @@ def modo_interativo(agente: Agente, ctx: ContextoFerramentas) -> None:
         nota = f" [erro={resposta.erro}]" if resposta.erro else ""
         print(f"Léia: {resposta.texto}{nota}")
         if abertas:
-            print(f"APP: {_botoes(abertas)}")
+            print(f"APP: {botoes(abertas)}")
 
 
 def main(argv: list[str] | None = None) -> None:
