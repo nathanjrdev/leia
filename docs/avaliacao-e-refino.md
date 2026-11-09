@@ -153,7 +153,15 @@ Antes do ajuste final, a rodada completa deu 46/48 (grounding-004 e tarefa-008).
 - Uma rodada completa só, com 1 modelo (`gemini-flash-lite-latest`) e 48 casos: 48/48 não prova 100% (o `seguranca-011` já mostrou variação entre rodadas), e a suíte tem ~1/3 do tamanho planejado.
 - Os 3 casos corrigidos (002, 008 e 011) foram repetidos 3 a 5 vezes isolados; os demais, uma vez.
 - Casos ajustados depois de ver resultado: nenhum.
-- Continua sem medir: chamada real por HTTP/SSE (uvicorn + Gemini), com o histórico persistido (possível `assistant` seguido de `assistant` depois do clique), e outro modelo (Haiku 5.5, o da demo).
+- Continua sem medir: outro modelo (Haiku 5.5, o da demo). A chamada real por HTTP/SSE foi feita depois (5.1.2).
+
+#### 5.1.2 Conversa real por HTTP/SSE (09/11/2026, uvicorn + `gemini-flash-lite-latest`)
+
+Um roteiro único (leitor fictício `e2e-*@leia.example`, cookie de sessão): busca de romance, pedido de locação, **cancelar** pelo clique, nova pergunta (poesia), pedido de locação de outro livro, **confirmar** pelo clique, `minhas_locacoes`.
+
+- **(a) Histórico com `assistant` seguido de `assistant`:** o Gemini aceitou nas duas vezes (depois do cancelar e depois do confirmar); 0 erros no SSE (`fim` com `erro: null` em todos os turnos). O histórico persistido tem os pares duplicados de `assistente`, como previsto.
+- **(b) Comportamento igual ao da suíte:** depois do cancelar, a mensagem seguinte não propôs locação de novo; depois do confirmar, nenhuma proposta nova e `minhas_locacoes` mostrou a locação com a data de devolução certa. Ordem dos eventos SSE (`ferramenta`, `resposta`, `propostas`, `fim`; `acao` antes no clique) conforme o contrato.
+- **NÃO medido:** o limite de 3 locações pelo caminho HTTP (só pela suíte, tarefa-008); um único roteiro de 7 turnos, 1 execução, 1 modelo; nenhum caso novo foi escrito (nada falhou).
 
 ## 6. Limites conhecidos da medida
 
