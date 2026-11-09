@@ -40,7 +40,13 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
 
   const rotuloBotao = cadastro ? "Criar conta" : "Entrar";
   return (
-    <form onSubmit={enviar} className="flex w-full max-w-sm flex-col gap-5" noValidate={false}>
+    // method="post": se o envio acontecer antes da hidratação, a senha não vai para a URL (GET).
+    <form
+      method="post"
+      onSubmit={enviar}
+      className="flex w-full max-w-sm flex-col gap-5"
+      noValidate={false}
+    >
       {cadastro && (
         <Campo id="nome" rotulo="Nome" valor={nome} aoMudar={setNome} autoComplete="name" />
       )}
