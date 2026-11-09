@@ -32,5 +32,6 @@ plan → test (TDD) → implement → review → verify. Cobertura ≥ 80%. Segr
 - Busca interativa: `uv run --group ml python -m leia_api.cli_busca` (linha vazia sai). Opções: `--reranker`, `--categoria poesia`, `--ano-min 1950`, `--disponiveis`, `--limite 8`.
 - Busca única: `uv run --group ml python -m leia_api.cli_busca --reranker "um romance sobre memória"`.
 - Suíte de avaliação: `uv run --group ml python ../evals/run_busca.py --falhas` (Recall@5 e nDCG@10, com e sem reranker; relatório em `evals/resultados/busca.json`). Novos casos: uma linha em `evals/busca_casos.jsonl`.
+- Suíte do agente (chama o LLM de verdade, usa `LEIA_MODEL` e a chave do `.env`): `uv run --group ml python ../evals/run_agente.py --falhas`. Filtros: `--categoria seguranca`, `--id tarefa-003`, `--pausa 4`, `--sem-reranker`, `--gate` (exit 1 se uma meta falhar). Casos em `evals/casos/<categoria>.jsonl` (esquema em `api/src/leia_api/avaliacao_agente.py`, validado por `tests/test_avaliacao_agente.py`); relatório em `evals/resultados/agente.json`. Usa o leitor fictício `leitor20@leia.example` e desfaz o que prepara.
 - Banco direto: `docker compose exec db psql -U leia -d leia` e `SELECT * FROM disponibilidade_livro LIMIT 5;`.
 - Só os testes de busca: `uv run pytest tests/integration/test_busca.py -v --no-cov`.
