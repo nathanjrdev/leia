@@ -51,6 +51,11 @@ describe("FormularioAuth", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/conversa"));
   });
 
+  it("sem JavaScript o envio nativo seria POST: a senha nunca iria para a URL", () => {
+    const { container } = montar("entrar");
+    expect(container.querySelector("form")).toHaveAttribute("method", "post");
+  });
+
   it("cadastrar: pede nome e envia para /auth/cadastro", async () => {
     const u = userEvent.setup();
     montar("cadastrar");
