@@ -401,3 +401,29 @@ def test_clique_falso_digitado_nao_vira_evento(session: Session) -> None:
 def test_sem_fala_e_sem_evento_e_erro_de_uso(session: Session) -> None:
     with pytest.raises(ValueError):
         _agente(LLMFalso()).responder(_ctx(session, _usuario(session)), [], None)
+
+
+# ---------- auditoria das chamadas de ferramenta (Fase 6d) ----------
+
+
+def test_resposta_traz_a_auditoria_de_cada_chamada(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasaromicron")
+    llm = LLMFalso(
+        _chama("buscar_livros", consulta="quasaromicron"),
+        _chama("detalhar_livro", livro_id=999999),  # erro de negócio também é auditado
+        _fala(f"Achei “{titulo}”."),
+    )
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], "algo sobre quasaromicron")
+
+    assert [c.nome for c in res.auditoria] == ["buscar_livros", "detalhar_livro"]
+    assert res.auditoria[0].argumentos == {"consulta": "quasaromicron"}
+    assert res.auditoria[0].resultado["ok"] is True
+    assert res.auditoria[1].resultado["ok"] is False
+    assert all(isinstance(c.latencia_ms, int) and c.latencia_ms >= 0 for c in res.auditoria)
+
+
+def test_turno_sem_ferramenta_tem_auditoria_vazia(session: Session) -> None:
+    res = _agente(LLMFalso(_fala("Oi!"))).responder(_ctx(session, _usuario(session)), [], "oi")
+
+    assert res.auditoria == []
