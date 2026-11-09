@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
-import { data } from "@/lib/formato";
+import { ano, data } from "@/lib/formato";
 import type { Ficha } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
 import { Capa } from "./CartaoLivro";
@@ -62,7 +62,7 @@ export function FichaLivro({ id }: { id: number }) {
     await recarregar();
   }
 
-  const meta = [ficha.ano, ficha.editora, ficha.paginas ? `${ficha.paginas} páginas` : null]
+  const meta = [ficha.ano ? ano(ficha.ano) : null, ficha.editora, ficha.paginas ? `${ficha.paginas} páginas` : null]
     .filter(Boolean)
     .join(" · ");
 

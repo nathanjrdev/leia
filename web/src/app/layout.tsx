@@ -19,7 +19,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body className="flex min-h-full flex-col">
         <SessaoProvider>
           <Cabecalho />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+          <main
+            id="conteudo"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 outline-none"
+          >{children}</main>
         </SessaoProvider>
       </body>
     </html>

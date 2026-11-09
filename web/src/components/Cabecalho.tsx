@@ -21,6 +21,12 @@ export function Cabecalho() {
 
   return (
     <header className="border-b border-linha bg-papel-2">
+      <a
+        href="#conteudo"
+        className="sr-only rounded-md bg-lombada px-4 py-2 font-medium text-lombada-texto focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-10"
+      >
+        Pular para o conteúdo
+      </a>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link href="/" className="font-serif text-2xl font-semibold">
           Léia

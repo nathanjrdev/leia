@@ -12,7 +12,13 @@ import { Capa } from "./CartaoLivro";
  * Cartão de um livro citado pela Léia. Os dados vêm do banco (evento SSE `livros`), nunca do texto
  * do modelo. Locar e reservar são os mesmos endpoints da ficha, em duas etapas (clique + confirmar).
  */
-export function CartaoLivroChat({ livro }: { livro: LivroDoChat }) {
+export function CartaoLivroChat({
+  livro,
+  comAcao = true,
+}: {
+  livro: LivroDoChat;
+  comAcao?: boolean;
+}) {
   const [aviso, setAviso] = useState<string | null>(null);
   const livre = livro.livres > 0;
 
@@ -60,7 +66,7 @@ export function CartaoLivroChat({ livro }: { livro: LivroDoChat }) {
               Ver minha estante
             </Link>
           </p>
-        ) : livre ? (
+        ) : !comAcao ? null : livre ? (
           <AcaoComConfirmacao
             primaria
             rotulo="Locar"

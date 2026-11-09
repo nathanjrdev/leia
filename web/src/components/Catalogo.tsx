@@ -68,7 +68,7 @@ export function Catalogo() {
             value={rascunho}
             onChange={(e) => setRascunho(e.target.value)}
             maxLength={300}
-            className="rounded-md border border-linha bg-papel-2 px-3 py-2.5"
+            className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
           />
         </div>
         <button
@@ -92,7 +92,7 @@ export function Catalogo() {
               setPagina(1);
               setCategoria(e.target.value);
             }}
-            className="rounded-md border border-linha bg-papel-2 px-3 py-2.5"
+            className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
           >
             <option value="">Todas</option>
             {categorias.map((c) => (
@@ -148,7 +148,7 @@ export function Catalogo() {
             type="button"
             disabled={pagina <= 1}
             onClick={() => setPagina((p) => p - 1)}
-            className="rounded-md border border-linha px-4 py-2 disabled:opacity-50"
+            className="rounded-md border border-controle px-4 py-2 disabled:opacity-50"
           >
             Anterior
           </button>
@@ -159,7 +159,7 @@ export function Catalogo() {
             type="button"
             disabled={pagina >= paginas}
             onClick={() => setPagina((p) => p + 1)}
-            className="rounded-md border border-linha px-4 py-2 disabled:opacity-50"
+            className="rounded-md border border-controle px-4 py-2 disabled:opacity-50"
           >
             Próxima
           </button>

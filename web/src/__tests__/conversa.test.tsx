@@ -74,6 +74,27 @@ describe("Conversa", () => {
     );
   });
 
+  it("anuncia o andamento em um aviso curto, sem reler a resposta em pedaços", async () => {
+    let liberar: () => void = () => {};
+    postarMock.mockImplementationOnce(
+      (_c: string, _b: unknown, aoEvento: (e: EventoSSE) => void) =>
+        new Promise<void>((r) => {
+          aoEvento({ evento: "resposta", dados: { texto: "Achei " } });
+          liberar = r;
+        }),
+    );
+    render(<Conversa />);
+    await enviar("poesia");
+    const aviso = await screen.findByRole("status");
+    expect(aviso).toHaveTextContent("A Léia está respondendo");
+    expect(aviso).not.toHaveTextContent("Achei");
+    liberar();
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("A Léia respondeu."));
+    // a lista de mensagens não é uma região viva (evita reler cada pedaço)
+    expect(screen.getByRole("list", { name: "Conversa" })).not.toHaveAttribute("aria-live");
+    expect(screen.getByRole("list", { name: "Conversa" }).children).toHaveLength(2);
+  });
+
   it("mostra o que a Léia está fazendo enquanto consulta uma ferramenta", async () => {
     let liberar: () => void = () => {};
     postarMock.mockImplementationOnce(
@@ -153,6 +174,23 @@ describe("Conversa", () => {
     expect(within(cartao).getByText("Sem exemplar livre agora")).toBeInTheDocument();
     expect(within(cartao).getByRole("button", { name: "Reservar" })).toBeInTheDocument();
     expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+  });
+
+  it("com proposta aberta na mesma mensagem, o cartão não oferece um segundo caminho de locação", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Preparei a locação de “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "propostas", dados: { propostas: [{ confirmacao_id: "p1", resumo: "Locar “A”" }] } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    await enviar("quero locar A");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeInTheDocument();
   });
 
   it("uma nova mensagem não apaga os cartões já mostrados", async () => {

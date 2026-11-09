@@ -18,7 +18,7 @@ export default function Inicio() {
         </Link>
         <Link
           href="/catalogo"
-          className="transicao rounded-md border border-linha px-5 py-3 hover:bg-papel-2"
+          className="transicao rounded-md border border-controle px-5 py-3 hover:bg-papel-2"
         >
           Ver o catálogo
         </Link>

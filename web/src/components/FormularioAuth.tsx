@@ -109,7 +109,7 @@ function Campo(p: {
         autoComplete={p.autoComplete}
         minLength={p.minLength}
         aria-describedby={p.ajuda ? `${p.id}-ajuda` : undefined}
-        className="rounded-md border border-linha bg-papel-2 px-3 py-2.5"
+        className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
       />
       {p.ajuda && (
         <span id={`${p.id}-ajuda`} className="text-sm text-tinta-suave">

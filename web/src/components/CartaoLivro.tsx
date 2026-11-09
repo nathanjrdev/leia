@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { selo } from "@/lib/formato";
+import { ano, selo } from "@/lib/formato";
 import type { ItemLivro } from "@/lib/tipos";
 
 export function Capa({ url, className = "" }: { url: string | null; className?: string }) {
@@ -28,7 +28,7 @@ export function CartaoLivro({ livro }: { livro: ItemLivro }) {
         </Link>
         <p className="text-tinta-suave">
           {livro.autores.join(", ")}
-          {livro.ano ? ` · ${livro.ano}` : ""}
+          {livro.ano ? ` · ${ano(livro.ano)}` : ""}
         </p>
         <p className={disponivel ? "text-lombada" : "text-tinta-suave"}>
           {selo(livro.livres, livro.fila)}
