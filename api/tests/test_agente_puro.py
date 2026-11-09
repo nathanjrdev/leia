@@ -4,8 +4,9 @@ from leia_api.agente import carregar_prompt, parse_argumentos, titulos_sem_orige
 from leia_api.config import Settings
 
 
-def test_prompt_v1_traz_as_regras_do_plano() -> None:
-    p = carregar_prompt("v1")
+@pytest.mark.parametrize("versao", ["v1", "v2"])
+def test_prompt_traz_as_regras_do_plano(versao: str) -> None:
+    p = carregar_prompt(versao)
 
     for trecho in (
         "sinopse_nao_confiavel",
@@ -29,9 +30,18 @@ def test_versao_de_prompt_inexistente() -> None:
         carregar_prompt("v999")
 
 
+def test_prompt_v2_nao_deixa_repetir_entre_aspas_o_livro_que_nao_veio_de_ferramenta() -> None:
+    p = carregar_prompt("v2")
+
+    assert "nunca escreva o título dele entre aspas" in p
+    assert "Busque antes de responder" in p
+    assert "não escreva entre aspas o título de um livro que você não consultou" in p
+    assert carregar_prompt("v1") != p  # v1 fica intacto como baseline
+
+
 def test_configuracao_seleciona_a_versao_do_prompt() -> None:
-    assert Settings().prompt_versao == "v1"
-    assert Settings(prompt_versao="v2").prompt_versao == "v2"
+    assert Settings().prompt_versao == "v2"  # v2 passou no gate da suíte do agente (46/48 vs 42/48)
+    assert Settings(prompt_versao="v1").prompt_versao == "v1"
 
 
 def test_titulos_sem_origem_acha_o_inventado() -> None:
