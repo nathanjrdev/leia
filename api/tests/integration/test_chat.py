@@ -433,3 +433,46 @@ def test_decisao_invalida_e_422(api: TestClient, engine: Engine) -> None:
 
     assert _agir(api, conversa, confirmacao, "talvez").status_code == 422
     assert _agir(api, conversa, confirmacao, "confirmar").status_code == 200
+
+
+# ---------- limite diário de mensagens ----------
+
+
+def test_limite_diario_de_mensagens_por_usuario(
+    api: TestClient, engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "mensagens_por_dia", 2)
+    _, token = _usuario(engine)
+    _, outro = _usuario(engine)
+    _logar(api, token)
+    llm = _agente(_fala("um"), _fala("dois"), _fala("três"))
+    conversa = _conversa(api)
+
+    assert _falar(api, conversa, "primeira").status_code == 200
+    assert _falar(api, conversa, "segunda").status_code == 200
+    barrada = _falar(api, conversa, "terceira")
+
+    assert barrada.status_code == 429
+    assert barrada.json()["erro"] == "limite_diario"
+    assert len(llm.chamadas) == 2  # a terceira nem chegou ao modelo
+    _logar(api, outro)
+    assert _falar(api, _conversa(api), "oi").status_code == 200  # o limite é por usuário
+
+
+def test_mensagens_de_dias_anteriores_nao_contam(
+    api: TestClient, engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "mensagens_por_dia", 1)
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(_fala("um"), _fala("dois"))
+    conversa = _conversa(api)
+    _falar(api, conversa, "ontem")
+    with Session(engine) as s:
+        s.execute(
+            text("UPDATE mensagens SET criada_em = :c WHERE conversa_id = :v"),
+            {"c": datetime.now(UTC) - timedelta(days=2), "v": conversa},
+        )
+        s.commit()
+
+    assert _falar(api, conversa, "hoje").status_code == 200

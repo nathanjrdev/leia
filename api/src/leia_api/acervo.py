@@ -12,13 +12,14 @@ Regras de negócio (limites, prazos) ficam em `locacao.py` e na configuração, 
 from dataclasses import asdict
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from leia_api import catalogo, locacao
+from leia_api import limite as limites
 from leia_api.auth import erro_json, usuario_atual
 from leia_api.busca import Reranker, buscar_livros
 from leia_api.config import settings
@@ -93,8 +94,9 @@ def listar(
     return {"itens": [_item(i) for i in itens], "total": total, "pagina": pagina}
 
 
-@router.get("/livros/busca")
+@router.get("/livros/busca", response_model=None)
 def buscar(
+    request: Request,
     session: Sessao,
     encoder: Annotated[Encoder, Depends(get_encoder)],
     reranker: Annotated[Reranker | None, Depends(get_reranker)],
@@ -104,7 +106,10 @@ def buscar(
     ano_max: Ano = None,
     apenas_disponiveis: bool = False,
     limite: Annotated[int, Query(ge=1, le=50)] = 10,
-) -> dict[str, Any]:
+) -> dict[str, Any] | JSONResponse:
+    ip = request.client.host if request.client else "desconhecido"
+    if not limites.BUSCA.registrar(f"ip:{ip}", settings.busca_max_por_minuto, 60.0):
+        return erro_json(429, "muitas_buscas", "Muitas buscas seguidas. Aguarde um instante.")
     achados = buscar_livros(
         session,
         q.strip(),

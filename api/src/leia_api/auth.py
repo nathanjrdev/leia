@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy.orm import Session
 
-from leia_api import contas, sessao
+from leia_api import contas, limite, sessao
 from leia_api.config import settings
 from leia_api.contas import Conta
 from leia_api.db import get_session
@@ -98,11 +98,26 @@ def cadastro(
 
 @router.post("/login", response_model=ContaOut)
 def login(
-    corpo: LoginIn, response: Response, session: Annotated[Session, Depends(get_session)]
+    corpo: LoginIn,
+    request: Request,
+    response: Response,
+    session: Annotated[Session, Depends(get_session)],
 ) -> Response | ContaOut:
+    janela = settings.login_janela_segundos
+    chave_email = f"email:{contas.normalizar_email(corpo.email)}"
+    chave_ip = f"ip:{request.client.host if request.client else 'desconhecido'}"
+    if limite.LOGIN.excedeu(chave_email, settings.login_max_falhas, janela) or limite.LOGIN.excedeu(
+        chave_ip, settings.login_max_falhas_por_ip, janela
+    ):
+        return erro_json(
+            429, "muitas_tentativas", "Muitas tentativas de entrada. Tente de novo mais tarde."
+        )
     conta = contas.autenticar(session, corpo.email, corpo.senha)
     if conta is None:
+        limite.LOGIN.registrar(chave_email, settings.login_max_falhas, janela)
+        limite.LOGIN.registrar(chave_ip, settings.login_max_falhas_por_ip, janela)
         return erro_json(401, "credenciais_invalidas", "E-mail ou senha incorretos.")
+    limite.LOGIN.zerar(chave_email)
     _abrir_sessao(response, session, conta)
     return ContaOut(nome=conta.nome, email=conta.email)
 

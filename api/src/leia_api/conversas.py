@@ -5,9 +5,10 @@ mensagem nova do leitor invalida as anteriores. O clique as reivindica com um DE
 (`reivindicar`): dois cliques simultâneos no mesmo botão nunca executam duas vezes.
 """
 
+from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from leia_api.agente import ChamadaAuditada
@@ -29,6 +30,25 @@ def obter(session: Session, conversa_id: int, usuario_id: int) -> Conversa | Non
     """Só devolve a conversa se for do usuário; dono errado é igual a inexistente."""
     return session.scalar(
         select(Conversa).where(Conversa.id == conversa_id, Conversa.usuario_id == usuario_id)
+    )
+
+
+def mensagens_do_dia(session: Session, usuario_id: int, agora: datetime | None = None) -> int:
+    """Quantas mensagens o usuário mandou ao agente desde as 00:00 UTC de hoje."""
+    momento = agora or datetime.now(UTC)
+    inicio = momento.replace(hour=0, minute=0, second=0, microsecond=0)
+    return int(
+        session.scalar(
+            select(func.count())
+            .select_from(Mensagem)
+            .join(Conversa, Conversa.id == Mensagem.conversa_id)
+            .where(
+                Conversa.usuario_id == usuario_id,
+                Mensagem.papel == "usuario",
+                Mensagem.criada_em >= inicio,
+            )
+        )
+        or 0
     )
 
 

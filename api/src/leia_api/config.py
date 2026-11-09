@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     custo_referencia_entrada_usd_por_milhao: float = Field(default=0.10, ge=0)
     custo_referencia_saida_usd_por_milhao: float = Field(default=0.50, ge=0)
 
+    # Limites contra abuso (a demo pública é aberta)
+    login_max_falhas: int = Field(default=5, ge=1)  # falhas por e-mail na janela
+    login_max_falhas_por_ip: int = Field(default=20, ge=1)  # falhas por IP na janela
+    login_janela_segundos: float = Field(default=900.0, gt=0)
+    busca_max_por_minuto: int = Field(default=30, ge=1)  # buscas semânticas por IP
+    mensagens_por_dia: int = Field(default=100, ge=1)  # mensagens ao agente por usuário
+
     # Chat
     mensagem_max_caracteres: int = Field(default=2000, ge=1)
     historico_mensagens_limite: int = Field(default=40, ge=2)  # mensagens devolvidas ao agente
