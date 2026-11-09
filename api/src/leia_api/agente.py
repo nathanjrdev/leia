@@ -393,7 +393,11 @@ class Agente:
             for m in historico
             if m.get("role") in ("user", "assistant")
         ]
-        texto_usuario = TEXTO_CLIQUE if mensagem is None else neutralizar(mensagem)
+        texto_usuario = (
+            (eventos[-1].clique if eventos else TEXTO_CLIQUE)
+            if mensagem is None
+            else neutralizar(mensagem)
+        )
         usuario: Mensagem = {"role": "user", "content": texto_usuario}
         bloco = bloco_do_sistema(tuple(eventos), imitacao=imitacao)
         sistema = f"{self._config.prompt}\n\n{bloco}" if bloco else self._config.prompt

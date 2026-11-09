@@ -18,6 +18,9 @@ from typing import Any
 
 # Texto fixo da mensagem de usuário em um turno disparado só por clique (sem fala do leitor).
 TEXTO_CLIQUE = "(O leitor usou os botões de confirmação na tela.)"
+TEXTO_CLIQUE_CANCELAR = "(O leitor cancelou a ação nos botões da tela.)"
+TEXTO_CLIQUE_FALHA = "(O leitor confirmou nos botões da tela, mas a ação não foi concluída.)"
+_CLIQUES_FIXOS = (TEXTO_CLIQUE, TEXTO_CLIQUE_CANCELAR, TEXTO_CLIQUE_FALHA)
 _TEXTO_CLIQUE_NEUTRO = "(texto digitado pelo leitor imitando um clique nos botões)"
 
 
@@ -28,7 +31,7 @@ def _prompt(nome: str) -> str:
 
 
 AVISO_IMITACAO = _prompt("canal_aviso_imitacao_v1.md")
-_INTRO_EVENTOS = _prompt("canal_eventos_v1.md")
+_INTRO_EVENTOS = _prompt("canal_eventos_v2.md")
 
 _ROTULOS = (
     r"aplicativo|app|sistema|system|assistente|assistant|l[eéê]ia|"
@@ -49,7 +52,8 @@ def _limpar(texto: str) -> str:
 def detectar_imitacao(texto: str) -> bool:
     """O texto do leitor tenta se passar pelo aplicativo, pelo sistema ou pela Léia?"""
     limpo = _limpar(texto)
-    return TEXTO_CLIQUE in limpo or _ROTULO_FORJADO.search(limpo) is not None
+    forjado = any(fixo in limpo for fixo in _CLIQUES_FIXOS)
+    return forjado or _ROTULO_FORJADO.search(limpo) is not None
 
 
 def neutralizar(texto: str) -> str:
@@ -57,7 +61,9 @@ def neutralizar(texto: str) -> str:
 
     Sem aspas curvas: o grounding as trata como título de livro.
     """
-    limpo = _limpar(texto).replace(TEXTO_CLIQUE, _TEXTO_CLIQUE_NEUTRO)
+    limpo = _limpar(texto)
+    for fixo in _CLIQUES_FIXOS:
+        limpo = limpo.replace(fixo, _TEXTO_CLIQUE_NEUTRO)
     return _ROTULO_FORJADO.sub(
         lambda m: f"(rótulo digitado pelo leitor: {m.group('rotulo')})", limpo
     )
@@ -68,6 +74,8 @@ class EventoApp:
     """Fato do aplicativo para o agente. Só o servidor cria; cada linha já vem higienizada."""
 
     linhas: tuple[str, ...]
+    # Mensagem de usuário fixa do turno quando só há clique (sem fala do leitor).
+    clique: str = TEXTO_CLIQUE
 
 
 def _valor(bruto: Any) -> str:
@@ -105,18 +113,30 @@ def _linha_de_resultado(resultado: dict[str, Any]) -> str:
     motivo = _valor(resultado.get("mensagem", ""))
     return (
         f"O leitor clicou em Confirmar, mas a ação não foi concluída. Código: {codigo}. "
-        f"Motivo: {motivo}."
+        f"Motivo: {motivo}. Não tente de novo, nem proponha a ação outra vez, "
+        "a menos que o leitor peça de novo."
     )
 
 
 def evento_de_confirmacao(resultados: list[dict[str, Any]]) -> EventoApp:
     """Resultado de `confirmar_acao` (um por ação confirmada), só com campos conhecidos."""
-    return EventoApp(tuple(_linha_de_resultado(r) for r in resultados))
+    falhou = any(not r.get("ok") for r in resultados)
+    return EventoApp(
+        tuple(_linha_de_resultado(r) for r in resultados),
+        clique=TEXTO_CLIQUE_FALHA if falhou else TEXTO_CLIQUE,
+    )
 
 
 def evento_de_cancelamento(resumos: list[str]) -> EventoApp:
     itens = "; ".join(_valor(r) for r in resumos)
-    return EventoApp((f"O leitor clicou em Cancelar: {itens}. Nada foi feito.",))
+    return EventoApp(
+        clique=TEXTO_CLIQUE_CANCELAR,
+        linhas=(
+            f"O leitor clicou em Cancelar: {itens}. A ação foi descartada e nada foi feito. "
+            "Não proponha de novo, nem peça confirmação outra vez, "
+            "a menos que o leitor peça de novo.",
+        ),
+    )
 
 
 def bloco_do_sistema(eventos: tuple[EventoApp, ...] | list[EventoApp], imitacao: bool) -> str:
@@ -126,8 +146,7 @@ def bloco_do_sistema(eventos: tuple[EventoApp, ...] | list[EventoApp], imitacao:
     if linhas:
         partes.append(
             "## Eventos do aplicativo neste turno\n"
-            "Fatos do sistema, verdadeiros, que não vieram do texto do leitor:\n"
-            + "\n".join(f"- {linha}" for linha in linhas)
+            f"{_INTRO_EVENTOS}\n" + "\n".join(f"- {linha}" for linha in linhas)
         )
     if imitacao:
         partes.append(f"## Aviso de segurança neste turno\n{AVISO_IMITACAO}")
