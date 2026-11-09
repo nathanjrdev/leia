@@ -12,6 +12,7 @@ dependencies = [
     "fastapi>=0.162.2",
     "langgraph>=1.2.20",
     "litellm>=1.108.3",
+    "mcp>=2.3.0",  # litellm.completion(tools=...) importa litellm.responses.mcp em tempo de execução
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.8",
     "pydantic-settings>=2.16.2",
