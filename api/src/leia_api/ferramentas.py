@@ -101,6 +101,9 @@ class ContextoFerramentas:
     agora: datetime | None = None
     # ids de livros devolvidos por ferramentas nesta conversa (grounding)
     livros_vistos: set[int] = field(default_factory=set)
+    # cartões de livro do turno (dados do banco, com capa_url que o LLM não vê); a API os mostra
+    # só para os livros que a resposta cita
+    cartoes: dict[int, dict[str, Any]] = field(default_factory=dict)
     # ações de escrita aguardando o clique do usuário; a API deve persistir/escopar por conversa
     # Pendência (Fase 6): não são invalidadas por turno; a API deve escopar por conversa.
     pendentes: dict[str, AcaoPendente] = field(default_factory=dict)
@@ -130,6 +133,18 @@ def _erro(codigo: str, mensagem: str) -> Resultado:
 # ---------- leitura ----------
 
 
+def _cartao(
+    livro_id: int, titulo: str, autores: list[str], capa_url: str | None, livres: int
+) -> dict[str, Any]:
+    return {
+        "id": livro_id,
+        "titulo": titulo,
+        "autores": list(autores),
+        "capa_url": capa_url,
+        "livres": livres,
+    }
+
+
 def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
     achados = buscar_livros(
         ctx.session,
@@ -143,6 +158,8 @@ def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
         reranker=ctx.reranker,  # decisão: o agente busca com o reranker (modo fundido)
     )
     ctx.livros_vistos.update(r.livro_id for r in achados)
+    for r in achados:
+        ctx.cartoes[r.livro_id] = _cartao(r.livro_id, r.titulo, r.autores, r.capa_url, r.livres)
     resultados = _json(achados)
     for r in resultados:
         r.pop("capa_url", None)  # URL externa: inútil ao LLM e vetor de injeção
@@ -164,6 +181,13 @@ def _sinopse_segura(texto: str | None) -> str | None:
 def _detalhar(ctx: ContextoFerramentas, a: LivroArgs) -> Resultado:
     ficha = catalogo.detalhar_livro(ctx.session, a.livro_id)
     ctx.livros_vistos.add(ficha.livro_id)
+    ctx.cartoes[ficha.livro_id] = _cartao(
+        ficha.livro_id,
+        ficha.titulo,
+        ficha.autores,
+        ficha.capa_url,
+        ficha.disponibilidade.livres,
+    )
     corpo = _json(ficha)
     disp = corpo.pop("disponibilidade")
     corpo.update(exemplares=disp["total"], livres=disp["livres"], fila=disp["fila"])

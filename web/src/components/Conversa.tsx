@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { api, ErroApi, mensagemDoErro, postarSSE } from "@/lib/api";
 import type { EventoSSE } from "@/lib/api";
-import type { MensagemHistorico, Proposta } from "@/lib/tipos";
+import type { LivroDoChat, MensagemHistorico, Proposta } from "@/lib/tipos";
+import { CartaoLivroChat } from "./CartaoLivroChat";
 import { useSessao } from "./SessaoProvider";
 
 const CHAVE = "leia:conversa";
@@ -17,6 +18,7 @@ type Msg = {
   texto: string;
   ferramenta: string | null;
   propostas: Proposta[];
+  livros: LivroDoChat[];
   nota: string | null;
 };
 
@@ -55,6 +57,7 @@ const nova = (papel: Msg["papel"], texto = ""): Msg => ({
   texto,
   ferramenta: null,
   propostas: [],
+  livros: [],
   nota: null,
 });
 
@@ -128,6 +131,9 @@ export function Conversa() {
         break;
       case "resposta":
         alterar(chave, (m) => ({ ...m, ferramenta: null, texto: m.texto + String(d.texto ?? "") }));
+        break;
+      case "livros":
+        alterar(chave, (m) => ({ ...m, livros: (d.livros as LivroDoChat[]) ?? [] }));
         break;
       case "propostas":
         alterar(chave, (m) => ({ ...m, propostas: (d.propostas as Proposta[]) ?? [] }));
@@ -265,6 +271,9 @@ export function Conversa() {
                 <p className="text-tinta-suave">{m.ferramenta ?? "Pensando…"}</p>
               )}
               {m.texto && m.ferramenta && <p className="text-tinta-suave">{m.ferramenta}</p>}
+              {m.livros.map((l) => (
+                <CartaoLivroChat key={l.id} livro={l} />
+              ))}
               {m.nota && <p className="mt-1 text-alerta">{m.nota}</p>}
               {m.propostas.map((p) => (
                 <div
