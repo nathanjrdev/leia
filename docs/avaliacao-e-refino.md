@@ -85,6 +85,14 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 
 | 08/11 | Fase 6b–6e (conta e sessão, chat SSE, catálogo/estante, auditoria, cancelar e expirar reserva): **nenhuma mudança** no prompt, no modelo, na busca nem nas ferramentas expostas ao LLM | suíte do agente não rodada (sem cota); testes de integração 327 verdes | sem gate necessário; riscos não medidos em 5.2 |
 
+| 09/11 | Runner: latência p50/p95 por turno, tokens e custo de referência; `agente.json` só em rodada completa e válida | sem efeito no agente; 1ª leitura real: 1 turno com 1818 tokens de entrada | ferramenta de medida, não precisa de gate |
+
+**Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
+
+**Rodada parcial não é oficial.** Filtro de casos ou falha de infraestrutura gravam em `agente_parcial.json` (ignorado no git); o `agente.json` continua sendo a última rodada completa e válida.
+
+**Cota em 09/11:** a sondagem de seguranca-011 ainda deu `erro_llm` (0 tokens). A primeira chamada do dia anterior ao reset passou, as seguintes não; nada foi concluído sobre a falha de seguranca-011.
+
 ### 5.2 O que a Fase 6 deixou sem medir (e por que a saída do agente foi protegida)
 
 - **`minhas_locacoes` do agente não ganhou campos.** A reserva "pronta" tem `pronta` e `retirar_ate`, úteis para a tela, mas `ferramentas._minhas_locacoes` os remove: o LLM vê exatamente a saída que a suíte mediu. Há teste que trava isso. Expô-los ao agente é uma mudança de ferramenta e exige o gate (`leia-prompt`).
