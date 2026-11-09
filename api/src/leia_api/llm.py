@@ -7,7 +7,14 @@ fora da cobertura, como os adaptadores de modelos do Hugging Face. O modelo vem 
 
 from typing import Any
 
-from leia_api.agente import CallLLM, ChamadaFerramenta, Mensagem, RespostaLLM, parse_argumentos
+from leia_api.agente import (
+    CallLLM,
+    ChamadaFerramenta,
+    Mensagem,
+    RespostaLLM,
+    Uso,
+    parse_argumentos,
+)
 from leia_api.config import settings
 
 
@@ -39,7 +46,16 @@ class ClienteLiteLLM:
             )
             for c in (msg.tool_calls or [])
         ]
-        return RespostaLLM(texto=msg.content, chamadas=chamadas)
+        usage = getattr(resposta, "usage", None)
+        uso = (
+            Uso(
+                tokens_entrada=int(getattr(usage, "prompt_tokens", 0) or 0),
+                tokens_saida=int(getattr(usage, "completion_tokens", 0) or 0),
+            )
+            if usage is not None
+            else None
+        )
+        return RespostaLLM(texto=msg.content, chamadas=chamadas, uso=uso)
 
 
 def cliente_padrao() -> CallLLM:
