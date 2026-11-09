@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from leia_api import sessao
 from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM
 from leia_api.canal import AVISO_IMITACAO
+from leia_api.chat import _cartoes_citados
 from leia_api.config import settings
 from leia_api.db import get_session
 from leia_api.dependencias import get_agente, get_encoder, get_fabrica_sessao, get_reranker
@@ -215,6 +216,87 @@ def test_mensagem_responde_por_sse_e_persiste(api: TestClient, engine: Engine) -
     assert [m["papel"] for m in historico] == ["usuario", "assistente"]
     assert historico[0]["conteudo"] == "algo sobre quasarbeta"
     assert titulo in historico[1]["conteudo"]
+
+
+def _com_capa(engine: Engine, livro_id: int, url: str) -> None:
+    with Session(engine) as s:
+        s.execute(text("UPDATE livros SET capa_url = :u WHERE id = :i"), {"u": url, "i": livro_id})
+        s.commit()
+
+
+def test_livros_citados_viram_cartoes_com_dados_do_banco(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    citado_id, citado = _livro(engine, "quasarcartao")
+    _, outro = _livro(engine, "quasarcartao")  # volta na busca, mas o texto não o cita
+    _com_capa(engine, citado_id, "https://covers.example/capa.jpg")
+    llm = _agente(
+        _chama("buscar_livros", consulta="quasarcartao"),
+        _fala(f"Encontrei “{citado}”. Quer locar?"),
+    )
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "algo sobre quasarcartao"))
+
+    cartoes = [d for e, d in eventos if e == "livros"]
+    assert len(cartoes) == 1
+    [cartao] = cartoes[0]["livros"]
+    assert cartao["id"] == citado_id and cartao["titulo"] == citado
+    assert cartao["autores"] == [f"Autor de chat {citado.rsplit(' ', 1)[1]}"]
+    assert cartao["capa_url"] == "https://covers.example/capa.jpg"
+    assert cartao["livres"] == 1
+    assert outro not in json.dumps(cartoes, ensure_ascii=False)
+    nomes = [e for e, _ in eventos]  # depois da resposta, antes do fim
+    assert nomes.index("livros") > max(i for i, n in enumerate(nomes) if n == "resposta")
+    assert nomes.index("livros") < nomes.index("fim")
+    # o LLM nunca vê a URL da capa
+    assert "covers.example" not in json.dumps(llm.chamadas)
+
+
+def test_sem_livro_citado_nao_ha_cartao(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _livro(engine, "quasarvazio")
+    _agente(
+        _chama("buscar_livros", consulta="quasarvazio"),
+        _fala("Achei algumas opções, qual te interessa?"),
+    )
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "algo sobre quasarvazio"))
+
+    assert not any(e == "livros" for e, _ in eventos)
+
+
+def test_detalhar_tambem_gera_cartao(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, titulo = _livro(engine, "quasardetalhe")
+    _agente(
+        _chama("buscar_livros", consulta="quasardetalhe"),
+        _fala("Achei um."),
+        _chama("detalhar_livro", livro_id=livro_id),
+        _fala(f"“{titulo}” conta uma história sobre isso."),
+    )
+    conversa = _conversa(api)
+    _falar(api, conversa, "algo sobre quasardetalhe")
+
+    eventos = _sse(_falar(api, conversa, "fale mais desse"))
+
+    [cartoes] = [d["livros"] for e, d in eventos if e == "livros"]
+    assert [c["id"] for c in cartoes] == [livro_id]
+
+
+def test_titulo_citado_so_conta_como_palavra_inteira() -> None:
+    cartoes = {
+        1: {"id": 1, "titulo": "Livro 1", "autores": [], "capa_url": None, "livres": 0},
+        12: {"id": 12, "titulo": "Livro 12", "autores": [], "capa_url": None, "livres": 0},
+        3: {"id": 3, "titulo": "Memórias Póstumas", "autores": [], "capa_url": None, "livres": 0},
+    }
+
+    achados = _cartoes_citados(cartoes, "Recomendo livro 12 e memorias postumas.")
+
+    assert [c["id"] for c in achados] == [12, 3]  # na ordem em que aparecem no texto
 
 
 def test_historico_volta_ao_agente_no_turno_seguinte(api: TestClient, engine: Engine) -> None:

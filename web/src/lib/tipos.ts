@@ -60,3 +60,12 @@ export type Estante = {
 export type MensagemHistorico = { papel: "usuario" | "assistente"; conteudo: string };
 
 export type Proposta = { confirmacao_id: string; resumo: string };
+
+/** Cartão de livro do evento SSE `livros`: dados do banco, só dos livros que a resposta cita. */
+export type LivroDoChat = {
+  id: number;
+  titulo: string;
+  autores: string[];
+  capa_url: string | null;
+  livres: number;
+};

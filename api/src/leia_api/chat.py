@@ -2,6 +2,7 @@
 
 Eventos do stream, nesta ordem: `ferramenta`* (uma por ferramenta que o agente vai usar),
 `acao` (só no clique: resultado da confirmação), `resposta`* (a resposta em pedaços),
+`livros` (cartões dos livros que a resposta cita, dados do banco; só se citar algum),
 `propostas` (botões de confirmação, se houver) e `fim` (`erro` nulo ou o código).
 
 O clique NUNCA é texto: a rota executa a ação e o agente recebe um `EventoApp` (ver `canal.py`).
@@ -14,6 +15,7 @@ import logging
 import queue
 import re
 import threading
+import unicodedata
 from collections.abc import Callable, Iterator
 from typing import Annotated, Any, Literal
 
@@ -71,6 +73,32 @@ def _pedacos(texto: str, tamanho: int) -> Iterator[str]:
         yield atual
 
 
+def _normalizar(texto: str) -> str:
+    sem_acento = "".join(
+        c for c in unicodedata.normalize("NFD", texto) if not unicodedata.combining(c)
+    )
+    return " ".join(sem_acento.casefold().split())
+
+
+def _cartoes_citados(cartoes: dict[int, dict[str, Any]], texto: str) -> list[dict[str, Any]]:
+    """Cartões dos livros que o texto cita (título inteiro, sem acento nem caixa).
+
+    Saem na ordem em que aparecem no texto. Os dados vêm do banco via ferramenta; o LLM só
+    decide quais livros menciona.
+    """
+    corpo = _normalizar(texto)
+    achados: list[tuple[int, dict[str, Any]]] = []
+    for cartao in cartoes.values():
+        titulo = _normalizar(cartao["titulo"])
+        if not titulo:
+            continue
+        achou = re.search(rf"(?<!\w){re.escape(titulo)}(?!\w)", corpo)
+        if achou:
+            achados.append((achou.start(), cartao))
+    achados.sort(key=lambda par: par[0])
+    return [cartao for _, cartao in achados[: settings.cartoes_por_resposta]]
+
+
 def _turno(
     fabrica: Fabrica,
     agente: Agente,
@@ -126,9 +154,12 @@ def _turno(
         conversas.registrar(s, conversa_id, "assistente", resposta.texto)
         conversas.auditar(s, conversa_id, resposta.auditoria)
         conversa.livros_vistos = sorted(ctx.livros_vistos)
+        cartoes_do_turno = dict(ctx.cartoes)
         conversas.sincronizar_pendentes(s, conversa_id, ctx)  # faz o commit
     for pedaco in _pedacos(resposta.texto, settings.stream_pedaco_caracteres):
         emitir("resposta", {"texto": pedaco})
+    if cartoes := _cartoes_citados(cartoes_do_turno, resposta.texto):
+        emitir("livros", {"livros": cartoes})
     if resposta.propostas:
         emitir(
             "propostas",

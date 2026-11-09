@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErroApi } from "@/lib/api";
@@ -74,6 +74,27 @@ describe("Conversa", () => {
     );
   });
 
+  it("anuncia o andamento em um aviso curto, sem reler a resposta em pedaços", async () => {
+    let liberar: () => void = () => {};
+    postarMock.mockImplementationOnce(
+      (_c: string, _b: unknown, aoEvento: (e: EventoSSE) => void) =>
+        new Promise<void>((r) => {
+          aoEvento({ evento: "resposta", dados: { texto: "Achei " } });
+          liberar = r;
+        }),
+    );
+    render(<Conversa />);
+    await enviar("poesia");
+    const aviso = await screen.findByRole("status");
+    expect(aviso).toHaveTextContent("A Léia está respondendo");
+    expect(aviso).not.toHaveTextContent("Achei");
+    liberar();
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("A Léia respondeu."));
+    // a lista de mensagens não é uma região viva (evita reler cada pedaço)
+    expect(screen.getByRole("list", { name: "Conversa" })).not.toHaveAttribute("aria-live");
+    expect(screen.getByRole("list", { name: "Conversa" }).children).toHaveLength(2);
+  });
+
   it("mostra o que a Léia está fazendo enquanto consulta uma ferramenta", async () => {
     let liberar: () => void = () => {};
     postarMock.mockImplementationOnce(
@@ -89,6 +110,109 @@ describe("Conversa", () => {
     expect(screen.getByRole("button", { name: "Enviar" })).toBeDisabled();
     liberar();
     await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
+  });
+
+  it("mostra o cartão do livro citado e Locar passa por confirmação antes de chamar a API", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Achei “Dom Casmurro”." } },
+      {
+        evento: "livros",
+        dados: {
+          livros: [
+            {
+              id: 5,
+              titulo: "Dom Casmurro",
+              autores: ["Machado de Assis"],
+              capa_url: "https://covers.example/dc.jpg",
+              livres: 2,
+            },
+          ],
+        },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("um clássico");
+    const cartao = await screen.findByRole("group", { name: "Livro: Dom Casmurro" });
+    expect(within(cartao).getByRole("link", { name: "Dom Casmurro" })).toHaveAttribute(
+      "href",
+      "/livro/5",
+    );
+    expect(within(cartao).getByText("Machado de Assis")).toBeInTheDocument();
+    expect(within(cartao).getByText("2 exemplares livres")).toBeInTheDocument();
+
+    apiMock.mockImplementation((caminho: string) =>
+      caminho === "/livros/5/locar"
+        ? Promise.resolve({ prevista_em: "2026-12-01T12:00:00Z" })
+        : Promise.reject(new Error("inesperado " + caminho)),
+    );
+    await u.click(within(cartao).getByRole("button", { name: "Locar" }));
+    expect(apiMock).not.toHaveBeenCalledWith("/livros/5/locar", expect.anything());
+    await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
+    expect(apiMock).toHaveBeenCalledWith("/livros/5/locar", {
+      metodo: "POST",
+      corpo: { confirmo: true },
+    });
+    expect(await within(cartao).findByRole("status")).toHaveTextContent("Locação feita");
+    expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+  });
+
+  it("livro sem exemplar livre oferece Reservar, não Locar", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "“Sagarana” está emprestado." } },
+      {
+        evento: "livros",
+        dados: {
+          livros: [{ id: 9, titulo: "Sagarana", autores: ["Guimarães Rosa"], capa_url: null, livres: 0 }],
+        },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    await enviar("sagarana");
+    const cartao = await screen.findByRole("group", { name: "Livro: Sagarana" });
+    expect(within(cartao).getByText("Sem exemplar livre agora")).toBeInTheDocument();
+    expect(within(cartao).getByRole("button", { name: "Reservar" })).toBeInTheDocument();
+    expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+  });
+
+  it("com proposta aberta na mesma mensagem, o cartão não oferece um segundo caminho de locação", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Preparei a locação de “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "propostas", dados: { propostas: [{ confirmacao_id: "p1", resumo: "Locar “A”" }] } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    await enviar("quero locar A");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeInTheDocument();
+  });
+
+  it("uma nova mensagem não apaga os cartões já mostrados", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Achei “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "resposta", dados: { texto: "Ok." } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.type(screen.getByLabelText("Mensagem para a Léia"), "obrigado");
+    await u.click(screen.getByRole("button", { name: "Enviar" }));
+    await screen.findByText("Ok.");
+    expect(screen.getByRole("group", { name: "Livro: A" })).toBeInTheDocument();
   });
 
   it("proposta: mostra o resumo e Confirmar envia a decisão ao endpoint do clique", async () => {

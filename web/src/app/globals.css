@@ -7,6 +7,7 @@
   --tinta: #1d1a16;
   --tinta-suave: #5a5147;
   --linha: #d9ccb3;
+  --controle: #857862; /* borda de campos e botões: 3,5:1 ou mais (WCAG 1.4.11) */
   --lombada: #1f4d3a;
   --lombada-texto: #ffffff;
   --alerta: #8a2a1f;
@@ -20,6 +21,7 @@
     --tinta: #efe6d4;
     --tinta-suave: #bfb29c;
     --linha: #43392c;
+    --controle: #968a72;
     --lombada: #7fc4a1;
     --lombada-texto: #10241b;
     --alerta: #f0a090;
@@ -32,6 +34,7 @@
   --color-tinta: var(--tinta);
   --color-tinta-suave: var(--tinta-suave);
   --color-linha: var(--linha);
+  --color-controle: var(--controle);
   --color-lombada: var(--lombada);
   --color-lombada-texto: var(--lombada-texto);
   --color-alerta: var(--alerta);

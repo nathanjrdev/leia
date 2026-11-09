@@ -3,6 +3,11 @@ export function data(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
+/** Ano de publicação; anos negativos (obras da Antiguidade) saem como "N a.C.". */
+export function ano(valor: number): string {
+  return valor < 0 ? `${-valor} a.C.` : String(valor);
+}
+
 /** Selo de disponibilidade usado nas listas. */
 export function selo(livres: number, fila: number): string {
   if (livres > 0) return livres === 1 ? "1 disponível" : `${livres} disponíveis`;

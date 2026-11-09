@@ -5,7 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { api, ErroApi, mensagemDoErro, postarSSE } from "@/lib/api";
 import type { EventoSSE } from "@/lib/api";
-import type { MensagemHistorico, Proposta } from "@/lib/tipos";
+import type { LivroDoChat, MensagemHistorico, Proposta } from "@/lib/tipos";
+import { CartaoLivroChat } from "./CartaoLivroChat";
 import { useSessao } from "./SessaoProvider";
 
 const CHAVE = "leia:conversa";
@@ -17,6 +18,9 @@ type Msg = {
   texto: string;
   ferramenta: string | null;
   propostas: Proposta[];
+  livros: LivroDoChat[];
+  // a Léia já propôs uma ação nesta mensagem: o cartão não oferece outro caminho de locação
+  teveProposta: boolean;
   nota: string | null;
 };
 
@@ -55,6 +59,8 @@ const nova = (papel: Msg["papel"], texto = ""): Msg => ({
   texto,
   ferramenta: null,
   propostas: [],
+  livros: [],
+  teveProposta: false,
   nota: null,
 });
 
@@ -129,8 +135,15 @@ export function Conversa() {
       case "resposta":
         alterar(chave, (m) => ({ ...m, ferramenta: null, texto: m.texto + String(d.texto ?? "") }));
         break;
+      case "livros":
+        alterar(chave, (m) => ({ ...m, livros: (d.livros as LivroDoChat[]) ?? [] }));
+        break;
       case "propostas":
-        alterar(chave, (m) => ({ ...m, propostas: (d.propostas as Proposta[]) ?? [] }));
+        alterar(chave, (m) => ({
+          ...m,
+          propostas: (d.propostas as Proposta[]) ?? [],
+          teveProposta: true,
+        }));
         break;
       case "acao":
         if (d.ok === false) {
@@ -236,9 +249,16 @@ export function Conversa() {
         </button>
       </div>
 
+      <p role="status" className="sr-only">
+        {ocupado
+          ? "A Léia está respondendo…"
+          : mensagens.at(-1)?.papel === "assistente"
+            ? "A Léia respondeu."
+            : ""}
+      </p>
+
       <ol
         aria-label="Conversa"
-        aria-live="polite"
         className="flex min-h-[40vh] flex-col gap-4 border-y border-linha py-4"
       >
         {pronto && mensagens.length === 0 && (
@@ -265,6 +285,9 @@ export function Conversa() {
                 <p className="text-tinta-suave">{m.ferramenta ?? "Pensando…"}</p>
               )}
               {m.texto && m.ferramenta && <p className="text-tinta-suave">{m.ferramenta}</p>}
+              {m.livros.map((l) => (
+                <CartaoLivroChat key={l.id} livro={l} comAcao={!m.teveProposta} />
+              ))}
               {m.nota && <p className="mt-1 text-alerta">{m.nota}</p>}
               {m.propostas.map((p) => (
                 <div
@@ -291,7 +314,7 @@ export function Conversa() {
                       disabled={ocupado}
                       aria-describedby={`prop-${p.confirmacao_id}`}
                       onClick={() => decidir(m.chave, p, "cancelar")}
-                      className="transicao rounded-md border border-linha px-4 py-2 hover:bg-papel-2 disabled:opacity-60"
+                      className="transicao rounded-md border border-controle px-4 py-2 hover:bg-papel-2 disabled:opacity-60"
                     >
                       Cancelar
                     </button>
@@ -301,8 +324,8 @@ export function Conversa() {
             </div>
           </li>
         ))}
-        <div ref={fim} />
       </ol>
+      <div ref={fim} />
 
       {erro && (
         <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
@@ -321,7 +344,7 @@ export function Conversa() {
           onKeyDown={aoTeclar}
           rows={2}
           maxLength={MAX_CARACTERES}
-          className="rounded-md border border-linha bg-papel-2 px-3 py-2.5"
+          className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
         />
         <div className="flex items-center justify-between gap-4">
           <span className="text-sm text-tinta-suave">Enter envia; Shift+Enter quebra a linha.</span>

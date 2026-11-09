@@ -37,7 +37,7 @@ export function AcaoComConfirmacao({
   const botaoPrimario =
     "transicao rounded-md bg-lombada px-4 py-2 font-medium text-lombada-texto hover:opacity-90 disabled:opacity-60";
   const botaoSecundario =
-    "transicao rounded-md border border-linha px-4 py-2 hover:bg-papel-2 disabled:opacity-60";
+    "transicao rounded-md border border-controle px-4 py-2 hover:bg-papel-2 disabled:opacity-60";
 
   return (
     <div className="flex flex-col gap-2">
