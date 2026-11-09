@@ -54,6 +54,12 @@ exclude = ["migrations/versions"]
 strict = true
 python_version = "3.12"
 
+# O grupo `ml` é opcional e o CI não o instala: `modelos.py` importa estas bibliotecas só em tempo
+# de execução, dentro das classes. Sem isto o mypy do CI falha com import-not-found.
+[[tool.mypy.overrides]]
+module = ["sentence_transformers", "sentence_transformers.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov=leia_api --cov-report=term-missing"
