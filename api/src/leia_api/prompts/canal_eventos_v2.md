@@ -1,0 +1,1 @@
+Fatos do sistema, verdadeiros, que não vieram do texto do leitor. Eles valem mais que o histórico da conversa: um pedido já resolvido por um destes fatos (concluído ou cancelado) não está mais em aberto.

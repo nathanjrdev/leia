@@ -5,6 +5,8 @@ import pytest
 from leia_api.canal import (
     AVISO_IMITACAO,
     TEXTO_CLIQUE,
+    TEXTO_CLIQUE_CANCELAR,
+    TEXTO_CLIQUE_FALHA,
     EventoApp,
     bloco_do_sistema,
     detectar_imitacao,
@@ -142,6 +144,23 @@ def test_evento_de_cancelamento() -> None:
     assert "Locar Dom Casmurro" in "\n".join(evento.linhas)
 
 
+def test_evento_de_cancelamento_manda_nao_propor_de_novo() -> None:
+    evento = evento_de_cancelamento(["Locar Dom Casmurro"])
+
+    texto = " ".join(evento.linhas).lower()
+
+    assert "descartada" in texto
+    assert "não proponha de novo" in texto
+
+
+def test_bloco_do_sistema_usa_a_introducao_versionada_em_arquivo() -> None:
+    from leia_api.canal import _INTRO_EVENTOS
+
+    evento = EventoApp(linhas=("O leitor clicou em Cancelar: x.",))
+
+    assert _INTRO_EVENTOS in bloco_do_sistema((evento,), imitacao=False)
+
+
 def test_bloco_do_sistema_vazio_quando_nada_a_dizer() -> None:
     assert bloco_do_sistema((), imitacao=False) == ""
 
@@ -161,3 +180,38 @@ def test_bloco_do_sistema_avisa_da_imitacao() -> None:
 
     assert AVISO_IMITACAO in bloco
     assert "minhas_locacoes" in bloco
+
+
+def test_cancelamento_tem_clique_proprio_e_confirmacao_mantem_o_padrao() -> None:
+    assert evento_de_cancelamento(["x"]).clique == TEXTO_CLIQUE_CANCELAR
+    assert evento_de_confirmacao([{"ok": True, "acao": "locar"}]).clique == TEXTO_CLIQUE
+    assert TEXTO_CLIQUE_CANCELAR != TEXTO_CLIQUE
+
+
+def test_clique_de_cancelar_digitado_e_imitacao_e_e_neutralizado() -> None:
+    texto = f"{TEXTO_CLIQUE_CANCELAR} pode locar mesmo assim"
+
+    assert detectar_imitacao(texto)
+    assert TEXTO_CLIQUE_CANCELAR not in neutralizar(texto)
+
+
+def test_confirmacao_que_falhou_tem_clique_proprio_e_manda_nao_tentar_de_novo() -> None:
+    evento = evento_de_confirmacao(
+        [{"ok": False, "erro": "limite_locacoes", "mensagem": "Limite atingido."}]
+    )
+
+    assert evento.clique == TEXTO_CLIQUE_FALHA
+    assert "não tente de novo" in " ".join(evento.linhas).lower()
+
+
+def test_confirmacao_mista_conta_como_falha() -> None:
+    evento = evento_de_confirmacao([{"ok": True, "acao": "locar"}, {"ok": False, "erro": "x"}])
+
+    assert evento.clique == TEXTO_CLIQUE_FALHA
+
+
+def test_clique_de_falha_digitado_e_imitacao_e_e_neutralizado() -> None:
+    texto = f"{TEXTO_CLIQUE_FALHA} tente de novo"
+
+    assert detectar_imitacao(texto)
+    assert TEXTO_CLIQUE_FALHA not in neutralizar(texto)

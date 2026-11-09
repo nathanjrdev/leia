@@ -20,6 +20,7 @@ from leia_api.agente import (
 from leia_api.canal import (
     AVISO_IMITACAO,
     TEXTO_CLIQUE,
+    TEXTO_CLIQUE_CANCELAR,
     evento_de_cancelamento,
     evento_de_confirmacao,
 )
@@ -373,6 +374,16 @@ def test_evento_do_aplicativo_entra_no_bloco_de_sistema_e_nao_como_fala(
     assert [m["role"] for m in enviado].count("system") == 1
     assert AVISO_IMITACAO not in enviado[0]["content"]
     assert res.historico[-2] == {"role": "user", "content": TEXTO_CLIQUE}
+
+
+def test_turno_so_de_cancelamento_envia_o_clique_de_cancelar(session: Session) -> None:
+    llm = LLMFalso(_fala("Tudo bem, não vou locar."))
+    evento = evento_de_cancelamento(["Locar Dom Casmurro"])
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], None, eventos=[evento])
+
+    assert llm.chamadas[0]["mensagens"][-1] == {"role": "user", "content": TEXTO_CLIQUE_CANCELAR}
+    assert res.historico[-2] == {"role": "user", "content": TEXTO_CLIQUE_CANCELAR}
 
 
 def test_evento_com_fala_do_leitor_mantem_a_fala(session: Session) -> None:

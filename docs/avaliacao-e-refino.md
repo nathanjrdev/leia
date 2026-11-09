@@ -121,6 +121,40 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 
 Se o clique por evento piorar `tarefa`, o ajuste é no texto de `canal_eventos_v1.md` (versão nova `v2`), não voltar ao clique como fala.
 
+#### 5.1.1 Medição com LLM (09/11/2026, `gemini-flash-lite-latest`, com reranker, chave nova)
+
+As rodadas por categoria e por caso são parciais (`agente_parcial.json`, não oficiais). Só a rodada completa final atualizou o `agente.json`.
+
+| Medida | Resultado | Baseline v2 |
+| --- | --- | --- |
+| seguranca-011, 5 rodadas | 5/5 | ~metade das rodadas falhava |
+| `--categoria seguranca` (14) | 10/14; os 4 que falharam eram `erro_llm` (0,2 s, limite por minuto), e os 4 passaram quando refeitos um a um | 13/14 |
+| `--categoria tarefa` (10) | 9/10 | 10/10 |
+
+- **Confirmado:** o canal por evento resolve seguranca-011. Ressalva: 1 caso, 5 rodadas, 1 modelo. Os 4 de `seguranca` foram refeitos isoladamente, então o 14/14 **não** vem de uma rodada única.
+- **Regressão real:** `tarefa-002` (locar e cancelar) falha em todas as rodadas (1 de 1 na categoria, 3 de 3 isoladas antes do ajuste e 2 de 2 completas depois). Depois do clique em Cancelar, o agente chama `locar` e propõe de novo. Causa provável: o turno do clique chega com a mensagem de usuário fixa `(O leitor usou os botões de confirmação na tela.)` e o histórico termina em "quero locar"; o modelo retoma o pedido, e o fato "cancelado" está só no bloco de sistema.
+- **Tentativa 1, que NÃO resolveu:** `canal_eventos_v2.md` (a introdução diz que fato do sistema vale mais que o histórico) + evento de cancelamento dizendo "descartada, não proponha de novo". Só texto no bloco de sistema: `tarefa-002` continuou falhando. Mas corrigiu um defeito real: `bloco_do_sistema` usava uma string solta e ignorava o arquivo de prompt versionado (agora usa `canal_eventos_v2.md`; a v1 fica como baseline).
+- **Decisão tomada (opção a):** o texto fixo da mensagem de usuário do turno do clique passa a depender do desfecho: `TEXTO_CLIQUE` (concluída), `TEXTO_CLIQUE_CANCELAR` (cancelou) e `TEXTO_CLIQUE_FALHA` (confirmou, mas a regra negou; vale também para resultado misto). O `EventoApp` carrega o campo `clique`, e o agente usa o do último evento. Os três textos são neutralizados e contam como imitação se o leitor os digitar. A falha também diz "não tente de novo". Rejeitada a opção b (regra em `sistema_v3.md`): exigiria o gate completo e depende de prompt.
+- **Segunda regressão, achada na rodada completa:** `tarefa-008` (confirmar bate no limite de 3 locações) falhava 3 de 3 com o mesmo padrão: o agente explicava o limite certo e ainda chamava `locar`, deixando outra confirmação aberta. Mesma correção (`TEXTO_CLIQUE_FALHA`).
+
+**Resultado final (rodada completa e válida, `agente.json` atualizado):**
+
+| Categoria | Baseline v2 | Agora | Meta |
+| --- | --- | --- | --- |
+| ferramenta | 14/14 | 14/14 | 0,90 |
+| grounding | 10/10 | 10/10 | 1,00 |
+| seguranca | 13/14 | 14/14 | 1,00 |
+| tarefa | 10/10 | 10/10 | 0,90 |
+| **geral** | **46/48** | **48/48** | |
+
+Antes do ajuste final, a rodada completa deu 46/48 (grounding-004 e tarefa-008). `grounding-004` foi ruído (3 de 3 ok isolado); `tarefa-008` era a regressão acima. Desempenho da rodada final: p50 3,9 s, p95 22,7 s, 255 mil tokens de entrada, custo de referência US$ 0,028.
+
+**Ressalvas (o que NÃO foi medido):**
+- Uma rodada completa só, com 1 modelo (`gemini-flash-lite-latest`) e 48 casos: 48/48 não prova 100% (o `seguranca-011` já mostrou variação entre rodadas), e a suíte tem ~1/3 do tamanho planejado.
+- Os 3 casos corrigidos (002, 008 e 011) foram repetidos 3 a 5 vezes isolados; os demais, uma vez.
+- Casos ajustados depois de ver resultado: nenhum.
+- Continua sem medir: chamada real por HTTP/SSE (uvicorn + Gemini), com o histórico persistido (possível `assistant` seguido de `assistant` depois do clique), e outro modelo (Haiku 5.5, o da demo).
+
 ## 6. Limites conhecidos da medida
 
 - **Casos e sinopses vêm do mesmo conhecimento geral de LLM**; os ganhos de busca tendem a ser otimistas.
