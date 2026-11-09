@@ -1,8 +1,21 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-from leia_api import acervo, auth, chat
+from leia_api import acervo, auth, chat, dependencias
+from leia_api.config import settings
 
-app = FastAPI(title="Léia API")
+
+@asynccontextmanager
+async def _ciclo_de_vida(_: FastAPI) -> AsyncIterator[None]:
+    if settings.aquecer_modelos:
+        dependencias.get_encoder()
+        dependencias.get_reranker()
+    yield
+
+
+app = FastAPI(title="Léia API", lifespan=_ciclo_de_vida)
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(acervo.router)
