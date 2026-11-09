@@ -34,5 +34,10 @@ class Settings(BaseSettings):
     senha_min_caracteres: int = Field(default=8, ge=1)
     senha_max_caracteres: int = Field(default=128, ge=8)
 
+    # Chat
+    mensagem_max_caracteres: int = Field(default=2000, ge=1)
+    historico_mensagens_limite: int = Field(default=40, ge=2)  # mensagens devolvidas ao agente
+    stream_pedaco_caracteres: int = Field(default=40, ge=1)
+
 
 settings = Settings()

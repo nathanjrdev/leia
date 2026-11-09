@@ -172,6 +172,7 @@ class _Estado(TypedDict):
     texto: str | None
     erro: str | None
     propostas: list[Proposta]
+    observador: Callable[[str, dict[str, Any]], None] | None
 
 
 def _exigir(ultima: RespostaLLM | None) -> RespostaLLM:
@@ -249,6 +250,8 @@ class Agente:
         mensagens = list(e["mensagens"])
         propostas = list(e["propostas"])
         for chamada in ultima.chamadas:
+            if e["observador"] is not None:
+                e["observador"]("ferramenta", {"nome": chamada.nome})
             resultado = executar(e["ctx"], chamada.nome, chamada.argumentos)
             if resultado.get("status") == "aguardando_confirmacao":
                 proposta = Proposta(resultado["confirmacao_id"], resultado["resumo"])
@@ -329,12 +332,14 @@ class Agente:
         historico: list[Mensagem],
         mensagem: str | None,
         eventos: Sequence[EventoApp] = (),
+        observador: Callable[[str, dict[str, Any]], None] | None = None,
     ) -> RespostaAgente:
         """Um turno. `historico` é o devolvido pelo turno anterior; só user/assistant é aceito.
 
         `mensagem` é o que o leitor digitou (`None` num turno disparado só por clique). `eventos`
         são fatos do aplicativo criados pelo servidor, como o resultado de um clique; só entram
-        pelo bloco de sistema. Todo texto de leitor passa por `neutralizar`.
+        pelo bloco de sistema. Todo texto de leitor passa por `neutralizar`. `observador`, se
+        dado, é avisado de cada ferramenta que vai rodar (alimenta o stream da API).
         """
         if mensagem is None and not eventos:
             raise ValueError("o turno precisa de uma fala do leitor ou de um evento do aplicativo")
@@ -370,6 +375,7 @@ class Agente:
             "texto": None,
             "erro": None,
             "propostas": [],
+            "observador": observador,
         }
         passos = 4 * (self._config.max_chamadas_ferramenta + self._config.max_regeracoes + 3)
         final: _Estado = self._grafo.invoke(inicial, {"recursion_limit": passos + 10})
