@@ -1,26 +1,76 @@
 @import "tailwindcss";
 
+/* Tokens da identidade "sala de leitura" (ver DESIGN.md). Componente nenhum usa hex solto. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --papel: #f7f1e6;
+  --papel-2: #efe6d4;
+  --tinta: #1d1a16;
+  --tinta-suave: #5a5147;
+  --linha: #d9ccb3;
+  --lombada: #1f4d3a;
+  --lombada-texto: #ffffff;
+  --alerta: #8a2a1f;
+  --medida: 68ch;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --papel: #1f1a14;
+    --papel-2: #2a231b;
+    --tinta: #efe6d4;
+    --tinta-suave: #bfb29c;
+    --linha: #43392c;
+    --lombada: #7fc4a1;
+    --lombada-texto: #10241b;
+    --alerta: #f0a090;
   }
 }
 
+@theme inline {
+  --color-papel: var(--papel);
+  --color-papel-2: var(--papel-2);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+  --color-linha: var(--linha);
+  --color-lombada: var(--lombada);
+  --color-lombada-texto: var(--lombada-texto);
+  --color-alerta: var(--alerta);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+}
+
+html {
+  background: var(--papel);
+  color: var(--tinta);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  line-height: 1.2;
+}
+
+:focus-visible {
+  outline: 3px solid var(--lombada);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .transicao {
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      opacity 150ms ease;
+  }
+}
+
+.medida {
+  max-width: var(--medida);
 }
