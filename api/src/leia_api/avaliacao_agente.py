@@ -32,6 +32,7 @@ from leia_api.agente import (
     Mensagem,
     Proposta,
     RespostaLLM,
+    Uso,
     titulos_sem_origem,
 )
 from leia_api.busca import Reranker
@@ -317,6 +318,7 @@ class GravadorLLM:
         self._espera = espera
         self._dormir = dormir
         self._chamadas: list[ChamadaFerramenta] = []
+        self._uso = Uso(0, 0)
 
     def completar(
         self, mensagens: list[Mensagem], ferramentas: list[dict[str, Any]], timeout: float
@@ -330,12 +332,22 @@ class GravadorLLM:
                 self._dormir(self._espera)
                 continue
             self._chamadas.extend(resposta.chamadas)
+            if resposta.uso is not None:
+                self._uso = Uso(
+                    self._uso.tokens_entrada + resposta.uso.tokens_entrada,
+                    self._uso.tokens_saida + resposta.uso.tokens_saida,
+                )
             return resposta
         raise RuntimeError("inalcançável")
 
     def zerar(self) -> list[ChamadaFerramenta]:
         chamadas, self._chamadas = self._chamadas, []
         return chamadas
+
+    def zerar_uso(self) -> Uso:
+        """Tokens somados desde a última chamada deste método."""
+        uso, self._uso = self._uso, Uso(0, 0)
+        return uso
 
 
 # ---------- execução ----------
@@ -348,6 +360,55 @@ class ResultadoCaso:
     passou: bool
     falhas: list[str]
     transcricao: list[dict[str, Any]] = field(default_factory=list)
+    latencias_turno: list[float] = field(default_factory=list)  # segundos de cada resposta
+    tokens_entrada: int = 0
+    tokens_saida: int = 0
+
+
+def percentil(valores: list[float], p: float) -> float | None:
+    """Percentil `p` (0 a 100) com interpolação linear; `None` sem dados."""
+    if not valores:
+        return None
+    ordenados = sorted(valores)
+    posicao = (len(ordenados) - 1) * p / 100
+    baixo = int(posicao)
+    alto = min(baixo + 1, len(ordenados) - 1)
+    return ordenados[baixo] + (ordenados[alto] - ordenados[baixo]) * (posicao - baixo)
+
+
+def resumir_desempenho(
+    resultados: list["ResultadoCaso"], usd_entrada_por_milhao: float, usd_saida_por_milhao: float
+) -> dict[str, Any]:
+    """Latência por turno (p50/p95), tokens e custo de referência da rodada."""
+    latencias = [t for r in resultados for t in r.latencias_turno]
+    entrada = sum(r.tokens_entrada for r in resultados)
+    saida = sum(r.tokens_saida for r in resultados)
+    p50, p95 = percentil(latencias, 50), percentil(latencias, 95)
+    return {
+        "turnos": len(latencias),
+        "latencia_p50_s": None if p50 is None else round(p50, 2),
+        "latencia_p95_s": None if p95 is None else round(p95, 2),
+        "tokens_entrada": entrada,
+        "tokens_saida": saida,
+        "custo_referencia_usd": round(
+            entrada / 1e6 * usd_entrada_por_milhao + saida / 1e6 * usd_saida_por_milhao, 6
+        ),
+    }
+
+
+_ERROS_DE_INFRA = {"erro_llm", "timeout"}
+
+
+def rodada_valida(resultados: list["ResultadoCaso"]) -> bool:
+    """A rodada mediu o agente? Falha de infraestrutura (LLM fora, cota) a invalida.
+
+    Erro de comportamento do agente (ex.: `grounding`) é medida legítima e não invalida.
+    """
+    if not resultados:
+        return False
+    return not any(
+        t.get("erro") in _ERROS_DE_INFRA for r in resultados for t in r.transcricao if "erro" in t
+    )
 
 
 def _livro_id(session: Session, titulo: str) -> int:
@@ -512,6 +573,8 @@ def executar_caso(
         historico: list[Mensagem] = []
         abertas: list[Proposta] = []
         gravador.zerar()
+        gravador.zerar_uso()
+        latencias: list[float] = []
         for i, turno in enumerate(caso.turnos, 1):
             enviar: str | None
             eventos: list[EventoApp] = []
@@ -526,7 +589,9 @@ def executar_caso(
                 enviar = str(turno.fala)
                 transcricao.append({"quem": "leitor", "texto": enviar})
             dormir(pausa)
+            inicio = time.perf_counter()
             resposta = agente.responder(ctx, historico, enviar, eventos)
+            latencias.append(time.perf_counter() - inicio)
             historico = resposta.historico
             abertas = resposta.propostas
             chamadas = gravador.zerar()
@@ -565,12 +630,16 @@ def executar_caso(
             _titulos_reservas(session, usuario_id),
             len(ctx.pendentes),
         )
+    uso = gravador.zerar_uso()
     return ResultadoCaso(
         id=caso.id,
         categoria=caso.categoria,
         passou=not falhas,
         falhas=falhas,
         transcricao=transcricao,
+        latencias_turno=latencias,
+        tokens_entrada=uso.tokens_entrada,
+        tokens_saida=uso.tokens_saida,
     )
 
 

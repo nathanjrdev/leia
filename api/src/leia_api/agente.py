@@ -115,9 +115,18 @@ class ChamadaFerramenta:
 
 
 @dataclass(frozen=True)
+class Uso:
+    """Tokens que o provedor cobrou numa chamada (base de custo e do relatório da suíte)."""
+
+    tokens_entrada: int
+    tokens_saida: int
+
+
+@dataclass(frozen=True)
 class RespostaLLM:
     texto: str | None
     chamadas: list[ChamadaFerramenta]
+    uso: Uso | None = None  # None quando o provedor não informa
 
 
 class CallLLM(Protocol):

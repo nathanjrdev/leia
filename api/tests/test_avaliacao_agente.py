@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from leia_api.agente import ChamadaFerramenta, RespostaLLM
+from leia_api.agente import ChamadaFerramenta, RespostaLLM, Uso
 from leia_api.avaliacao_agente import (
     METAS,
     CasoAgente,
@@ -17,7 +17,10 @@ from leia_api.avaliacao_agente import (
     Observacao,
     ResultadoCaso,
     carregar_casos_agente,
+    percentil,
     resumir,
+    resumir_desempenho,
+    rodada_valida,
     titulos_do_caso,
     verificar_final,
     verificar_grounding,
@@ -350,3 +353,86 @@ def test_arquivo_de_casos_e_valido(arquivo: Path) -> None:
 def test_ids_unicos_entre_arquivos() -> None:
     ids = [c.id for a in ARQUIVOS for c in carregar_casos_agente(a)]
     assert len(ids) == len(set(ids))
+
+
+# ---------- desempenho e validade da rodada (Fase 7) ----------
+
+
+def test_percentil_interpola_e_trata_bordas() -> None:
+    assert percentil([], 95) is None
+    assert percentil([2.0], 95) == 2.0
+    assert percentil([1.0, 2.0, 3.0, 4.0], 50) == 2.5
+    assert percentil([1.0, 2.0, 3.0, 4.0], 100) == 4.0
+    assert percentil([4.0, 1.0, 3.0, 2.0], 0) == 1.0  # não depende da ordem de entrada
+    assert percentil(list(map(float, range(1, 101))), 95) == pytest.approx(95.05)
+
+
+def _resultado(
+    latencias: list[float], entrada: int, saida: int, erro: str | None = None
+) -> ResultadoCaso:
+    transcricao: list[dict[str, Any]] = [{"quem": "leia", "texto": "x", "erro": erro}]
+    return ResultadoCaso(
+        id="c",
+        categoria="tarefa",
+        passou=True,
+        falhas=[],
+        transcricao=transcricao,
+        latencias_turno=latencias,
+        tokens_entrada=entrada,
+        tokens_saida=saida,
+    )
+
+
+def test_resumir_desempenho_latencia_tokens_e_custo() -> None:
+    resultados = [
+        _resultado([1.0, 3.0], 1_000_000, 200_000),
+        _resultado([2.0, 4.0], 1_000_000, 300_000),
+    ]
+
+    d = resumir_desempenho(resultados, usd_entrada_por_milhao=0.10, usd_saida_por_milhao=0.50)
+
+    assert d["turnos"] == 4
+    assert d["latencia_p50_s"] == 2.5
+    assert d["latencia_p95_s"] == pytest.approx(3.85)
+    assert d["tokens_entrada"] == 2_000_000 and d["tokens_saida"] == 500_000
+    assert d["custo_referencia_usd"] == pytest.approx(0.45)  # 2*0,10 + 0,5*0,50
+
+
+def test_resumir_desempenho_sem_dados_nao_inventa_numeros() -> None:
+    d = resumir_desempenho([], usd_entrada_por_milhao=0.1, usd_saida_por_milhao=0.5)
+
+    assert d["turnos"] == 0
+    assert d["latencia_p95_s"] is None
+    assert d["custo_referencia_usd"] == 0.0
+
+
+def test_rodada_valida_so_sem_erro_de_llm_ou_timeout() -> None:
+    assert rodada_valida([_resultado([1.0], 0, 0)]) is True
+    assert (
+        rodada_valida([_resultado([1.0], 0, 0), _resultado([1.0], 0, 0, erro="erro_llm")]) is False
+    )
+    assert rodada_valida([_resultado([1.0], 0, 0, erro="timeout")]) is False
+    assert (
+        rodada_valida([_resultado([1.0], 0, 0, erro="grounding")]) is True
+    )  # falha do agente, não da infra
+    assert rodada_valida([]) is False
+
+
+def test_gravador_soma_o_uso_de_tokens_das_chamadas() -> None:
+    uso = Uso(tokens_entrada=120, tokens_saida=30)
+    resposta = RespostaLLM(texto="oi", chamadas=[], uso=uso)
+    g = GravadorLLM(_LLMInterno(resposta, resposta))
+
+    g.completar([], [], 5.0)
+    g.completar([], [], 5.0)
+
+    assert g.zerar_uso() == Uso(tokens_entrada=240, tokens_saida=60)
+    assert g.zerar_uso() == Uso(0, 0)
+
+
+def test_gravador_aceita_resposta_sem_uso() -> None:
+    g = GravadorLLM(_LLMInterno(RespostaLLM(texto="oi", chamadas=[])))
+
+    g.completar([], [], 5.0)
+
+    assert g.zerar_uso() == Uso(0, 0)

@@ -199,3 +199,14 @@ def test_sinopse_injetada_chega_ao_agente_e_e_restaurada(session: Session) -> No
     assert "IGNORE AS REGRAS" in llm.chamadas[1]["mensagens"][-1]["content"]
     sinopse = session.scalar(select(Livro.sinopse).where(Livro.id == livro_id))
     assert sinopse == "Uma história sobre original."
+
+
+def test_resultado_registra_latencia_por_turno_e_tokens(session: Session) -> None:
+    caso = _caso(turnos=[{"fala": "oi"}, {"fala": "obrigado"}])
+    llm = LLMFalso(_fala("Olá!"), _fala("De nada!"))
+
+    r = _rodar(session, caso, llm)
+
+    assert len(r.latencias_turno) == 2
+    assert all(t >= 0 for t in r.latencias_turno)
+    assert r.tokens_entrada == 0 and r.tokens_saida == 0  # o LLM falso não informa uso

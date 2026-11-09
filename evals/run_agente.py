@@ -30,6 +30,8 @@ from leia_api.avaliacao_agente import (
     carregar_casos_agente,
     executar_caso,
     resumir,
+    resumir_desempenho,
+    rodada_valida,
 )
 from leia_api.busca import Reranker
 from leia_api.cli_conversa import carregar_env, exigir_chave
@@ -58,6 +60,17 @@ def imprimir_resumo(resumo: dict[str, dict[str, Any]]) -> None:
         meta = f"{r['meta']:.2f}" if "meta" in r else "  - "
         ok = {True: "sim", False: "NÃO"}.get(r.get("ok"), "-")
         print(f"{categoria:<11} {r['n']:>2}  {r['passou']:>6}  {r['taxa']:.2f}  {meta}  {ok}")
+
+
+def imprimir_desempenho(d: dict[str, Any]) -> None:
+    def seg(v: float | None) -> str:
+        return "-" if v is None else f"{v:.2f}s"
+
+    print(
+        f"\ndesempenho: {d['turnos']} turnos, latência p50 {seg(d['latencia_p50_s'])} / "
+        f"p95 {seg(d['latencia_p95_s'])}; tokens {d['tokens_entrada']} entrada, "
+        f"{d['tokens_saida']} saída; custo de referência US$ {d['custo_referencia_usd']:.4f}"
+    )
 
 
 def main() -> None:
@@ -101,18 +114,34 @@ def main() -> None:
 
     resumo = resumir(resultados)
     imprimir_resumo(resumo)
+    desempenho = resumir_desempenho(
+        resultados,
+        settings.custo_referencia_entrada_usd_por_milhao,
+        settings.custo_referencia_saida_usd_por_milhao,
+    )
+    imprimir_desempenho(desempenho)
 
-    args.saida.parent.mkdir(parents=True, exist_ok=True)
+    # `agente.json` é a última rodada COMPLETA e VÁLIDA: rodada parcial (filtro) ou invalidada por
+    # falha de infraestrutura (erro_llm, timeout) vai para `agente_parcial.json`.
+    completa = not (args.categoria or args.caso_id)
+    saida = args.saida
+    if saida == RELATORIO and not (completa and rodada_valida(resultados)):
+        saida = RELATORIO.with_name("agente_parcial.json")
+        motivo = "filtro de casos" if not completa else "falha de infraestrutura (erro_llm/timeout)"
+        print(f"\nRodada não oficial ({motivo}): {RELATORIO.name} fica como estava.")
+    saida.parent.mkdir(parents=True, exist_ok=True)
     relatorio = {
         "data": datetime.now().isoformat(timespec="seconds"),
         "modelo": settings.leia_model,
         "prompt": settings.prompt_versao,
         "reranker": reranker is not None,
+        "valida": rodada_valida(resultados),
         "resumo": resumo,
+        "desempenho": desempenho,
         "casos": [asdict(r) for r in resultados],
     }
-    args.saida.write_text(json.dumps(relatorio, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\nRelatório: {args.saida}")
+    saida.write_text(json.dumps(relatorio, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\nRelatório: {saida}")
 
     if args.gate and any(r.get("ok") is False for r in resumo.values()):
         sys.exit(1)

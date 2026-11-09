@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     senha_min_caracteres: int = Field(default=8, ge=1)
     senha_max_caracteres: int = Field(default=128, ge=8)
 
+    # Preço de REFERÊNCIA (US$ por 1M de tokens) para estimar o custo da suíte. Valores do plano
+    # para o Claude Haiku 5.5 na demo; no desenvolvimento o provedor grátis cobra 0. Conferir de
+    # novo antes do deploy (preços mudam).
+    custo_referencia_entrada_usd_por_milhao: float = Field(default=0.10, ge=0)
+    custo_referencia_saida_usd_por_milhao: float = Field(default=0.50, ge=0)
+
     # Chat
     mensagem_max_caracteres: int = Field(default=2000, ge=1)
     historico_mensagens_limite: int = Field(default=40, ge=2)  # mensagens devolvidas ao agente
