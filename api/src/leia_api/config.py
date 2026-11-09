@@ -27,5 +27,12 @@ class Settings(BaseSettings):
     max_regeracoes_grounding: int = Field(default=1, ge=0)
     max_pendentes_por_usuario: int = Field(default=5, ge=1)
 
+    # Contas e sessão (cookie opaco guardado no servidor só como hash).
+    sessao_ttl_horas: int = Field(default=24 * 7, ge=1)
+    sessao_cookie_nome: str = "leia_sessao"
+    cookie_seguro: bool = False  # True em produção (HTTPS): cookie só trafega por TLS
+    senha_min_caracteres: int = Field(default=8, ge=1)
+    senha_max_caracteres: int = Field(default=128, ge=8)
+
 
 settings = Settings()
