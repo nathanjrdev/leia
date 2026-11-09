@@ -12,6 +12,14 @@ import { useSessao } from "./SessaoProvider";
 const CHAVE = "leia:conversa";
 const MAX_CARACTERES = 2000;
 
+// Perguntas que o acervo sabe responder; cobrem busca, tema e dúvida sobre o que o leitor já tem.
+const SUGESTOES = [
+  "Quero um romance curto para o fim de semana",
+  "Me indique um livro sobre o sentido da vida",
+  "Tem poesia brasileira disponível agora?",
+  "O que eu tenho locado e quando devolvo?",
+];
+
 type Msg = {
   chave: string;
   papel: "usuario" | "assistente";
@@ -184,7 +192,11 @@ export function Conversa() {
 
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
-    const t = texto.trim();
+    await enviarTexto(texto);
+  }
+
+  async function enviarTexto(bruto: string) {
+    const t = bruto.trim();
     if (!t || ocupado || conversaId === null) return;
     setTexto("");
     // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
@@ -262,9 +274,25 @@ export function Conversa() {
         className="flex min-h-[40vh] flex-col gap-4 border-y border-linha py-4"
       >
         {pronto && mensagens.length === 0 && (
-          <li className="text-tinta-suave">
-            Conte o que você quer ler. Por exemplo: “um romance curto sobre memória” ou “poesia
-            brasileira do século XX”.
+          <li className="flex flex-col gap-3 text-tinta-suave">
+            <p>Conte o que você quer ler, ou comece por uma destas perguntas:</p>
+            <div
+              role="group"
+              aria-label="Sugestões para começar"
+              className="flex flex-col items-start gap-2"
+            >
+              {SUGESTOES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={ocupado || conversaId === null}
+                  onClick={() => void enviarTexto(s)}
+                  className="transicao rounded-md border border-controle px-3 py-1.5 text-left text-tinta hover:bg-papel-2 disabled:opacity-60"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </li>
         )}
         {mensagens.map((m) => (
@@ -333,7 +361,10 @@ export function Conversa() {
         </p>
       )}
 
-      <form onSubmit={enviar} className="flex flex-col gap-2">
+      <form
+        onSubmit={enviar}
+        className="sticky bottom-0 flex flex-col gap-2 border-t border-linha bg-papel pb-4 pt-3"
+      >
         <label htmlFor="mensagem" className="font-medium">
           Mensagem para a Léia
         </label>

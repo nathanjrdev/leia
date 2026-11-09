@@ -327,4 +327,57 @@ describe("Conversa", () => {
     await waitFor(() => expect(screen.queryByText("Olá antigo")).not.toBeInTheDocument());
     expect(sessionStorage.getItem("leia:conversa")).toBe("8");
   });
+
+  describe("sugestões para começar", () => {
+    it("oferece perguntas prontas na conversa vazia", async () => {
+      render(<Conversa />);
+      const grupo = await screen.findByRole("group", { name: "Sugestões para começar" });
+      expect(within(grupo).getAllByRole("button").length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("um clique envia a sugestão como fala do leitor", async () => {
+      turno([
+        { evento: "resposta", dados: { texto: "Achei estas opções." } },
+        { evento: "fim", dados: { erro: null } },
+      ]);
+      render(<Conversa />);
+      const u = userEvent.setup();
+      const grupo = await screen.findByRole("group", { name: "Sugestões para começar" });
+      const botao = within(grupo).getAllByRole("button")[0];
+      const pergunta = botao.textContent ?? "";
+      await u.click(botao);
+      expect(await screen.findByText("Achei estas opções.")).toBeInTheDocument();
+      expect(postarMock).toHaveBeenCalledWith(
+        "/conversas/7/mensagens",
+        { texto: pergunta },
+        expect.any(Function),
+        expect.anything(),
+      );
+    });
+
+    it("some depois da primeira mensagem", async () => {
+      turno([{ evento: "fim", dados: { erro: null } }]);
+      render(<Conversa />);
+      await enviar("poesia");
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("group", { name: "Sugestões para começar" }),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it("não aparece com histórico já carregado", async () => {
+      sessionStorage.setItem("leia:conversa", "7");
+      apiMock.mockImplementation((caminho: string) =>
+        caminho === "/conversas/7/mensagens"
+          ? Promise.resolve([{ papel: "usuario", conteudo: "Olá antigo" }])
+          : Promise.reject(new Error("inesperado " + caminho)),
+      );
+      render(<Conversa />);
+      await screen.findByText("Olá antigo");
+      expect(
+        screen.queryByRole("group", { name: "Sugestões para começar" }),
+      ).not.toBeInTheDocument();
+    });
+  });
 });
