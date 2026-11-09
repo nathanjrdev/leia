@@ -33,6 +33,7 @@ class RegrasLocacao:
     max_locacoes: int
     prazo_dias: int
     max_renovacoes: int
+    retirada_reserva_dias: int = settings.reserva_retirada_dias
 
     @classmethod
     def da_config(cls, config: Settings = settings) -> "RegrasLocacao":
@@ -40,6 +41,7 @@ class RegrasLocacao:
             max_locacoes=config.max_locacoes_simultaneas,
             prazo_dias=config.prazo_locacao_dias,
             max_renovacoes=config.max_renovacoes,
+            retirada_reserva_dias=config.reserva_retirada_dias,
         )
 
 
@@ -129,6 +131,56 @@ def _livres(session: Session, livro_id: int) -> int:
     )
 
 
+def _promover(session: Session, livro_id: int, agora: datetime) -> None:
+    """Começa o prazo de retirada dos primeiros da fila, um por exemplar livre."""
+    livres = _livres(session, livro_id)
+    if livres == 0:
+        return
+    primeiras = (
+        session.execute(
+            select(Reserva)
+            .where(Reserva.livro_id == livro_id, Reserva.status == "ativa")
+            .order_by(Reserva.posicao)
+            .limit(livres)
+        )
+        .scalars()
+        .all()
+    )
+    for reserva in primeiras:
+        if reserva.pronta_em is None:
+            reserva.pronta_em = agora
+    session.flush()
+
+
+def _expirar_do_livro(session: Session, livro_id: int, agora: datetime, dias: int) -> int:
+    """Expira as reservas prontas fora do prazo e passa a vez ao próximo da fila."""
+    vencidas = (
+        session.execute(
+            select(Reserva).where(
+                Reserva.livro_id == livro_id,
+                Reserva.status == "ativa",
+                Reserva.pronta_em.is_not(None),
+                Reserva.pronta_em + timedelta(days=dias) < agora,
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for reserva in vencidas:
+        reserva.status = "expirada"
+    if vencidas:
+        session.flush()
+    _promover(session, livro_id, agora)
+    return len(vencidas)
+
+
+def _expirar_antes(session: Session, livro_id: int, agora: datetime, dias: int) -> None:
+    with _transacao(session):
+        if session.execute(select(Livro.id).where(Livro.id == livro_id)).first() is None:
+            return  # livro inexistente: quem chama devolve o erro certo
+        _expirar_do_livro(session, livro_id, agora, dias)
+
+
 def _locacoes_ativas(session: Session, usuario_id: int) -> list[tuple[datetime, int]]:
     """(prevista_em, livro_id) de cada locação ativa do usuário."""
     linhas = session.execute(
@@ -183,6 +235,8 @@ def locar(
     agora: datetime | None = None,
 ) -> ResultadoLocacao:
     agora = _agora(agora)
+    # Transação própria: a expiração vale mesmo que esta locação seja recusada logo abaixo.
+    _expirar_antes(session, livro_id, agora, regras.retirada_reserva_dias)
     with _transacao(session):
         _bloquear_usuario(session, usuario_id)
         titulo = _titulo(session, livro_id)
@@ -295,6 +349,7 @@ def devolver(
         locacao, exemplar, titulo = _locacao_do_usuario(session, usuario_id, locacao_id)
         locacao.devolvida_em = agora
         session.flush()
+        _promover(session, exemplar.livro_id, agora)
         return ResultadoDevolucao(
             locacao_id=locacao.id,
             livro_id=exemplar.livro_id,
@@ -367,6 +422,63 @@ def reservar(
 
 
 @dataclass(frozen=True)
+class ResultadoCancelamento:
+    reserva_id: int
+    livro_id: int
+    titulo: str
+
+
+def cancelar_reserva(
+    session: Session, usuario_id: int, reserva_id: int, agora: datetime | None = None
+) -> ResultadoCancelamento:
+    """O leitor sai da fila. Só a própria reserva, e só enquanto estiver ativa."""
+    agora = _agora(agora)
+    with _transacao(session):
+        reserva = session.execute(
+            select(Reserva).where(Reserva.id == reserva_id, Reserva.usuario_id == usuario_id)
+        ).scalar_one_or_none()
+        if reserva is None:  # de outro usuário é igual a inexistente
+            raise ErroLocacao("reserva_inexistente", "Reserva não encontrada.")
+        # trava o livro: serializa com `reservar` e com a promoção da fila
+        session.execute(select(Livro.id).where(Livro.id == reserva.livro_id).with_for_update())
+        session.refresh(reserva)
+        if reserva.status != "ativa":
+            raise ErroLocacao("reserva_encerrada", "Esta reserva já foi encerrada.")
+        reserva.status = "cancelada"
+        session.flush()
+        _promover(session, reserva.livro_id, agora)
+        titulo = _titulo(session, reserva.livro_id)
+        return ResultadoCancelamento(
+            reserva_id=reserva.id, livro_id=reserva.livro_id, titulo=titulo
+        )
+
+
+def expirar_reservas(session: Session, regras: RegrasLocacao, agora: datetime | None = None) -> int:
+    """Varredura: expira toda reserva pronta fora do prazo de retirada. Devolve quantas.
+
+    Rodar de tempos em tempos (`python -m leia_api.manutencao`). Além disso, `locar` já expira,
+    de forma preguiçosa, as reservas vencidas do livro que está sendo locado.
+    """
+    agora = _agora(agora)
+    dias = regras.retirada_reserva_dias
+    with _transacao(session):
+        livros = (
+            session.execute(
+                select(Reserva.livro_id)
+                .where(
+                    Reserva.status == "ativa",
+                    Reserva.pronta_em.is_not(None),
+                    Reserva.pronta_em + timedelta(days=dias) < agora,
+                )
+                .distinct()
+            )
+            .scalars()
+            .all()
+        )
+        return sum(_expirar_do_livro(session, livro_id, agora, dias) for livro_id in livros)
+
+
+@dataclass(frozen=True)
 class LocacaoResumo:
     locacao_id: int
     livro_id: int
@@ -384,6 +496,8 @@ class ReservaResumo:
     livro_id: int
     titulo: str
     posicao: int  # lugar real na fila (1 = próximo)
+    pronta: bool = False  # há exemplar separado para este leitor
+    retirar_ate: datetime | None = None  # fim do prazo de retirada, se pronta
 
 
 @dataclass(frozen=True)
@@ -398,6 +512,7 @@ def minhas_locacoes(
     usuario_id: int,
     agora: datetime | None = None,
     historico_limite: int = settings.historico_locacoes_limite,
+    retirada_dias: int = settings.reserva_retirada_dias,
 ) -> MinhasLocacoes:
     """Locações ativas, reservas na fila e as últimas devoluções do usuário (só leitura)."""
     agora = _agora(agora)
@@ -445,7 +560,16 @@ def minhas_locacoes(
         )
         reservas.append(
             ReservaResumo(
-                reserva_id=reserva.id, livro_id=reserva.livro_id, titulo=titulo, posicao=lugar
+                reserva_id=reserva.id,
+                livro_id=reserva.livro_id,
+                titulo=titulo,
+                posicao=lugar,
+                pronta=reserva.pronta_em is not None,
+                retirar_ate=(
+                    None
+                    if reserva.pronta_em is None
+                    else reserva.pronta_em + timedelta(days=retirada_dias)
+                ),
             )
         )
     return MinhasLocacoes(ativas=ativas, reservas=reservas, historico=devolvidas[:historico_limite])

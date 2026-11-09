@@ -142,7 +142,9 @@ class Locacao(Base):
 class Reserva(Base):
     __tablename__ = "reservas"
     __table_args__ = (
-        CheckConstraint("status IN ('ativa', 'atendida', 'cancelada')", name="ck_reservas_status"),
+        CheckConstraint(
+            "status IN ('ativa', 'atendida', 'cancelada', 'expirada')", name="ck_reservas_status"
+        ),
         # Um usuário só entra uma vez na fila de um livro.
         Index(
             "uq_reserva_ativa_por_usuario_livro",
@@ -158,6 +160,8 @@ class Reserva(Base):
     posicao: Mapped[int]
     status: Mapped[str] = mapped_column(String(20), server_default="ativa")
     criada_em: Mapped[datetime] = _now()
+    # Quando sobrou exemplar para esta reserva: começa o prazo de retirada (ou ela expira).
+    pronta_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class LivroEmbedding(Base):

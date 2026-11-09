@@ -577,3 +577,20 @@ def test_busca_nao_expoe_capa_url(session: Session) -> None:
     res = executar(_ctx(session, _usuario(session)), "buscar_livros", {"consulta": "pulsarkappa"})
     assert res["resultados"]
     assert all("capa_url" not in r for r in res["resultados"])
+
+
+def test_minhas_locacoes_nao_expoe_ao_llm_os_campos_da_tela(session: Session) -> None:
+    """`pronta` e `retirar_ate` são da tela; a saída da ferramenta fica como a suíte mediu."""
+    from leia_api.ferramentas import executar
+
+    dono, b, livro = _usuario(session), _usuario(session), _livro(session)
+    ctx_dono = _ctx(session, dono)
+    ctx_b = _ctx(session, b)
+    locar(session, dono, livro, ctx_dono.regras, AGORA)
+    reservar(session, b, livro, AGORA)
+
+    res = executar(ctx_b, "minhas_locacoes", {})
+
+    assert res["reservas"][0]["posicao"] == 1
+    assert "pronta" not in res["reservas"][0]
+    assert "retirar_ate" not in res["reservas"][0]

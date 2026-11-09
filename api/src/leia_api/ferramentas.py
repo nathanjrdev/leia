@@ -184,7 +184,13 @@ def _minhas_locacoes(ctx: ContextoFerramentas, _: SemArgs) -> Resultado:
     meu = locacao.minhas_locacoes(ctx.session, ctx.usuario_id, ctx.agora)
     ctx.livros_vistos.update(lo.livro_id for lo in [*meu.ativas, *meu.historico])
     ctx.livros_vistos.update(r.livro_id for r in meu.reservas)
-    return {"ok": True, **_json(meu)}
+    corpo = _json(meu)
+    for reserva in corpo["reservas"]:
+        # Campos da tela (prazo de retirada) ainda não são expostos ao LLM: a saída da ferramenta
+        # fica idêntica à que a suíte de avaliação mediu. Expor exige o gate do leia-prompt.
+        reserva.pop("pronta", None)
+        reserva.pop("retirar_ate", None)
+    return {"ok": True, **corpo}
 
 
 # ---------- escrita: só propõe; a execução é `confirmar_acao` ----------
