@@ -12,17 +12,26 @@ from sqlalchemy.orm import Session
 from leia_api import db
 from leia_api.agente import Agente, ConfigAgente
 from leia_api.busca import Reranker
+from leia_api.config import settings
 from leia_api.embeddings import Encoder
 from leia_api.llm import cliente_padrao
 
 
 @lru_cache(maxsize=1)
 def get_agente() -> Agente:
+    if settings.modo_teste:
+        from leia_api.modo_teste import LLMDeTeste
+
+        return Agente(LLMDeTeste(), ConfigAgente.da_config())
     return Agente(cliente_padrao(), ConfigAgente.da_config())
 
 
 @lru_cache(maxsize=1)
 def get_encoder() -> Encoder:
+    if settings.modo_teste:
+        from leia_api.modo_teste import EncoderDeTeste
+
+        return EncoderDeTeste()
     from leia_api.modelos import EncoderST
 
     return EncoderST()
@@ -30,6 +39,8 @@ def get_encoder() -> Encoder:
 
 @lru_cache(maxsize=1)
 def get_reranker() -> Reranker | None:
+    if settings.modo_teste:
+        return None
     from leia_api.modelos import CrossEncoderReranker
 
     return CrossEncoderReranker()
