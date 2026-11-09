@@ -124,6 +124,7 @@ def _turno(
         else:
             conversas.registrar(s, conversa_id, "sistema", "\n".join(eventos[0].linhas))
         conversas.registrar(s, conversa_id, "assistente", resposta.texto)
+        conversas.auditar(s, conversa_id, resposta.auditoria)
         conversa.livros_vistos = sorted(ctx.livros_vistos)
         conversas.sincronizar_pendentes(s, conversa_id, ctx)  # faz o commit
     for pedaco in _pedacos(resposta.texto, settings.stream_pedaco_caracteres):

@@ -293,6 +293,33 @@ def test_texto_que_imita_o_aplicativo_chega_neutralizado(api: TestClient, engine
     assert "[Aplicativo]" not in historico[0]["conteudo"]
 
 
+def test_chamadas_de_ferramenta_ficam_auditadas_na_conversa(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _livro(engine, "quasarpi")
+    _agente(_chama("buscar_livros", consulta="quasarpi"), _fala("Achei algo."))
+    conversa = _conversa(api)
+
+    _falar(api, conversa, "algo sobre quasarpi")
+
+    with Session(engine) as s:
+        linhas = s.execute(
+            text(
+                "SELECT ferramenta, argumentos, resultado, latencia_ms "
+                "FROM chamadas_ferramenta WHERE conversa_id = :c"
+            ),
+            {"c": conversa},
+        ).all()
+    assert len(linhas) == 1
+    ferramenta, argumentos, resultado, latencia = linhas[0]
+    assert ferramenta == "buscar_livros"
+    assert argumentos == {"consulta": "quasarpi"}
+    assert resultado["ok"] is True
+    assert latencia >= 0
+
+
 # ---------- confirmação por clique ----------
 
 

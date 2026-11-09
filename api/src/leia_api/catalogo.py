@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from leia_api.busca import _filtros as filtros_sql
 from leia_api.locacao import ErroLocacao
 from leia_api.models import Livro
 
@@ -62,3 +63,61 @@ def detalhar_livro(session: Session, livro_id: int) -> FichaLivro:
         capa_url=livro.capa_url,
         disponibilidade=verificar_disponibilidade(session, livro_id),
     )
+
+
+@dataclass(frozen=True)
+class ItemListagem:
+    livro_id: int
+    titulo: str
+    autores: list[str]
+    ano: int | None
+    capa_url: str | None
+    livres: int
+    fila: int
+
+
+def listar_livros(
+    session: Session,
+    *,
+    categoria: str | None = None,
+    ano_min: int | None = None,
+    ano_max: int | None = None,
+    apenas_disponiveis: bool = False,
+    pagina: int = 1,
+    limite: int = 20,
+) -> tuple[list[ItemListagem], int]:
+    """Navegação paginada do acervo (ordem alfabética). Devolve (itens da página, total)."""
+    filtro, params = filtros_sql(categoria, ano_min, ano_max, apenas_disponiveis)
+    total = int(
+        session.execute(
+            text(f"SELECT count(*) FROM livros l WHERE true{filtro}"),  # noqa: S608 - filtro vem de _filtros, só com parâmetros nomeados
+            params,
+        ).scalar_one()
+    )
+    linhas = session.execute(
+        text(
+            "SELECT l.id, COALESCE(d.livres, 0), COALESCE(d.fila, 0) FROM livros l "  # noqa: S608
+            "LEFT JOIN disponibilidade_livro d ON d.livro_id = l.id "
+            f"WHERE true{filtro} ORDER BY l.titulo, l.id LIMIT :limite OFFSET :deslocamento"
+        ),
+        {**params, "limite": limite, "deslocamento": (pagina - 1) * limite},
+    ).all()
+    disponibilidade = {int(i): (int(livres), int(fila)) for i, livres, fila in linhas}
+    ordem = list(disponibilidade)
+    livros = {
+        livro.id: livro
+        for livro in session.scalars(select(Livro).where(Livro.id.in_(ordem))).unique()
+    }
+    itens = [
+        ItemListagem(
+            livro_id=i,
+            titulo=livros[i].titulo,
+            autores=[a.nome for a in livros[i].autores],
+            ano=livros[i].ano,
+            capa_url=livros[i].capa_url,
+            livres=disponibilidade[i][0],
+            fila=disponibilidade[i][1],
+        )
+        for i in ordem
+    ]
+    return itens, total

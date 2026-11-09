@@ -10,11 +10,12 @@ from typing import Any
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from leia_api.agente import ChamadaAuditada
 from leia_api.config import settings
 from leia_api.ferramentas import AcaoPendente as Pendente
 from leia_api.ferramentas import ContextoFerramentas
 from leia_api.models import AcaoPendente as LinhaPendente
-from leia_api.models import Conversa, Mensagem
+from leia_api.models import ChamadaFerramenta, Conversa, Mensagem
 
 
 def criar(session: Session, usuario_id: int) -> int:
@@ -33,6 +34,20 @@ def obter(session: Session, conversa_id: int, usuario_id: int) -> Conversa | Non
 
 def registrar(session: Session, conversa_id: int, papel: str, conteudo: str) -> None:
     session.add(Mensagem(conversa_id=conversa_id, papel=papel, conteudo=conteudo))
+
+
+def auditar(session: Session, conversa_id: int, chamadas: list[ChamadaAuditada]) -> None:
+    """Trilha de auditoria: uma linha por chamada de ferramenta (tokens ficam nulos por ora)."""
+    for c in chamadas:
+        session.add(
+            ChamadaFerramenta(
+                conversa_id=conversa_id,
+                ferramenta=c.nome,
+                argumentos=c.argumentos,
+                resultado=c.resultado,
+                latencia_ms=c.latencia_ms,
+            )
+        )
 
 
 _PAPEL_LLM = {"usuario": "user", "assistente": "assistant"}

@@ -19,7 +19,7 @@ import re
 import time
 import unicodedata
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib import resources
 from typing import Any, Protocol, TypedDict
 
@@ -154,12 +154,23 @@ class Proposta:
 
 
 @dataclass(frozen=True)
+class ChamadaAuditada:
+    """Registro de uma chamada de ferramenta para a trilha de auditoria (`chamadas_ferramenta`)."""
+
+    nome: str
+    argumentos: dict[str, Any]
+    resultado: dict[str, Any]
+    latencia_ms: int
+
+
+@dataclass(frozen=True)
 class RespostaAgente:
     texto: str
     propostas: list[Proposta]
     historico: list[Mensagem]  # só user/assistant, para o próximo turno
     erro: str | None = None  # timeout | erro_llm | limite_chamadas | grounding | resposta_vazia
     chamadas_ferramenta: int = 0
+    auditoria: list[ChamadaAuditada] = field(default_factory=list)
 
 
 class _Estado(TypedDict):
@@ -173,6 +184,7 @@ class _Estado(TypedDict):
     erro: str | None
     propostas: list[Proposta]
     observador: Callable[[str, dict[str, Any]], None] | None
+    auditoria: list[ChamadaAuditada]
 
 
 def _exigir(ultima: RespostaLLM | None) -> RespostaLLM:
@@ -249,10 +261,20 @@ class Agente:
         ultima = _exigir(ultima)
         mensagens = list(e["mensagens"])
         propostas = list(e["propostas"])
+        auditoria = list(e["auditoria"])
         for chamada in ultima.chamadas:
             if e["observador"] is not None:
                 e["observador"]("ferramenta", {"nome": chamada.nome})
+            inicio = time.perf_counter()
             resultado = executar(e["ctx"], chamada.nome, chamada.argumentos)
+            auditoria.append(
+                ChamadaAuditada(
+                    nome=chamada.nome,
+                    argumentos=chamada.argumentos,
+                    resultado=resultado,
+                    latencia_ms=int((time.perf_counter() - inicio) * 1000),
+                )
+            )
             if resultado.get("status") == "aguardando_confirmacao":
                 proposta = Proposta(resultado["confirmacao_id"], resultado["resumo"])
                 if proposta not in propostas:
@@ -267,6 +289,7 @@ class Agente:
         return {
             "mensagens": mensagens,
             "propostas": propostas,
+            "auditoria": auditoria,
             "n_chamadas": e["n_chamadas"] + len(ultima.chamadas),
         }
 
@@ -376,6 +399,7 @@ class Agente:
             "erro": None,
             "propostas": [],
             "observador": observador,
+            "auditoria": [],
         }
         passos = 4 * (self._config.max_chamadas_ferramenta + self._config.max_regeracoes + 3)
         final: _Estado = self._grafo.invoke(inicial, {"recursion_limit": passos + 10})
@@ -386,4 +410,5 @@ class Agente:
             historico=[*limpo, usuario, {"role": "assistant", "content": texto}],
             erro=final["erro"],
             chamadas_ferramenta=final["n_chamadas"],
+            auditoria=final["auditoria"],
         )
