@@ -197,6 +197,32 @@ class Conversa(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), index=True)
     criada_em: Mapped[datetime] = _now()
+    # ids dos livros que ferramentas devolveram na conversa (grounding vale entre turnos)
+    livros_vistos: Mapped[list[int]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+
+
+class AcaoPendente(Base):
+    """Ação de escrita proposta pelo agente, aguardando o clique. Pertence a uma conversa."""
+
+    __tablename__ = "acoes_pendentes"
+    __table_args__ = (
+        CheckConstraint(
+            "ferramenta IN ('locar', 'renovar', 'devolver', 'reservar')",
+            name="ck_acoes_pendentes_ferramenta",
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    conversa_id: Mapped[int] = mapped_column(
+        ForeignKey("conversas.id", ondelete="CASCADE"), index=True
+    )
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="CASCADE"), index=True
+    )
+    token: Mapped[str] = mapped_column(String(64), unique=True)
+    ferramenta: Mapped[str] = mapped_column(String(20))
+    argumentos: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    resumo: Mapped[str] = mapped_column(Text)
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class Mensagem(Base):

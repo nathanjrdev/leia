@@ -37,6 +37,10 @@ Chama o LLM de verdade (modelo grátis de desenvolvimento, `LEIA_MODEL`), com fe
 - **Rodar (em `api/`):** `uv run --group ml python ../evals/run_agente.py --falhas`. Filtros `--categoria`, `--id`, `--pausa`, `--sem-reranker`; `--gate` sai com código 1 se alguma meta falhar. Relatório em `evals/resultados/agente.json`.
 - **Custo da medida:** uma rodada completa gasta ~150 chamadas ao LLM; a camada grátis tem cota diária. Por isso há rodadas parciais (`--id`, `--categoria`) e a regra de parar em massa de `erro_llm`.
 
+### 2.3 API: o que é testado e o que não é
+
+A suíte do agente chama `Agente.responder` direto; ela **não passa pela API**. O comportamento da camada HTTP (sessão, conversas, SSE, confirmação por clique, pendentes por conversa) é coberto por testes de integração com Postgres real e **LLM falso** (`tests/integration/test_auth.py`, `test_chat.py`, `test_conversas.py`): eles provam as garantias de segurança e de consistência (dono da conversa, token de uso único, claim atômico sob concorrência, invalidação por turno, `usuario_id` só da sessão), mas **não provam qualidade de resposta**. Ainda **não há** medição ponta a ponta (HTTP + modelo real + embeddings reais); entra com o E2E da Fase 9.
+
 ## 3. O ciclo de refino
 
 ```text

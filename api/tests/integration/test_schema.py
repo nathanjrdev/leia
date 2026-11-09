@@ -3,31 +3,50 @@ from sqlalchemy import Connection, Engine, inspect, text
 from sqlalchemy.exc import IntegrityError
 
 EXPECTED_TABLES = {
-    "autores", "categorias", "livros", "livro_autor", "livro_categoria", "exemplares",
-    "usuarios", "locacoes", "reservas", "livro_embeddings", "avaliacoes",
-    "conversas", "mensagens", "chamadas_ferramenta",
+    "autores",
+    "categorias",
+    "livros",
+    "livro_autor",
+    "livro_categoria",
+    "exemplares",
+    "usuarios",
+    "locacoes",
+    "reservas",
+    "livro_embeddings",
+    "avaliacoes",
+    "conversas",
+    "mensagens",
+    "chamadas_ferramenta",
 }
 
 
 def _livro(conn: Connection, titulo: str = "Torto Arado") -> int:
-    return int(conn.execute(
-        text("INSERT INTO livros (titulo, sinopse) VALUES (:t, 'sinopse') RETURNING id"),
-        {"t": titulo},
-    ).scalar_one())
+    return int(
+        conn.execute(
+            text("INSERT INTO livros (titulo, sinopse) VALUES (:t, 'sinopse') RETURNING id"),
+            {"t": titulo},
+        ).scalar_one()
+    )
 
 
 def _exemplar(conn: Connection, livro_id: int, codigo: str) -> int:
-    return int(conn.execute(
-        text("INSERT INTO exemplares (livro_id, codigo) VALUES (:l, :c) RETURNING id"),
-        {"l": livro_id, "c": codigo},
-    ).scalar_one())
+    return int(
+        conn.execute(
+            text("INSERT INTO exemplares (livro_id, codigo) VALUES (:l, :c) RETURNING id"),
+            {"l": livro_id, "c": codigo},
+        ).scalar_one()
+    )
 
 
 def _usuario(conn: Connection, email: str) -> int:
-    return int(conn.execute(
-        text("INSERT INTO usuarios (nome, email, senha_hash) VALUES ('U', :e, 'x') RETURNING id"),
-        {"e": email},
-    ).scalar_one())
+    return int(
+        conn.execute(
+            text(
+                "INSERT INTO usuarios (nome, email, senha_hash) VALUES ('U', :e, 'x') RETURNING id"
+            ),
+            {"e": email},
+        ).scalar_one()
+    )
 
 
 def _locar(conn: Connection, exemplar_id: int, usuario_id: int) -> None:
