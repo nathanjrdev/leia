@@ -27,6 +27,7 @@ plan → test (TDD) → implement → review → verify. Cobertura ≥ 80%. Segr
 - Banco local: `docker compose up -d db`
 - API (em `api/`): `uv sync`, `uv run pytest`, `uv run ruff check .`, `uv run mypy src tests`, `uv run uvicorn leia_api.main:app --reload`
 - Web (em `web/`): `npm run dev`, `npm test`, `npm run lint`, `npm run typecheck`
+- E2E (em `web/`, com `npm run build` feito, banco no ar e porta 8000 livre): `npm run e2e`. Sobe a API em `MODO_TESTE=true` (LLM e encoder falsos: valida fluxo e tela, não a qualidade do modelo). Carga sem embeddings: `uv run python -m leia_api.modo_teste` em `api/`.
 - No Windows o `uv` fica em `~/.local/bin`; no Git Bash pode ser preciso adicionar ao PATH.
 - Carga do banco dev (migra, catálogo, fictícios, embeddings): `uv run --group ml python -m leia_api.carga`
 
