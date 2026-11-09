@@ -106,6 +106,19 @@ class Usuario(Base):
     preferencias: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
 
 
+class Sessao(Base):
+    """Sessão de login. O token vai ao navegador em cookie; aqui fica só o SHA-256 dele."""
+
+    __tablename__ = "sessoes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    criada_em: Mapped[datetime] = _now()
+    expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 class Locacao(Base):
     __tablename__ = "locacoes"
     __table_args__ = (
