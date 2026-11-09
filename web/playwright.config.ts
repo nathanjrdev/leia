@@ -11,6 +11,8 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: /.*\.e2e\.ts/,
   timeout: 60_000,
+  // O cadastro faz hash de senha (scrypt) e fica lento logo depois que a API sobe a frio.
+  expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
