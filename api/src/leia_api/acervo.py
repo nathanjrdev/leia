@@ -31,7 +31,7 @@ from leia_api.models import Categoria
 
 router = APIRouter(tags=["acervo"])
 
-_NAO_ENCONTRADO = {"livro_inexistente", "locacao_inexistente"}
+_NAO_ENCONTRADO = {"livro_inexistente", "locacao_inexistente", "reserva_inexistente"}
 Slug = Annotated[str | None, Query(max_length=60, pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")]
 Ano = Annotated[int | None, Query(ge=1000, le=2100)]
 Sessao = Annotated[Session, Depends(get_session)]
@@ -183,6 +183,16 @@ def reservar(
 ) -> dict[str, Any] | JSONResponse:
     try:
         return asdict(locacao.reservar(session, conta.id, livro_id))
+    except ErroLocacao as erro:
+        return _erro_de_regra(erro)
+
+
+@router.post("/reservas/{reserva_id}/cancelar", response_model=None)
+def cancelar(
+    reserva_id: int, _: Confirmacao, conta: Logado, session: Sessao
+) -> dict[str, Any] | JSONResponse:
+    try:
+        return asdict(locacao.cancelar_reserva(session, conta.id, reserva_id))
     except ErroLocacao as erro:
         return _erro_de_regra(erro)
 

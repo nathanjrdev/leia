@@ -294,3 +294,64 @@ def test_reservar_quando_nao_ha_exemplar_livre(api: TestClient, engine: Engine) 
 
     assert r.status_code == 200 and r.json()["posicao"] == 1
     assert [x["titulo"] for x in api.get("/estante").json()["reservas"]][0].startswith("Livro")
+
+
+def test_cancelar_reserva_pela_estante(api: TestClient, engine: Engine) -> None:
+    _, primeiro = _usuario(engine)
+    _, segundo = _usuario(engine)
+    livro_id, _ = _livro(engine)
+    _logar(api, primeiro)
+    api.post(f"/livros/{livro_id}/locar", json=CONFIRMO)
+    _logar(api, segundo)
+    api.post(f"/livros/{livro_id}/reservar", json=CONFIRMO)
+    reserva = api.get("/estante").json()["reservas"][0]
+    assert reserva["pronta"] is False and reserva["retirar_ate"] is None
+
+    sem_confirmar = api.post(f"/reservas/{reserva['reserva_id']}/cancelar", json={})
+    cancelada = api.post(f"/reservas/{reserva['reserva_id']}/cancelar", json=CONFIRMO)
+    de_novo = api.post(f"/reservas/{reserva['reserva_id']}/cancelar", json=CONFIRMO)
+
+    assert sem_confirmar.status_code == 422
+    assert cancelada.status_code == 200 and cancelada.json()["livro_id"] == livro_id
+    assert de_novo.status_code == 409 and de_novo.json()["erro"] == "reserva_encerrada"
+    assert api.get("/estante").json()["reservas"] == []
+
+
+def test_nao_cancela_reserva_de_outro_usuario(api: TestClient, engine: Engine) -> None:
+    _, primeiro = _usuario(engine)
+    _, segundo = _usuario(engine)
+    _, intruso = _usuario(engine)
+    livro_id, _ = _livro(engine)
+    _logar(api, primeiro)
+    api.post(f"/livros/{livro_id}/locar", json=CONFIRMO)
+    _logar(api, segundo)
+    api.post(f"/livros/{livro_id}/reservar", json=CONFIRMO)
+    reserva_id = api.get("/estante").json()["reservas"][0]["reserva_id"]
+
+    _logar(api, intruso)
+    r = api.post(f"/reservas/{reserva_id}/cancelar", json=CONFIRMO)
+
+    assert r.status_code == 404 and r.json()["erro"] == "reserva_inexistente"
+    _logar(api, segundo)
+    assert len(api.get("/estante").json()["reservas"]) == 1
+
+
+def test_estante_mostra_o_prazo_de_retirada_da_reserva_pronta(
+    api: TestClient, engine: Engine
+) -> None:
+    _, primeiro = _usuario(engine)
+    _, segundo = _usuario(engine)
+    livro_id, _ = _livro(engine)
+    _logar(api, primeiro)
+    api.post(f"/livros/{livro_id}/locar", json=CONFIRMO)
+    locacao_id = api.get("/estante").json()["ativas"][0]["locacao_id"]
+    _logar(api, segundo)
+    api.post(f"/livros/{livro_id}/reservar", json=CONFIRMO)
+    _logar(api, primeiro)
+    api.post(f"/locacoes/{locacao_id}/devolver", json=CONFIRMO)
+
+    _logar(api, segundo)
+    reserva = api.get("/estante").json()["reservas"][0]
+
+    assert reserva["pronta"] is True
+    assert reserva["retirar_ate"] is not None

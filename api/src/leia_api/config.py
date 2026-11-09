@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     max_locacoes_simultaneas: int = Field(default=3, ge=1)
     prazo_locacao_dias: int = Field(default=14, ge=1)
     max_renovacoes: int = Field(default=1, ge=0)  # 0 desliga renovações
+    reserva_retirada_dias: int = Field(default=2, ge=1)  # prazo para retirar o livro reservado
 
     # Limites do agente (não são regra de locação, mas também são parâmetros).
     historico_locacoes_limite: int = Field(default=5, ge=1)
