@@ -24,3 +24,13 @@ def engine(alembic_cfg: Config) -> Iterator[Engine]:
     eng = create_engine(alembic_cfg.get_main_option("sqlalchemy.url") or "")
     yield eng
     eng.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _limitadores_zerados() -> Iterator[None]:
+    """Os limitadores são globais do processo: cada teste começa e termina sem histórico."""
+    from leia_api import limite
+
+    limite.limpar_todos()
+    yield
+    limite.limpar_todos()

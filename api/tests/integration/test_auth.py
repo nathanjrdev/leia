@@ -204,3 +204,57 @@ def test_apagar_usuario_apaga_as_sessoes(client: TestClient, engine: Engine) -> 
             )
         ).scalar_one()
     assert orfas == 0
+
+
+# ---------- limite de tentativas de login ----------
+
+
+def test_login_bloqueia_apos_muitas_falhas_do_mesmo_email(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "login_max_falhas", 3)
+    _cadastrar(client, "forca@auth.teste.local")
+    client.cookies.clear()
+    errada = {"email": "forca@auth.teste.local", "senha": "x" * 12}
+
+    for _ in range(3):
+        assert client.post("/auth/login", json=errada).status_code == 401
+    bloqueado = client.post(
+        "/auth/login", json={"email": "forca@auth.teste.local", "senha": SENHA}
+    )  # até a senha certa fica de fora durante o bloqueio
+
+    assert bloqueado.status_code == 429
+    assert bloqueado.json()["erro"] == "muitas_tentativas"
+    outro = client.post("/auth/login", json={"email": "outro@auth.teste.local", "senha": SENHA})
+    assert outro.status_code == 401  # outro e-mail não está bloqueado (só credencial inválida)
+
+
+def test_login_correto_zera_o_contador_do_email(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "login_max_falhas", 3)
+    _cadastrar(client, "zera@auth.teste.local")
+    client.cookies.clear()
+    errada = {"email": "zera@auth.teste.local", "senha": "x" * 12}
+    certa = {"email": "zera@auth.teste.local", "senha": SENHA}
+
+    client.post("/auth/login", json=errada)
+    client.post("/auth/login", json=errada)
+    assert client.post("/auth/login", json=certa).status_code == 200
+    client.post("/auth/login", json=errada)
+    client.post("/auth/login", json=errada)
+
+    assert client.post("/auth/login", json=certa).status_code == 200  # ainda não bloqueou
+
+
+def test_login_bloqueia_o_ip_que_testa_varios_emails(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "login_max_falhas_por_ip", 3)
+    for i in range(3):
+        r = client.post("/auth/login", json={"email": f"x{i}@auth.teste.local", "senha": SENHA})
+        assert r.status_code == 401
+
+    r = client.post("/auth/login", json={"email": "novo@auth.teste.local", "senha": SENHA})
+
+    assert r.status_code == 429

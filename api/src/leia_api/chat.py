@@ -207,6 +207,10 @@ def mensagem(
 ) -> StreamingResponse | JSONResponse:
     if conversas.obter(session, conversa_id, conta.id) is None:
         return _conversa_inexistente()
+    if conversas.mensagens_do_dia(session, conta.id) >= settings.mensagens_por_dia:
+        return erro_json(
+            429, "limite_diario", "Você atingiu o limite de mensagens de hoje. Volte amanhã."
+        )
     return _stream(
         fabrica=fabrica,
         agente=agente,

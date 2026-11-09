@@ -355,3 +355,13 @@ def test_estante_mostra_o_prazo_de_retirada_da_reserva_pronta(
 
     assert reserva["pronta"] is True
     assert reserva["retirar_ate"] is not None
+
+
+def test_busca_publica_tem_limite_por_ip(api: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "busca_max_por_minuto", 2)
+
+    codigos = [api.get("/livros/busca", params={"q": "memória"}).status_code for _ in range(3)]
+
+    assert codigos == [200, 200, 429]
+    assert api.get("/livros/busca", params={"q": "x"}).json()["erro"] == "muitas_buscas"
+    assert api.get("/livros").status_code == 200  # a navegação comum não é limitada
