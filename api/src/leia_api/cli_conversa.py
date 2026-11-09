@@ -31,6 +31,7 @@ from sqlalchemy.orm import Session
 
 from leia_api.agente import Agente, ConfigAgente, Mensagem, Proposta
 from leia_api.busca import Reranker
+from leia_api.canal import EventoApp, evento_de_cancelamento, evento_de_confirmacao
 from leia_api.config import settings
 from leia_api.ferramentas import ContextoFerramentas, cancelar_acao, confirmar_acao
 from leia_api.llm import ClienteLiteLLM
@@ -212,15 +213,22 @@ def locacoes_ativas(session: Session, usuario_id: int) -> list[str]:
     return [str(linha[0]) for linha in linhas]
 
 
-def aplicar_botao(ctx: ContextoFerramentas, decisao: str, propostas: list[Proposta]) -> str:
-    """Faz o que a API fará no clique e devolve o texto que o app mandaria ao agente."""
+def aplicar_botao(
+    ctx: ContextoFerramentas, decisao: str, propostas: list[Proposta]
+) -> tuple[str, EventoApp]:
+    """Faz o que a API fará no clique: executa e devolve (linha para a transcrição, evento).
+
+    O evento vai ao agente pelo canal do servidor (`responder(..., eventos=[...])`); a linha é só
+    para exibição. Nada disso passa como fala do leitor.
+    """
     if decisao == "cancelar":
         for p in propostas:
             cancelar_acao(ctx, p.confirmacao_id)
-        return "[Aplicativo] O leitor clicou em Cancelar."
+        evento = evento_de_cancelamento([p.resumo for p in propostas])
+        return "O leitor clicou em Cancelar.", evento
     resultados = [confirmar_acao(ctx, p.confirmacao_id) for p in propostas]
     corpo = json.dumps(resultados, ensure_ascii=False, default=str)
-    return f"[Aplicativo] O leitor clicou em Confirmar. Resultado: {corpo}"
+    return f"O leitor clicou em Confirmar. Resultado: {corpo}", evento_de_confirmacao(resultados)
 
 
 def botoes(propostas: list[Proposta]) -> str:
@@ -269,17 +277,18 @@ def rodar_cenario(
         transcricao.append(("leitor", mensagem))
         print(f"LEITOR: {mensagem}")
         decisao = _decisao_do_botao(mensagem)
+        enviar: str | None = mensagem
+        eventos: list[EventoApp] = []
         if decisao and abertas:
-            enviar = aplicar_botao(ctx, decisao, abertas)
-            transcricao.append(("app", enviar))
-            print(f"APP:    {enviar}")
+            linha, evento = aplicar_botao(ctx, decisao, abertas)
+            eventos, enviar = [evento], None  # o clique não é fala: vai pelo canal do servidor
+            transcricao.append(("app", linha))
+            print(f"APP:    {linha}")
             resumo.confirmadas += decisao == "confirmar"
             resumo.canceladas += decisao == "cancelar"
-        else:
-            enviar = mensagem
 
         time.sleep(pausa)
-        resposta = agente.responder(ctx, historico, enviar)
+        resposta = agente.responder(ctx, historico, enviar, eventos)
         historico = resposta.historico
         resumo.turnos += 1
         resumo.chamadas_ferramenta += resposta.chamadas_ferramenta
@@ -334,10 +343,13 @@ def modo_interativo(agente: Agente, ctx: ContextoFerramentas) -> None:
             break
         if not entrada:
             break
+        fala: str | None = entrada
+        eventos: list[EventoApp] = []
         if entrada in ("/confirmar", "/cancelar") and abertas:
-            entrada = aplicar_botao(ctx, entrada.removeprefix("/"), abertas)
-            print(f"APP: {entrada}")
-        resposta = agente.responder(ctx, historico, entrada)
+            linha, evento = aplicar_botao(ctx, entrada.removeprefix("/"), abertas)
+            eventos, fala = [evento], None
+            print(f"APP: {linha}")
+        resposta = agente.responder(ctx, historico, fala, eventos)
         historico = resposta.historico
         abertas = resposta.propostas
         nota = f" [erro={resposta.erro}]" if resposta.erro else ""

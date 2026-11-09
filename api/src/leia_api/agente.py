@@ -9,14 +9,16 @@ Guardrails deste módulo:
 - grounding pós-resposta: todo título entre aspas precisa ter sido devolvido por alguma
   ferramenta na conversa; senão regenera (até `max_regeracoes`) ou devolve resposta segura;
 - o histórico aceito do chamador só tem papéis `user`/`assistant` (ninguém injeta `system`/`tool`);
-- as propostas de escrita pendentes voltam ao chamador para ele renderizar o botão Confirmar.
+- as propostas de escrita pendentes voltam ao chamador para ele renderizar o botão Confirmar;
+- o clique do leitor chega como `EventoApp` no bloco de sistema do turno, nunca como fala; texto
+  do leitor que imita o aplicativo é neutralizado e o turno ganha um aviso (ver `canal.py`).
 """
 
 import json
 import re
 import time
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from importlib import resources
 from typing import Any, Protocol, TypedDict
@@ -24,6 +26,13 @@ from typing import Any, Protocol, TypedDict
 from langgraph.graph import END, START, StateGraph
 from sqlalchemy import select
 
+from leia_api.canal import (
+    TEXTO_CLIQUE,
+    EventoApp,
+    bloco_do_sistema,
+    detectar_imitacao,
+    neutralizar,
+)
 from leia_api.config import Settings, settings
 from leia_api.ferramentas import ESPECIFICACOES, ContextoFerramentas, executar
 from leia_api.models import Livro
@@ -315,18 +324,45 @@ class Agente:
     # ---------- API ----------
 
     def responder(
-        self, ctx: ContextoFerramentas, historico: list[Mensagem], mensagem: str
+        self,
+        ctx: ContextoFerramentas,
+        historico: list[Mensagem],
+        mensagem: str | None,
+        eventos: Sequence[EventoApp] = (),
     ) -> RespostaAgente:
-        """Um turno. `historico` é o devolvido pelo turno anterior; só user/assistant é aceito."""
+        """Um turno. `historico` é o devolvido pelo turno anterior; só user/assistant é aceito.
+
+        `mensagem` é o que o leitor digitou (`None` num turno disparado só por clique). `eventos`
+        são fatos do aplicativo criados pelo servidor, como o resultado de um clique; só entram
+        pelo bloco de sistema. Todo texto de leitor passa por `neutralizar`.
+        """
+        if mensagem is None and not eventos:
+            raise ValueError("o turno precisa de uma fala do leitor ou de um evento do aplicativo")
+        imitacao = bool(mensagem) and detectar_imitacao(str(mensagem))
+        imitacao = imitacao or any(
+            detectar_imitacao(str(m.get("content") or ""))
+            for m in historico
+            if m.get("role") == "user"
+        )
         limpo: list[Mensagem] = [
-            {"role": m["role"], "content": str(m.get("content") or "")}
+            {
+                "role": m["role"],
+                "content": (
+                    neutralizar(str(m.get("content") or ""))
+                    if m["role"] == "user"
+                    else str(m.get("content") or "")
+                ),
+            }
             for m in historico
             if m.get("role") in ("user", "assistant")
         ]
-        usuario: Mensagem = {"role": "user", "content": mensagem}
+        texto_usuario = TEXTO_CLIQUE if mensagem is None else neutralizar(mensagem)
+        usuario: Mensagem = {"role": "user", "content": texto_usuario}
+        bloco = bloco_do_sistema(tuple(eventos), imitacao=imitacao)
+        sistema = f"{self._config.prompt}\n\n{bloco}" if bloco else self._config.prompt
         inicial: _Estado = {
             "ctx": ctx,
-            "mensagens": [{"role": "system", "content": self._config.prompt}, *limpo, usuario],
+            "mensagens": [{"role": "system", "content": sistema}, *limpo, usuario],
             "inicio": self._relogio(),
             "n_chamadas": 0,
             "regeracoes": 0,
