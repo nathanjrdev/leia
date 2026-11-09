@@ -36,3 +36,51 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # Fluxo conversa → locar → estante → devolver no navegador. A API sobe em MODO_TESTE (LLM e
+  # encoder falsos), então não gasta cota do Gemini nem baixa modelos de ML.
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: leia
+          POSTGRES_PASSWORD: leia
+          POSTGRES_DB: leia
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U leia"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: uv sync --frozen
+        working-directory: api
+      - name: Migrar e carregar o catálogo (sem embeddings)
+        run: uv run python -m leia_api.modo_teste
+        working-directory: api
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npm run e2e
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-relatorio
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 7

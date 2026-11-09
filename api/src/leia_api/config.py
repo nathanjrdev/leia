@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     # Carrega encoder e reranker na subida (a 1ª mensagem não espera o modelo). Desligado por
     # padrão para os testes não carregarem ML; ligar no dev/deploy com AQUECER_MODELOS=true.
     aquecer_modelos: bool = False
+    # E2E: LLM e encoder falsos (ver modo_teste.py). Nunca ligar em produção.
+    modo_teste: bool = False
     llm_timeout_segundos: float = Field(default=30.0, gt=0)
     turno_timeout_segundos: float = Field(default=90.0, gt=0)
     max_regeracoes_grounding: int = Field(default=1, ge=0)
