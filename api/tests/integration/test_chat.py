@@ -580,6 +580,25 @@ def test_cancelar_nao_executa_e_consome_o_token(api: TestClient, engine: Engine)
     assert _agir(api, conversa, confirmacao, "confirmar").status_code == 404
 
 
+def _sem_transformacao(resposta: Any) -> None:
+    """O proxy do Next comprime com gzip e acumula o SSE até o fim, salvo com no-transform."""
+    assert resposta.status_code == 200
+    diretivas = {d.strip() for d in resposta.headers["cache-control"].split(",")}
+    assert {"no-cache", "no-transform"} <= diretivas
+    assert resposta.headers["x-accel-buffering"] == "no"
+
+
+def test_sse_proibe_proxy_de_comprimir_ou_acumular(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(_fala("Olá!"))
+    _sem_transformacao(_falar(api, _conversa(api), "oi"))
+
+    conversa, confirmacao, _ = _propor_locacao(api, engine, "quasarmu")
+    _agente(_fala("Tudo bem, cancelei."))
+    _sem_transformacao(_agir(api, conversa, confirmacao, "cancelar"))
+
+
 def test_nova_mensagem_invalida_as_propostas_anteriores(api: TestClient, engine: Engine) -> None:
     uid, token = _usuario(engine)
     _logar(api, token)

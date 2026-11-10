@@ -238,7 +238,9 @@ def _stream(**turno: Any) -> StreamingResponse:
     return StreamingResponse(
         gerar(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        # no-transform: proxies que comprimem (o do Next com gzip) acumulam o SSE até o fim;
+        # com ele, o andamento e o texto chegam ao navegador durante o turno.
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
 
 
