@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -124,5 +126,56 @@ describe("Conversa: andamento do turno", () => {
     expect(await screen.findByText("Achei três livros.")).toBeInTheDocument();
     expect(screen.queryByText("Escrevendo a resposta…")).not.toBeInTheDocument();
     liberar();
+  });
+});
+
+describe("Conversa: animação do aviso de andamento", () => {
+  it("o aviso tem um indicador animado escondido do leitor de tela", async () => {
+    const liberar = turnoPausado([{ evento: "ferramenta", dados: { nome: "buscar_livros" } }]);
+    render(<Conversa />);
+    await enviar("poesia");
+    const rotulo = await screen.findByText("Buscando no acervo…");
+    const aviso = rotulo.closest("p");
+    const indicador = aviso?.querySelector('[aria-hidden="true"]');
+    expect(indicador?.querySelectorAll(".andamento-ponto")).toHaveLength(3);
+    // o rótulo continua sendo o único texto do aviso
+    expect(aviso).toHaveTextContent(/^Buscando no acervo…$/);
+    liberar();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
+  });
+
+  it("o aviso não vira região viva: só o status da conversa anuncia", async () => {
+    const liberar = turnoPausado([{ evento: "etapa", dados: { etapa: "escrevendo" } }]);
+    render(<Conversa />);
+    await enviar("poesia");
+    const aviso = (await screen.findByText("Escrevendo a resposta…")).closest("p");
+    expect(aviso).not.toHaveAttribute("role");
+    expect(aviso).not.toHaveAttribute("aria-live");
+    expect(screen.getByRole("list", { name: "Conversa" })).not.toHaveAttribute("aria-live");
+    expect(screen.getAllByRole("status").map((s) => s.textContent)).toContain(
+      "A Léia está respondendo…",
+    );
+    liberar();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
+  });
+
+  it("antes de qualquer etapa, 'Pensando…' também tem o indicador", async () => {
+    const liberar = turnoPausado([]);
+    render(<Conversa />);
+    await enviar("poesia");
+    const aviso = (await screen.findByText("Pensando…")).closest("p");
+    expect(aviso?.querySelectorAll(".andamento-ponto")).toHaveLength(3);
+    liberar();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
+  });
+
+  it("a animação só existe sem preferência por movimento reduzido", () => {
+    const css = readFileSync(resolve(__dirname, "../app/globals.css"), "utf8");
+    const semAnimacao = css.replace(
+      /@media \(prefers-reduced-motion: no-preference\) \{[\s\S]*?\n\}/g,
+      "",
+    );
+    expect(css).toMatch(/\.andamento-ponto[^{]*\{[^}]*animation:/);
+    expect(semAnimacao).not.toMatch(/animation:/);
   });
 });

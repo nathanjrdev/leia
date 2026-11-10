@@ -50,6 +50,20 @@ const ROTULO_ETAPA: Record<string, string> = {
   revisando: "Conferindo os livros no acervo…",
 };
 
+/** Aviso de andamento: os pontos são decorativos; quem anuncia é o `role="status"` da conversa. */
+function Andamento({ rotulo }: { rotulo: string }) {
+  return (
+    <p className="flex items-center gap-2 text-tinta-suave">
+      <span aria-hidden="true" className="inline-flex gap-1">
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+      </span>
+      <span>{rotulo}</span>
+    </p>
+  );
+}
+
 function guardado(): number | null {
   try {
     const v = sessionStorage.getItem(CHAVE);
@@ -326,9 +340,9 @@ export function Conversa() {
               <span className="sr-only">{m.papel === "usuario" ? "Você: " : "Léia: "}</span>
               {m.texto && <p className="whitespace-pre-wrap">{m.texto}</p>}
               {!m.texto && m.papel === "assistente" && ocupado && !m.nota && (
-                <p className="text-tinta-suave">{m.ferramenta ?? "Pensando…"}</p>
+                <Andamento rotulo={m.ferramenta ?? "Pensando…"} />
               )}
-              {m.texto && m.ferramenta && <p className="text-tinta-suave">{m.ferramenta}</p>}
+              {m.texto && m.ferramenta && <Andamento rotulo={m.ferramenta} />}
               {m.livros.map((l) => (
                 <CartaoLivroChat key={l.id} livro={l} comAcao={!m.teveProposta} />
               ))}
