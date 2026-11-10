@@ -147,6 +147,10 @@ export function Conversa() {
           ferramenta: ROTULO_FERRAMENTA[String(d.nome)] ?? "Consultando o acervo…",
         }));
         break;
+      case "descartar":
+        // a resposta parcial vai ser refeita (grounding) ou trocada pela final: some da tela
+        alterar(chave, (m) => ({ ...m, texto: "" }));
+        break;
       case "etapa": {
         const rotulo = ROTULO_ETAPA[String(d.etapa)];
         if (rotulo) alterar(chave, (m) => ({ ...m, ferramenta: rotulo }));

@@ -3,7 +3,9 @@
 Eventos do stream, nesta ordem: `acao` (só no clique: resultado da confirmação, antes de tudo),
 `ferramenta`* (uma por ferramenta que o agente vai usar) e `etapa`* (`escrevendo` depois das
 ferramentas, `revisando` se o grounding mandou regerar), intercalados conforme o andamento;
-`resposta`* (a resposta já validada, em pedaços),
+`resposta`* (a resposta em pedaços: com `STREAM_TOKENS`, enquanto o modelo escreve, cada
+título entre aspas só depois de conferido; sem, a resposta já validada no fim), `descartar` (a
+tela apaga o texto parcial: a resposta vai ser refeita ou trocada pela final),
 `livros` (cartões dos livros que a resposta cita, dados do banco; só se citar algum),
 `propostas` (botões de confirmação, se houver) e `fim` (`erro` nulo ou o código).
 
@@ -151,7 +153,16 @@ def _turno(
                 eventos = [evento_de_cancelamento([pendente.resumo])]
                 emitir("acao", {"decisao": decisao, "ok": True, "erro": None})
         historico = conversas.historico_para_agente(s, conversa_id)
-        resposta = agente.responder(ctx, historico, texto, eventos, observador=emitir)
+        transmitido: list[str] = []  # o que o streaming já pôs na tela (após `descartar`)
+
+        def observar(evento: str, dados: dict[str, Any]) -> None:
+            if evento == "resposta":
+                transmitido.append(str(dados["texto"]))
+            elif evento == "descartar":
+                transmitido.clear()
+            emitir(evento, dados)
+
+        resposta = agente.responder(ctx, historico, texto, eventos, observador=observar)
         if texto is not None:
             conversas.registrar(s, conversa_id, "usuario", resposta.historico[-2]["content"])
         else:
@@ -171,7 +182,21 @@ def _turno(
             conversa_id=conversa_id,
         )
     )
-    for pedaco in _pedacos(resposta.texto, settings.stream_pedaco_caracteres):
+    # A resposta final (já validada) é a que vale. O streaming costuma tê-la mostrado inteira;
+    # se mostrou só o começo, completa; se o final for outro (resposta segura, erro), troca.
+    na_tela = "".join(transmitido).lstrip()  # o que o leitor está vendo, como foi enviado
+    if na_tela.strip() == resposta.texto:
+        falta = ""  # já está inteira (o final só perde espaços das pontas)
+    elif na_tela.strip() and resposta.texto.startswith(na_tela):
+        falta = resposta.texto[len(na_tela) :]
+    else:
+        if na_tela.strip():
+            emitir("descartar", {})
+        falta = resposta.texto
+    pedacos = list(_pedacos(falta, settings.stream_pedaco_caracteres))
+    if pedacos and (espaco := falta[: len(falta) - len(falta.lstrip())]):
+        pedacos[0] = espaco + pedacos[0]  # ao completar um parcial, não cola as palavras
+    for pedaco in pedacos:
         emitir("resposta", {"texto": pedaco})
     if cartoes := _cartoes_citados(cartoes_do_turno, resposta.texto):
         emitir("livros", {"livros": cartoes})

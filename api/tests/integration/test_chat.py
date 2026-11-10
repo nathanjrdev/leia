@@ -440,6 +440,88 @@ def test_turno_grava_tokens_e_loga_a_latencia_sem_o_texto_do_leitor(
     assert "segredo" not in linhas[0] and "quasarrho" not in linhas[0]
 
 
+class LLMStreamFalso(LLMFalso):
+    def completar_stream(
+        self,
+        mensagens: list[dict[str, Any]],
+        ferramentas: list[dict[str, Any]],
+        timeout: float,
+        ao_texto: Any,
+    ) -> RespostaLLM:
+        resposta = self.completar(mensagens, ferramentas, timeout)
+        texto = resposta.texto or ""
+        for i in range(0, len(texto), 5):
+            ao_texto(texto[i : i + 5])
+        return resposta
+
+
+def _agente_stream(*respostas: RespostaLLM | Exception) -> LLMStreamFalso:
+    llm = LLMStreamFalso(*respostas)
+    agente = Agente(llm, ConfigAgente("PROMPT DE TESTE", 6, 5.0, 60.0, 1))
+    app.dependency_overrides[get_agente] = lambda: agente
+    return llm
+
+
+def _na_tela(eventos: list[tuple[str, dict[str, Any]]]) -> str:
+    """O texto que a tela mostra no fim: `resposta` acumula, `descartar` apaga."""
+    atual = ""
+    for evento, dados in eventos:
+        if evento == "resposta":
+            atual += dados["texto"]
+        elif evento == "descartar":
+            atual = ""
+    return atual
+
+
+def test_stream_real_nao_repete_a_resposta_no_fim(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _, titulo = _livro(engine, "quasaromicronb")
+    _agente_stream(
+        _chama("buscar_livros", consulta="quasaromicronb"), _fala(f"Achei “{titulo}”. Boa leitura!")
+    )
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "quasaromicronb"))
+
+    nomes = [e for e, _ in eventos]
+    assert "descartar" not in nomes
+    assert _na_tela(eventos) == f"Achei “{titulo}”. Boa leitura!"  # uma vez só
+    assert nomes.index("resposta") < nomes.index("livros") < nomes.index("fim")
+    historico = api.get(f"/conversas/{conversa}/mensagens").json()
+    assert historico[-1]["conteudo"] == f"Achei “{titulo}”. Boa leitura!"
+
+
+def test_stream_troca_o_parcial_pela_resposta_segura_quando_o_grounding_falha(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente_stream(_fala("Veja “Livro Fantasma A”."), _fala("Veja “Livro Fantasma B”."))
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "me indica algo"))
+
+    mostrado = "".join(d["texto"] for e, d in eventos if e == "resposta")
+    assert "Fantasma" not in mostrado
+    assert _na_tela(eventos).startswith("Não consegui confirmar no acervo")
+    assert eventos[-1] == ("fim", {"erro": "grounding"})
+
+
+def test_stream_completa_o_parcial_sem_colar_palavras(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    final = "Veja “" + "x" * 250 + "” e mais nada."  # o filtro trava por precaução; o final passa
+    _agente_stream(_fala(final))
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "oi"))
+
+    assert "descartar" not in [e for e, _ in eventos]
+    assert _na_tela(eventos) == final
+    assert eventos[-1] == ("fim", {"erro": None})
+
+
 # ---------- confirmação por clique ----------
 
 

@@ -86,6 +86,33 @@ describe("Conversa: andamento do turno", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
   });
 
+  it("descartar apaga o texto parcial e mostra o andamento até chegar o novo", async () => {
+    let liberar: () => void = () => {};
+    let emitir: (e: EventoSSE) => void = () => {};
+    postarMock.mockImplementationOnce(
+      (_c: string, _b: unknown, aoEvento: (e: EventoSSE) => void) =>
+        new Promise<void>((r) => {
+          emitir = aoEvento;
+          aoEvento({ evento: "resposta", dados: { texto: "Leia " } });
+          liberar = r;
+        }),
+    );
+    render(<Conversa />);
+    await enviar("poesia");
+    expect(await screen.findByText("Leia")).toBeInTheDocument();
+
+    emitir({ evento: "descartar", dados: {} });
+    emitir({ evento: "etapa", dados: { etapa: "revisando" } });
+    expect(await screen.findByText("Conferindo os livros no acervo…")).toBeInTheDocument();
+    expect(screen.queryByText("Leia")).not.toBeInTheDocument();
+
+    emitir({ evento: "resposta", dados: { texto: "Achei um livro." } });
+    emitir({ evento: "fim", dados: { erro: null } });
+    expect(await screen.findByText("Achei um livro.")).toBeInTheDocument();
+    expect(screen.queryByText(/Leia Achei/)).not.toBeInTheDocument();
+    liberar();
+  });
+
   it("o texto da resposta substitui o aviso de andamento", async () => {
     const liberar = turnoPausado([
       { evento: "etapa", dados: { etapa: "escrevendo" } },

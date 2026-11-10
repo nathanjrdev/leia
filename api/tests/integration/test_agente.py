@@ -585,3 +585,108 @@ def test_turno_sem_ferramenta_nao_emite_etapa(session: Session) -> None:
         _ctx(session, _usuario(session)), [], "oi", observador=lambda e, d: vistos.append(e)
     )
     assert vistos == []
+
+
+# ---------- streaming real de tokens (com o grounding preservado) ----------
+
+
+class LLMStreamFalso(LLMFalso):
+    """Como o LLMFalso, mas transmite o texto em pedaços de 4 caracteres pelo `ao_texto`."""
+
+    def completar_stream(
+        self,
+        mensagens: list[dict[str, Any]],
+        ferramentas: list[dict[str, Any]],
+        timeout: float,
+        ao_texto: Any,
+    ) -> RespostaLLM:
+        resposta = self.completar(mensagens, ferramentas, timeout)
+        texto = resposta.texto or ""
+        for i in range(0, len(texto), 4):
+            ao_texto(texto[i : i + 4])
+        return resposta
+
+
+def _eventos(llm: CallLLM, session: Session, fala: str, **config: Any) -> tuple[Any, list[Any]]:
+    vistos: list[tuple[str, dict[str, Any]]] = []
+    res = _agente(llm, **config).responder(
+        _ctx(session, _usuario(session)), [], fala, observador=lambda e, d: vistos.append((e, d))
+    )
+    return res, vistos
+
+
+def _texto_transmitido(vistos: list[tuple[str, dict[str, Any]]]) -> str:
+    atual = ""
+    for evento, dados in vistos:
+        if evento == "resposta":
+            atual += dados["texto"]
+        elif evento == "descartar":
+            atual = ""
+    return atual
+
+
+def test_stream_transmite_a_resposta_enquanto_o_modelo_escreve(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarphi")
+    llm = LLMStreamFalso(
+        _chama("buscar_livros", consulta="quasarphi"), _fala(f"Achei “{titulo}”, ótimo livro.")
+    )
+
+    res, vistos = _eventos(llm, session, "quasarphi")
+
+    nomes = [e for e, _ in vistos]
+    assert nomes[:2] == ["ferramenta", "etapa"]
+    assert nomes.count("resposta") > 3  # em pedaços, antes de o turno acabar
+    assert "descartar" not in nomes
+    assert _texto_transmitido(vistos) == res.texto == f"Achei “{titulo}”, ótimo livro."
+
+
+def test_stream_nunca_mostra_titulo_inventado_e_descarta_antes_de_regerar(
+    session: Session,
+) -> None:
+    _, titulo = _livro(session, palavra="quasarchi")
+    llm = LLMStreamFalso(
+        _chama("buscar_livros", consulta="quasarchi"),
+        _fala("Leia “Livro Que Não Existe”, que é ótimo."),
+        _fala(f"Achei “{titulo}”."),
+    )
+
+    res, vistos = _eventos(llm, session, "quasarchi")
+
+    mostrado = "".join(d["texto"] for e, d in vistos if e == "resposta")
+    assert "Não Existe" not in mostrado  # o título sem origem nunca chega à tela
+    nomes = [e for e, _ in vistos]
+    i = nomes.index("descartar")  # apaga o parcial e só então avisa que está conferindo
+    assert vistos[i + 1] == ("etapa", {"etapa": "revisando"})
+    assert _texto_transmitido(vistos) == res.texto == f"Achei “{titulo}”."
+
+
+def test_stream_descarta_texto_que_veio_antes_de_uma_ferramenta(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarpsi")
+    antes = RespostaLLM(
+        texto="Vou procurar…",
+        chamadas=[ChamadaFerramenta("p1", "buscar_livros", {"consulta": "quasarpsi"})],
+    )
+    llm = LLMStreamFalso(antes, _fala(f"Achei “{titulo}”."))
+
+    res, vistos = _eventos(llm, session, "quasarpsi")
+
+    nomes = [e for e, _ in vistos]
+    assert nomes.index("descartar") < nomes.index("ferramenta")
+    assert _texto_transmitido(vistos) == res.texto
+
+
+def test_stream_desligado_na_configuracao_usa_o_caminho_antigo(session: Session) -> None:
+    llm = LLMStreamFalso(_fala("Oi!"))
+    res, vistos = _eventos(llm, session, "oi", transmitir=False)
+    assert vistos == [] and res.texto == "Oi!"
+
+
+def test_llm_sem_stream_segue_o_caminho_antigo(session: Session) -> None:
+    res, vistos = _eventos(LLMFalso(_fala("Oi!")), session, "oi")
+    assert vistos == [] and res.texto == "Oi!"
+
+
+def test_stream_mede_a_chamada_como_antes(session: Session) -> None:
+    llm = LLMStreamFalso(_com_uso(_fala("Oi!"), 50, 5))
+    res, _ = _eventos(llm, session, "oi")
+    assert [(c.tokens_entrada, c.tokens_saida) for c in res.metricas.chamadas_llm] == [(50, 5)]

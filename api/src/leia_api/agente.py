@@ -107,6 +107,63 @@ def titulos_sem_origem(texto: str, permitidos: set[str]) -> list[str]:
     return sem_origem
 
 
+_FECHA_ASPAS = {"“": "”", '"': '"', "«": "»"}
+_MAX_TRECHO_ENTRE_ASPAS = 200  # o mesmo limite de `_TRECHO_ENTRE_ASPAS`
+
+
+class FiltroDeTitulos:
+    """Grounding durante o streaming: decide o que da resposta parcial pode ir para a tela.
+
+    Texto fora de aspas sai na hora. Um trecho entre aspas fica retido até fechar e só sai se
+    `titulos_sem_origem` (a mesma checagem do texto inteiro) o aceitar; senão o filtro trava e
+    nada mais sai. Assim um título que nenhuma ferramenta devolveu nunca chega à tela, mesmo que
+    o texto inteiro seja depois regerado. A decisão final continua sendo a do nó `grounding`.
+    """
+
+    def __init__(self, permitidos: set[str], emitir: Callable[[str], None]) -> None:
+        self._permitidos = permitidos
+        self._emitir = emitir
+        self._fora = ""
+        self._trecho: str | None = None  # dentro de aspas: o trecho com a aspa de abertura
+        self._fecha = ""
+        self.bloqueado = False
+        self.emitiu = False
+
+    def _soltar(self, texto: str) -> None:
+        if texto and not self.bloqueado:
+            self._emitir(texto)
+            self.emitiu = True
+
+    def receber(self, pedaco: str) -> None:
+        for c in pedaco:
+            if self.bloqueado:
+                return
+            if self._trecho is None:
+                if c in _FECHA_ASPAS:
+                    self._soltar(self._fora)
+                    self._fora, self._trecho, self._fecha = "", c, _FECHA_ASPAS[c]
+                else:
+                    self._fora += c
+                continue
+            self._trecho += c
+            if c == self._fecha:
+                trecho, self._trecho = self._trecho, None
+                if titulos_sem_origem(trecho, self._permitidos):
+                    self.bloqueado = True
+                else:
+                    self._soltar(trecho)
+            elif len(self._trecho) > _MAX_TRECHO_ENTRE_ASPAS + 1:
+                self.bloqueado = True  # aspas abertas demais: por precaução, para de mostrar
+        self._soltar(self._fora)
+        self._fora = ""
+
+    def finalizar(self) -> None:
+        """Fim da resposta: aspas que nunca fecharam não são título (a checagem final concorda)."""
+        if self._trecho is not None:
+            self._soltar(self._trecho)
+            self._trecho = None
+
+
 @dataclass(frozen=True)
 class ChamadaFerramenta:
     id: str
@@ -144,6 +201,7 @@ class ConfigAgente:
     timeout_chamada: float
     timeout_turno: float
     max_regeracoes: int
+    transmitir: bool = True  # streaming de tokens quando o cliente LLM e a API suportam
 
     @classmethod
     def da_config(cls, config: Settings = settings) -> "ConfigAgente":
@@ -153,6 +211,7 @@ class ConfigAgente:
             timeout_chamada=config.llm_timeout_segundos,
             timeout_turno=config.turno_timeout_segundos,
             max_regeracoes=config.max_regeracoes_grounding,
+            transmitir=config.stream_tokens,
         )
 
 
@@ -241,6 +300,7 @@ class _Estado(TypedDict):
     observador: Callable[[str, dict[str, Any]], None] | None
     auditoria: list[ChamadaAuditada]
     llm: list[ChamadaLLMMedida]
+    parcial: bool  # a última chamada ao LLM já mostrou texto na tela (streaming)
 
 
 def _ms(inicio: float, fim: float) -> int:
@@ -280,10 +340,22 @@ class Agente:
         if self._relogio() - e["inicio"] > self._config.timeout_turno:
             return {"texto": MSG_TIMEOUT, "erro": "timeout"}
         inicio = self._cronometro()
+        observador = e["observador"]
+        transmitir = getattr(self._llm, "completar_stream", None)
+        filtro: FiltroDeTitulos | None = None
         try:
-            resposta = self._llm.completar(
-                e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada
-            )
+            if self._config.transmitir and observador is not None and transmitir is not None:
+                filtro = FiltroDeTitulos(
+                    _titulos_vistos(e["ctx"]),
+                    lambda t: observador("resposta", {"texto": t}),
+                )
+                resposta = transmitir(
+                    e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada, filtro.receber
+                )
+            else:
+                resposta = self._llm.completar(
+                    e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada
+                )
         except TimeoutError:
             falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="timeout")
             return {"texto": MSG_TIMEOUT, "erro": "timeout", "llm": [*e["llm"], falha]}
@@ -296,6 +368,14 @@ class Agente:
             tokens_saida=resposta.uso.tokens_saida if resposta.uso else None,
             ferramentas=len(resposta.chamadas),
         )
+        parcial = False
+        if filtro is not None:
+            if resposta.chamadas:
+                if filtro.emitiu and observador is not None:  # era preâmbulo de ferramenta
+                    observador("descartar", {})
+            else:
+                filtro.finalizar()
+                parcial = filtro.emitiu
         if resposta.chamadas:
             registro: Mensagem = {
                 "role": "assistant",
@@ -315,6 +395,7 @@ class Agente:
             "ultima": resposta,
             "mensagens": [*e["mensagens"], registro],
             "llm": [*e["llm"], medida],
+            "parcial": parcial,
         }
 
     def _depois_do_modelo(self, e: _Estado) -> str:
@@ -387,6 +468,8 @@ class Agente:
             return {"texto": texto}
         if e["regeracoes"] < self._config.max_regeracoes:
             if e["observador"] is not None:  # o texto inválido nunca chega à tela
+                if e["parcial"]:  # apaga o que o streaming já mostrou dessa resposta
+                    e["observador"]("descartar", {})
                 e["observador"]("etapa", {"etapa": "revisando"})
             citados = ", ".join(f"“{t}”" for t in sem_origem)
             correcao: Mensagem = {
@@ -493,6 +576,7 @@ class Agente:
             "observador": observador,
             "auditoria": [],
             "llm": [],
+            "parcial": False,
         }
         inicio = self._cronometro()
         passos = 4 * (self._config.max_chamadas_ferramenta + self._config.max_regeracoes + 3)

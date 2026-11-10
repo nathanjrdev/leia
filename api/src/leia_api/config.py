@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     mensagem_max_caracteres: int = Field(default=2000, ge=1)
     historico_mensagens_limite: int = Field(default=40, ge=2)  # mensagens devolvidas ao agente
     stream_pedaco_caracteres: int = Field(default=40, ge=1)
+    # Transmite a resposta do LLM enquanto ele escreve (o grounding filtra cada título antes de
+    # mostrar). Desligado, a resposta só sai inteira no fim do turno.
+    stream_tokens: bool = True
     cartoes_por_resposta: int = Field(default=5, ge=1)  # cartões de livro por resposta no chat
 
 
