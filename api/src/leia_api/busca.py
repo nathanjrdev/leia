@@ -18,12 +18,12 @@ from typing import Protocol
 from sqlalchemy import bindparam, select, text
 from sqlalchemy.orm import Session
 
+from leia_api.config import settings
 from leia_api.embeddings import Encoder, documento_do_livro
 from leia_api.models import Livro
 
 RRF_K = 60
 CANDIDATOS_POR_LISTA = 50
-CANDIDATOS_RERANKER = 50
 
 
 # Precisa ser idêntica à expressão do índice GIN `ix_livros_busca_texto`.
@@ -199,8 +199,14 @@ def buscar_livros(
     apenas_disponiveis: bool = False,
     reranker: Reranker | None = None,
     tempos: dict[str, int] | None = None,
+    candidatos_reranker: int | None = None,
 ) -> list[ResultadoBusca]:
-    """Busca híbrida. `tempos`, se dado, recebe a duração de cada etapa em ms (medição)."""
+    """Busca híbrida. `tempos`, se dado, recebe a duração de cada etapa em ms (medição).
+
+    `candidatos_reranker` (padrão: `settings.reranker_candidatos`) é quantos itens da fusão
+    seguem para o reranker; sem reranker, é também o teto antes do corte em `limite`.
+    """
+    n_candidatos = candidatos_reranker or settings.reranker_candidatos
     filtro, params = _filtros(categoria, ano_min, ano_max, apenas_disponiveis)
     base = {**params, "q": consulta, "n": CANDIDATOS_POR_LISTA}
 
@@ -222,7 +228,7 @@ def buscar_livros(
         )
 
     listas = [por_texto, por_texto_estrito, por_autor, por_vetor]
-    fundidos = fundir_rrf(listas)[:CANDIDATOS_RERANKER]
+    fundidos = fundir_rrf(listas)[:n_candidatos]
     if not fundidos:
         return []
 

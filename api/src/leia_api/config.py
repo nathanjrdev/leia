@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     max_chamadas_ferramenta_por_turno: int = Field(default=6, ge=1)
     busca_limite_maximo: int = Field(default=10, ge=1)
     sinopse_max_caracteres: int = Field(default=1500, ge=1)
+    # Quantos candidatos da fusão RRF o cross-encoder repontua. É o custo dominante da busca
+    # (~linear: 50 → 1,35 s, 25 → 0,7 s em CPU). Mudar exige o gate de busca (run_busca.py).
+    reranker_candidatos: int = Field(default=50, ge=1)
     pendente_ttl_segundos: int = Field(default=300, ge=1)
     prompt_versao: str = "v2"
     # Carrega encoder e reranker na subida (a 1ª mensagem não espera o modelo). Desligado por

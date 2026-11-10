@@ -243,3 +243,29 @@ def test_tempos_sem_reranker_nao_tem_etapa_de_reranker(session: Session) -> None
     tempos: dict[str, int] = {}
     buscar_livros(session, "memória", HashEncoder(), tempos=tempos)
     assert "reranker" not in tempos and "encode" in tempos
+
+
+def test_reranker_recebe_so_os_candidatos_configurados(
+    session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from leia_api.config import settings
+
+    vistos: list[int] = []
+
+    class Conta:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            vistos.append(len(documentos))
+            return [0.0 for _ in documentos]
+
+    monkeypatch.setattr(settings, "reranker_candidatos", 2)
+    buscar_livros(session, "memória", HashEncoder(), reranker=Conta())
+    buscar_livros(session, "memória", HashEncoder(), reranker=Conta(), candidatos_reranker=3)
+
+    assert vistos == [2, 3]  # o catálogo de teste tem 4 livros que casam com "memória"
+
+
+def test_candidatos_do_reranker_padrao_e_configuracao() -> None:
+    from leia_api.config import Settings
+
+    assert Settings().reranker_candidatos == 50
+    assert Settings(reranker_candidatos=25).reranker_candidatos == 25
