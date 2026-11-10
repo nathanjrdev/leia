@@ -189,6 +189,35 @@ Um roteiro único (leitor fictício `e2e-*@leia.example`, cookie de sessão): bu
 3. Adotar só se nenhuma categoria piorar e grounding/segurança ficarem na meta. Se `seguranca-006`/`008` (receita, saúde) passarem a buscar livros, a v3 volta e registra o porquê.
 4. Registrar o resultado e arquivar `agente_prompt_v3_<data>.json` ao lado das baselines.
 
+### 5.4 Latência da resposta do chat (10/11/2026, branch `perf/latencia-resposta`)
+
+**Origem.** O leitor sentiu demora grande no chat. Antes não se media o LLM: só `chamadas_ferramenta.latencia_ms`, com tokens vazios.
+
+**Etapa 1, instrumentação (sem mudar comportamento).** `RespostaAgente.metricas` (cada chamada ao LLM: ms, tokens, ferramentas pedidas, erro; regerações de grounding; total do agente); `buscar_livros(tempos=...)` com o tempo por etapa; tokens gravados em `chamadas_ferramenta` (da chamada ao LLM que pediu a ferramenta, só na primeira se pediu várias); uma linha JSON por turno no logger `leia_api.metricas`, sem texto do leitor nem argumentos. O JSON que o LLM recebe não mudou (há teste). Correção lateral: `migrations/env.py` desligava todos os loggers já criados (`fileConfig` com `disable_existing_loggers=True`).
+
+**Baseline (10 turnos reais por HTTP/SSE, 2 conversas, leitor fictício, `gemini-flash-lite-latest`, API própria em `:8001` com `AQUECER_MODELOS=true`, CPU, torch 2.x+cpu).**
+
+| Medida | n | p50 | p95 | máx |
+| --- | --- | --- | --- | --- |
+| turno no servidor | 10 | 5,7 s | 20,8 s | 31,0 s |
+| LLM, soma no turno | 10 | 2,0 s | 14,9 s | 25,0 s |
+| LLM, por chamada | 19 | 1,0 s | 3,7 s | 23,8 s (1ª do processo) |
+| `buscar_livros` | 7 | 4,9 s | 6,0 s | 6,1 s |
+| · reranker | 7 | 4,5 s | 5,4 s | 5,7 s |
+| · encode da consulta | 7 | 0,30 s | 0,64 s | 0,77 s |
+| · 4 SQL + carregar + disponibilidade | 7 | < 0,1 s | < 0,25 s | |
+| outras ferramentas | 2 | 0,18 s | | 0,34 s |
+| banco e persistência do turno | 10 | 66 ms | 110 ms | |
+| tokens de entrada por turno | 10 | 3986 | 4540 | |
+| chamadas ao LLM por turno | 10 | 2 | 2 | |
+| regerações de grounding | 10 | 0 | 0 | |
+
+Visto pelo navegador: o 1º evento (`ferramenta`) chega depois da 1ª chamada ao LLM (~3 s aquecido); o texto só chega no fim (streaming fingido), então o leitor espera o turno inteiro (p50 7,8 s no cliente).
+
+**Leitura.** (1) O reranker é ~90% da busca e a maior fatia do turno aquecido. (2) A 1ª chamada ao LLM do processo levou 23,8 s: `import litellm` sozinho mede 12,9 s nesta máquina e o adaptador só importa na 1ª chamada (o aquecimento não cobre o LLM). (3) Grounding não regerou em nenhum turno; não é fonte de demora nesta amostra.
+
+**NÃO medido ainda:** amostra pequena (10 turnos, 1 execução, 1 modelo); nada de clique de confirmação; máquina com só 0,4 GB de RAM livre durante as medidas (pressão de memória pode inflar tudo); a diferença isolado vs. servidor está na etapa 2.
+
 ## 6. Limites conhecidos da medida
 
 - **Casos e sinopses vêm do mesmo conhecimento geral de LLM**; os ganhos de busca tendem a ser otimistas.
