@@ -164,12 +164,57 @@ class Proposta:
 
 @dataclass(frozen=True)
 class ChamadaAuditada:
-    """Registro de uma chamada de ferramenta para a trilha de auditoria (`chamadas_ferramenta`)."""
+    """Registro de uma chamada de ferramenta para a trilha de auditoria (`chamadas_ferramenta`).
+
+    `tokens_*` são os da chamada ao LLM que pediu a ferramenta; quando uma resposta pede várias,
+    só a primeira os leva (para a soma não contar duas vezes). `etapas_ms` é o tempo por etapa
+    que a ferramenta mediu (hoje só `buscar_livros`); não vai para o LLM.
+    """
 
     nome: str
     argumentos: dict[str, Any]
     resultado: dict[str, Any]
     latencia_ms: int
+    tokens_entrada: int | None = None
+    tokens_saida: int | None = None
+    etapas_ms: dict[str, int] | None = None
+
+
+@dataclass(frozen=True)
+class ChamadaLLMMedida:
+    """Uma chamada ao modelo no turno: duração, tokens (se o provedor informa) e o que pediu."""
+
+    latencia_ms: int
+    tokens_entrada: int | None
+    tokens_saida: int | None
+    ferramentas: int = 0  # quantas ferramentas a resposta pediu
+    erro: str | None = None  # timeout | erro_llm
+
+
+def _soma(valores: list[int | None]) -> int | None:
+    conhecidos = [v for v in valores if v is not None]
+    return sum(conhecidos) if conhecidos else None
+
+
+@dataclass(frozen=True)
+class MetricasTurno:
+    """Latência do turno dentro do agente (sem o banco e o stream da API)."""
+
+    latencia_ms: int
+    chamadas_llm: list[ChamadaLLMMedida]
+    regeracoes: int
+
+    @property
+    def llm_ms(self) -> int:
+        return sum(c.latencia_ms for c in self.chamadas_llm)
+
+    @property
+    def tokens_entrada(self) -> int | None:
+        return _soma([c.tokens_entrada for c in self.chamadas_llm])
+
+    @property
+    def tokens_saida(self) -> int | None:
+        return _soma([c.tokens_saida for c in self.chamadas_llm])
 
 
 @dataclass(frozen=True)
@@ -180,6 +225,7 @@ class RespostaAgente:
     erro: str | None = None  # timeout | erro_llm | limite_chamadas | grounding | resposta_vazia
     chamadas_ferramenta: int = 0
     auditoria: list[ChamadaAuditada] = field(default_factory=list)
+    metricas: MetricasTurno = field(default_factory=lambda: MetricasTurno(0, [], 0))
 
 
 class _Estado(TypedDict):
@@ -194,6 +240,11 @@ class _Estado(TypedDict):
     propostas: list[Proposta]
     observador: Callable[[str, dict[str, Any]], None] | None
     auditoria: list[ChamadaAuditada]
+    llm: list[ChamadaLLMMedida]
+
+
+def _ms(inicio: float, fim: float) -> int:
+    return max(0, round((fim - inicio) * 1000))
 
 
 def _exigir(ultima: RespostaLLM | None) -> RespostaLLM:
@@ -215,10 +266,12 @@ class Agente:
         llm: CallLLM,
         config: ConfigAgente,
         relogio: Callable[[], float] = time.monotonic,
+        cronometro: Callable[[], float] = time.perf_counter,
     ) -> None:
         self._llm = llm
         self._config = config
-        self._relogio = relogio
+        self._relogio = relogio  # prazo do turno
+        self._cronometro = cronometro  # só medição; não decide nada
         self._grafo = self._montar()
 
     # ---------- nós ----------
@@ -226,14 +279,23 @@ class Agente:
     def _modelo(self, e: _Estado) -> dict[str, Any]:
         if self._relogio() - e["inicio"] > self._config.timeout_turno:
             return {"texto": MSG_TIMEOUT, "erro": "timeout"}
+        inicio = self._cronometro()
         try:
             resposta = self._llm.completar(
                 e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada
             )
         except TimeoutError:
-            return {"texto": MSG_TIMEOUT, "erro": "timeout"}
+            falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="timeout")
+            return {"texto": MSG_TIMEOUT, "erro": "timeout", "llm": [*e["llm"], falha]}
         except Exception:  # noqa: BLE001 - detalhes do provedor não chegam ao usuário
-            return {"texto": MSG_ERRO_LLM, "erro": "erro_llm"}
+            falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="erro_llm")
+            return {"texto": MSG_ERRO_LLM, "erro": "erro_llm", "llm": [*e["llm"], falha]}
+        medida = ChamadaLLMMedida(
+            latencia_ms=_ms(inicio, self._cronometro()),
+            tokens_entrada=resposta.uso.tokens_entrada if resposta.uso else None,
+            tokens_saida=resposta.uso.tokens_saida if resposta.uso else None,
+            ferramentas=len(resposta.chamadas),
+        )
         if resposta.chamadas:
             registro: Mensagem = {
                 "role": "assistant",
@@ -249,7 +311,11 @@ class Agente:
             }
         else:
             registro = {"role": "assistant", "content": resposta.texto or ""}
-        return {"ultima": resposta, "mensagens": [*e["mensagens"], registro]}
+        return {
+            "ultima": resposta,
+            "mensagens": [*e["mensagens"], registro],
+            "llm": [*e["llm"], medida],
+        }
 
     def _depois_do_modelo(self, e: _Estado) -> str:
         if e["erro"] is not None:
@@ -271,9 +337,11 @@ class Agente:
         mensagens = list(e["mensagens"])
         propostas = list(e["propostas"])
         auditoria = list(e["auditoria"])
-        for chamada in ultima.chamadas:
+        uso = ultima.uso
+        for posicao, chamada in enumerate(ultima.chamadas):
             if e["observador"] is not None:
                 e["observador"]("ferramenta", {"nome": chamada.nome})
+            e["ctx"].etapas_ms = None
             inicio = time.perf_counter()
             resultado = executar(e["ctx"], chamada.nome, chamada.argumentos)
             auditoria.append(
@@ -282,8 +350,12 @@ class Agente:
                     argumentos=chamada.argumentos,
                     resultado=resultado,
                     latencia_ms=int((time.perf_counter() - inicio) * 1000),
+                    tokens_entrada=uso.tokens_entrada if uso and posicao == 0 else None,
+                    tokens_saida=uso.tokens_saida if uso and posicao == 0 else None,
+                    etapas_ms=e["ctx"].etapas_ms,
                 )
             )
+            e["ctx"].etapas_ms = None
             if resultado.get("status") == "aguardando_confirmacao":
                 proposta = Proposta(resultado["confirmacao_id"], resultado["resumo"])
                 if proposta not in propostas:
@@ -413,9 +485,16 @@ class Agente:
             "propostas": [],
             "observador": observador,
             "auditoria": [],
+            "llm": [],
         }
+        inicio = self._cronometro()
         passos = 4 * (self._config.max_chamadas_ferramenta + self._config.max_regeracoes + 3)
         final: _Estado = self._grafo.invoke(inicial, {"recursion_limit": passos + 10})
+        metricas = MetricasTurno(
+            latencia_ms=_ms(inicio, self._cronometro()),
+            chamadas_llm=final["llm"],
+            regeracoes=final["regeracoes"],
+        )
         texto = final["texto"] or MSG_VAZIA
         return RespostaAgente(
             texto=texto,
@@ -424,4 +503,5 @@ class Agente:
             erro=final["erro"],
             chamadas_ferramenta=final["n_chamadas"],
             auditoria=final["auditoria"],
+            metricas=metricas,
         )

@@ -3,12 +3,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from leia_api import acervo, auth, chat, dependencias
+from leia_api import acervo, auth, chat, dependencias, metricas
 from leia_api.config import settings
 
 
 @asynccontextmanager
 async def _ciclo_de_vida(_: FastAPI) -> AsyncIterator[None]:
+    metricas.configurar_log()
     if settings.aquecer_modelos:
         dependencias.get_encoder()
         dependencias.get_reranker()

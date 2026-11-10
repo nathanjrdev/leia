@@ -2,6 +2,7 @@
 
 import itertools
 import json
+import logging
 from collections.abc import Iterator, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -12,7 +13,7 @@ from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session
 
 from leia_api import sessao
-from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM
+from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM, Uso
 from leia_api.canal import AVISO_IMITACAO
 from leia_api.chat import _cartoes_citados
 from leia_api.config import settings
@@ -400,6 +401,40 @@ def test_chamadas_de_ferramenta_ficam_auditadas_na_conversa(
     assert argumentos == {"consulta": "quasarpi"}
     assert resultado["ok"] is True
     assert latencia >= 0
+
+
+def test_turno_grava_tokens_e_loga_a_latencia_sem_o_texto_do_leitor(
+    api: TestClient, engine: Engine, caplog: pytest.LogCaptureFixture
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _livro(engine, "quasarrho")
+    pede = _chama("buscar_livros", consulta="quasarrho")
+    _agente(
+        RespostaLLM(pede.texto, pede.chamadas, Uso(321, 9)),
+        RespostaLLM("Achei algo.", [], Uso(400, 30)),
+    )
+    conversa = _conversa(api)
+
+    with caplog.at_level(logging.INFO, logger="leia_api.metricas"):
+        _falar(api, conversa, "segredo do leitor quasarrho")
+
+    with Session(engine) as s:
+        tokens = s.execute(
+            text(
+                "SELECT tokens_entrada, tokens_saida FROM chamadas_ferramenta "
+                "WHERE conversa_id = :c"
+            ),
+            {"c": conversa},
+        ).all()
+    assert [tuple(t) for t in tokens] == [(321, 9)]
+    linhas = [r.getMessage() for r in caplog.records if r.name == "leia_api.metricas"]
+    assert len(linhas) == 1
+    resumo = json.loads(linhas[0])
+    assert resumo["conversa_id"] == conversa and resumo["origem"] == "mensagem"
+    assert resumo["n_llm"] == 2 and resumo["tokens_entrada"] == 721
+    assert resumo["total_ms"] >= resumo["agente_ms"] >= 0
+    assert "segredo" not in linhas[0] and "quasarrho" not in linhas[0]
 
 
 # ---------- confirmação por clique ----------

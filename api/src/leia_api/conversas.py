@@ -57,7 +57,10 @@ def registrar(session: Session, conversa_id: int, papel: str, conteudo: str) -> 
 
 
 def auditar(session: Session, conversa_id: int, chamadas: list[ChamadaAuditada]) -> None:
-    """Trilha de auditoria: uma linha por chamada de ferramenta (tokens ficam nulos por ora)."""
+    """Trilha de auditoria: uma linha por chamada de ferramenta.
+
+    Os tokens são os da chamada ao LLM que pediu a ferramenta (só na primeira, se pediu várias).
+    """
     for c in chamadas:
         session.add(
             ChamadaFerramenta(
@@ -66,6 +69,8 @@ def auditar(session: Session, conversa_id: int, chamadas: list[ChamadaAuditada])
                 argumentos=c.argumentos,
                 resultado=c.resultado,
                 latencia_ms=c.latencia_ms,
+                tokens_entrada=c.tokens_entrada,
+                tokens_saida=c.tokens_saida,
             )
         )
 

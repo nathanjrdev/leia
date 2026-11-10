@@ -9,7 +9,9 @@ Disponibilidade vem da view `disponibilidade_livro`, nunca de coluna.
 Somente leitura: o LLM chega aqui por ferramenta, nunca por SQL próprio.
 """
 
-from collections.abc import Hashable, Sequence
+import time
+from collections.abc import Callable, Hashable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -170,6 +172,21 @@ def ranking_autor(
     )
 
 
+@contextmanager
+def _etapa(
+    tempos: dict[str, int] | None, nome: str, cronometro: Callable[[], float] = time.perf_counter
+) -> Iterator[None]:
+    """Mede uma etapa em ms em `tempos` (se dado). Só observa: não muda a busca."""
+    if tempos is None:
+        yield
+        return
+    inicio = cronometro()
+    try:
+        yield
+    finally:
+        tempos[nome] = max(0, round((cronometro() - inicio) * 1000))
+
+
 def buscar_livros(
     session: Session,
     consulta: str,
@@ -181,21 +198,28 @@ def buscar_livros(
     ano_max: int | None = None,
     apenas_disponiveis: bool = False,
     reranker: Reranker | None = None,
+    tempos: dict[str, int] | None = None,
 ) -> list[ResultadoBusca]:
+    """Busca híbrida. `tempos`, se dado, recebe a duração de cada etapa em ms (medição)."""
     filtro, params = _filtros(categoria, ano_min, ano_max, apenas_disponiveis)
     base = {**params, "q": consulta, "n": CANDIDATOS_POR_LISTA}
 
-    por_texto = ranking_texto(session, consulta, filtro=filtro, params=params)
-    por_texto_estrito = ranking_texto_estrito(session, consulta, filtro=filtro, params=params)
-    por_autor = ranking_autor(session, consulta, filtro=filtro, params=params)
-    vetor = "[" + ",".join(f"{x:.6f}" for x in encoder.encode([consulta])[0]) + "]"
-    por_vetor = _ids(
-        session,
-        f"""SELECT l.id FROM livro_embeddings e JOIN livros l ON l.id = e.livro_id
-            WHERE true {filtro}
-            ORDER BY e.vetor <=> CAST(:v AS vector) LIMIT :n""",  # noqa: S608
-        {**base, "v": vetor},
-    )
+    with _etapa(tempos, "sql_texto"):
+        por_texto = ranking_texto(session, consulta, filtro=filtro, params=params)
+    with _etapa(tempos, "sql_texto_estrito"):
+        por_texto_estrito = ranking_texto_estrito(session, consulta, filtro=filtro, params=params)
+    with _etapa(tempos, "sql_autor"):
+        por_autor = ranking_autor(session, consulta, filtro=filtro, params=params)
+    with _etapa(tempos, "encode"):
+        vetor = "[" + ",".join(f"{x:.6f}" for x in encoder.encode([consulta])[0]) + "]"
+    with _etapa(tempos, "sql_vetor"):
+        por_vetor = _ids(
+            session,
+            f"""SELECT l.id FROM livro_embeddings e JOIN livros l ON l.id = e.livro_id
+                WHERE true {filtro}
+                ORDER BY e.vetor <=> CAST(:v AS vector) LIMIT :n""",  # noqa: S608
+            {**base, "v": vetor},
+        )
 
     listas = [por_texto, por_texto_estrito, por_autor, por_vetor]
     fundidos = fundir_rrf(listas)[:CANDIDATOS_RERANKER]
@@ -203,24 +227,29 @@ def buscar_livros(
         return []
 
     ids = [livro_id for livro_id, _ in fundidos]
-    livros = {livro.id: livro for livro in session.scalars(select(Livro).where(Livro.id.in_(ids)))}
+    with _etapa(tempos, "carregar_livros"):
+        consulta_livros = select(Livro).where(Livro.id.in_(ids))
+        livros = {livro.id: livro for livro in session.scalars(consulta_livros)}
     pontuacao = dict(fundidos)
     if reranker is not None:
-        notas = reranker.score(consulta, [documento_do_livro(livros[i]) for i in ids])
+        with _etapa(tempos, "reranker"):
+            notas = reranker.score(consulta, [documento_do_livro(livros[i]) for i in ids])
         ordem_reranker = [i for i, _ in sorted(zip(ids, notas, strict=True), key=lambda p: -p[1])]
         fundidos = fundir_rrf([ids, ordem_reranker])
         ids = [livro_id for livro_id, _ in fundidos]
         pontuacao = dict(fundidos)
 
-    disponibilidade = {
-        int(r.livro_id): (int(r.livres), int(r.fila))
-        for r in session.execute(
-            text(
-                "SELECT livro_id, livres, fila FROM disponibilidade_livro WHERE livro_id IN :ids"
-            ).bindparams(bindparam("ids", expanding=True)),
-            {"ids": ids},
-        )
-    }
+    with _etapa(tempos, "disponibilidade"):
+        disponibilidade = {
+            int(r.livro_id): (int(r.livres), int(r.fila))
+            for r in session.execute(
+                text(
+                    "SELECT livro_id, livres, fila FROM disponibilidade_livro "
+                    "WHERE livro_id IN :ids"
+                ).bindparams(bindparam("ids", expanding=True)),
+                {"ids": ids},
+            )
+        }
     return [
         ResultadoBusca(
             livro_id=i,

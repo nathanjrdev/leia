@@ -15,6 +15,7 @@ import logging
 import queue
 import re
 import threading
+import time
 import unicodedata
 from collections.abc import Callable, Iterator
 from typing import Annotated, Any, Literal
@@ -36,6 +37,7 @@ from leia_api.dependencias import get_agente, get_encoder, get_fabrica_sessao, g
 from leia_api.embeddings import Encoder
 from leia_api.ferramentas import AcaoPendente, ContextoFerramentas, cancelar_acao, confirmar_acao
 from leia_api.locacao import RegrasLocacao
+from leia_api.metricas import registrar_turno, resumo_do_turno
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/conversas", tags=["conversas"])
@@ -110,6 +112,7 @@ def _turno(
     texto: str | None,
     clique: tuple[str, AcaoPendente, Decisao] | None,
 ) -> None:
+    inicio = time.perf_counter()
     with fabrica() as s:
         conversa = conversas.obter(s, conversa_id, usuario_id)
         if conversa is None:  # a conversa sumiu entre a checagem e o turno
@@ -156,6 +159,16 @@ def _turno(
         conversa.livros_vistos = sorted(ctx.livros_vistos)
         cartoes_do_turno = dict(ctx.cartoes)
         conversas.sincronizar_pendentes(s, conversa_id, ctx)  # faz o commit
+    registrar_turno(
+        resumo_do_turno(
+            resposta.metricas,
+            resposta.auditoria,
+            total_ms=round((time.perf_counter() - inicio) * 1000),
+            origem="mensagem" if texto is not None else "clique",
+            erro=resposta.erro,
+            conversa_id=conversa_id,
+        )
+    )
     for pedaco in _pedacos(resposta.texto, settings.stream_pedaco_caracteres):
         emitir("resposta", {"texto": pedaco})
     if cartoes := _cartoes_citados(cartoes_do_turno, resposta.texto):

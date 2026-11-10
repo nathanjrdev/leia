@@ -214,3 +214,32 @@ def test_reranker_promotes_its_favourite_but_is_fused_not_absolute(session: Sess
     com = _titulos(buscar_livros(session, "memória", HashEncoder(), reranker=Prefere()))
     assert com.index(favorito) < sem.index(favorito)  # subiu
     assert com[0] == sem[0]  # mas a fusão com o RRF impede que o reranker sozinho mande no topo
+
+
+def test_tempos_por_etapa_sao_preenchidos_sem_mudar_o_resultado(session: Session) -> None:
+    class Constante:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            return [0.0 for _ in documentos]
+
+    sem_medir = buscar_livros(session, "memória", HashEncoder(), reranker=Constante())
+    tempos: dict[str, int] = {}
+    medindo = buscar_livros(session, "memória", HashEncoder(), reranker=Constante(), tempos=tempos)
+
+    assert medindo == sem_medir
+    assert set(tempos) == {
+        "sql_texto",
+        "sql_texto_estrito",
+        "sql_autor",
+        "encode",
+        "sql_vetor",
+        "carregar_livros",
+        "reranker",
+        "disponibilidade",
+    }
+    assert all(isinstance(v, int) and v >= 0 for v in tempos.values())
+
+
+def test_tempos_sem_reranker_nao_tem_etapa_de_reranker(session: Session) -> None:
+    tempos: dict[str, int] = {}
+    buscar_livros(session, "memória", HashEncoder(), tempos=tempos)
+    assert "reranker" not in tempos and "encode" in tempos

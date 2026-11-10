@@ -109,6 +109,9 @@ class ContextoFerramentas:
     pendentes: dict[str, AcaoPendente] = field(default_factory=dict)
     pendente_ttl_segundos: int = settings.pendente_ttl_segundos
     max_pendentes: int = settings.max_pendentes_por_usuario
+    # medição da última ferramenta executada (tempo por etapa, em ms); o agente lê e zera.
+    # Nunca entra no resultado devolvido ao LLM.
+    etapas_ms: dict[str, int] | None = None
 
     def agora_efetivo(self) -> datetime:
         return self.agora if self.agora is not None else datetime.now(UTC)
@@ -146,6 +149,7 @@ def _cartao(
 
 
 def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
+    tempos: dict[str, int] = {}
     achados = buscar_livros(
         ctx.session,
         a.consulta,
@@ -156,7 +160,9 @@ def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
         ano_max=a.ano_max,
         apenas_disponiveis=a.apenas_disponiveis,
         reranker=ctx.reranker,  # decisão: o agente busca com o reranker (modo fundido)
+        tempos=tempos,
     )
+    ctx.etapas_ms = tempos
     ctx.livros_vistos.update(r.livro_id for r in achados)
     for r in achados:
         ctx.cartoes[r.livro_id] = _cartao(r.livro_id, r.titulo, r.autores, r.capa_url, r.livres)

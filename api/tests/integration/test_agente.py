@@ -16,6 +16,7 @@ from leia_api.agente import (
     ChamadaFerramenta,
     ConfigAgente,
     RespostaLLM,
+    Uso,
 )
 from leia_api.canal import (
     AVISO_IMITACAO,
@@ -438,3 +439,100 @@ def test_turno_sem_ferramenta_tem_auditoria_vazia(session: Session) -> None:
     res = _agente(LLMFalso(_fala("Oi!"))).responder(_ctx(session, _usuario(session)), [], "oi")
 
     assert res.auditoria == []
+
+
+# ---------- métricas de latência por turno (perf/latencia-resposta) ----------
+
+
+def _relogio_de_passos(passo: float = 0.5) -> Any:
+    """Cronômetro falso: cada leitura anda `passo` segundos (latências determinísticas)."""
+    contador = itertools.count()
+    return lambda: next(contador) * passo
+
+
+def _com_uso(resposta: RespostaLLM, entrada: int, saida: int) -> RespostaLLM:
+    return RespostaLLM(resposta.texto, resposta.chamadas, Uso(entrada, saida))
+
+
+def test_metricas_contam_chamadas_ao_llm_tokens_e_regeracoes(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarzeta")
+    llm = LLMFalso(
+        _com_uso(_chama("buscar_livros", consulta="quasarzeta"), 100, 10),
+        _com_uso(_fala("Leia “Livro Inventado”."), 200, 20),  # grounding manda regerar
+        _com_uso(_fala(f"Achei “{titulo}”."), 300, 30),
+    )
+    agente = Agente(
+        llm,
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+        cronometro=_relogio_de_passos(0.5),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "algo sobre quasarzeta")
+
+    m = res.metricas
+    assert [c.ferramentas for c in m.chamadas_llm] == [1, 0, 0]
+    assert [(c.tokens_entrada, c.tokens_saida) for c in m.chamadas_llm] == [
+        (100, 10),
+        (200, 20),
+        (300, 30),
+    ]
+    assert all(c.latencia_ms == 500 for c in m.chamadas_llm)  # uma leitura antes, uma depois
+    assert m.regeracoes == 1
+    assert m.latencia_ms >= m.llm_ms == 1500
+    assert m.tokens_entrada == 600 and m.tokens_saida == 60
+    assert res.texto == f"Achei “{titulo}”."  # comportamento igual ao de antes
+
+
+def test_metricas_registram_a_chamada_ao_llm_que_falhou(session: Session) -> None:
+    agente = Agente(
+        LLMFalso(RuntimeError("cota")),
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+        cronometro=_relogio_de_passos(1.0),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "oi")
+
+    assert res.erro == "erro_llm"
+    assert len(res.metricas.chamadas_llm) == 1
+    c = res.metricas.chamadas_llm[0]
+    assert c.erro == "erro_llm" and c.latencia_ms == 1000 and c.tokens_entrada is None
+
+
+def test_auditoria_leva_os_tokens_da_chamada_que_pediu_a_ferramenta(session: Session) -> None:
+    livro_id, titulo = _livro(session, palavra="quasaromega")
+    duas = RespostaLLM(
+        texto=None,
+        chamadas=[
+            ChamadaFerramenta("d1", "buscar_livros", {"consulta": "quasaromega"}),
+            ChamadaFerramenta("d2", "detalhar_livro", {"livro_id": livro_id}),
+        ],
+        uso=Uso(120, 12),
+    )
+    llm = LLMFalso(duas, _fala(f"Achei “{titulo}”."))
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], "quasaromega")
+
+    primeira, segunda = res.auditoria
+    assert (primeira.tokens_entrada, primeira.tokens_saida) == (120, 12)
+    assert (segunda.tokens_entrada, segunda.tokens_saida) == (None, None)  # sem contar 2 vezes
+
+
+def test_auditoria_da_busca_traz_o_tempo_de_cada_etapa(session: Session) -> None:
+    livro_id, titulo = _livro(session, palavra="quasarkappa")
+    llm = LLMFalso(
+        _chama("buscar_livros", consulta="quasarkappa"),
+        _chama("detalhar_livro", livro_id=livro_id),
+        _fala(f"Achei “{titulo}”."),
+    )
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], "quasarkappa")
+
+    busca, detalhe = res.auditoria
+    assert busca.etapas_ms is not None
+    assert {"encode", "sql_texto", "sql_texto_estrito", "sql_autor", "sql_vetor"} <= set(
+        busca.etapas_ms
+    )
+    assert "reranker" not in busca.etapas_ms  # este contexto não tem reranker
+    assert detalhe.etapas_ms is None
+    enviado = json.dumps(llm.chamadas[1]["mensagens"][-1], ensure_ascii=False)
+    assert "etapas" not in enviado and "sql_vetor" not in enviado  # o LLM não vê a medição
