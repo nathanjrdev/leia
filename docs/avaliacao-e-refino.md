@@ -89,6 +89,8 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 
 | 09/11 | Prompt **v3 candidato** (`sistema_v3.md`): tema amplo vira “acolhe + admite o limite + busca livros”; sofrimento sério indica apoio humano sem livros; fora do domínio recusa com simpatia. Casos novos: tarefa-011, tarefa-012, seguranca-015 | **não medido** (sem chave de LLM neste ambiente) | `prompt_versao` segue `v2`; v3 só entra após o gate (ver 5.3) |
 
+| 10/11 | Latência do chat: medição por etapa, `litellm` no aquecimento, atalho de título exato no reranker, eventos de andamento; 25/35 candidatos testados | busca p50 4,9 → 2,1 s; 1ª chamada ao LLM 23,8 → 6,0 s; nDCG@10 0,956 → 0,969; turno p50 5,7 → 9,0 s (Gemini 2x mais lento na rodada) | atalho, aquecimento e andamento **adotados**; 25/35 candidatos **descartados** (ver 5.4) |
+
 **Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
 
 **Rodada parcial não é oficial.** Filtro de casos ou falha de infraestrutura gravam em `agente_parcial.json` (ignorado no git); o `agente.json` continua sendo a última rodada completa e válida.
@@ -232,6 +234,39 @@ Visto pelo navegador: o 1º evento (`ferramenta`) chega depois da 1ª chamada ao
 | `import litellm` | 9,7 a 12,9 s (3 medidas) |
 
 **Conclusão (medida, não chute):** o servidor em si (thread de trabalho, threads do torch) não é a causa; o padrão de 10 threads já é o melhor, e 16 piora. A diferença vem de **contenção com outros processos pesados** ao lado, com uma segunda API carregando os mesmos modelos e o Next dev, em uma máquina com pouca RAM livre (0,4 a 1,1 GB). **NÃO separado:** se o que pesa é CPU ou paginação; dev com uma API só já remove a maior parte. A 1ª chamada lenta ao LLM (23,8 s) vem principalmente do `import litellm` preguiçoso.
+
+**Etapa 3: o que entrou, com a medida de cada um.**
+
+| Mudança | Antes → depois | Decisão |
+| --- | --- | --- |
+| Aquecimento também importa o `litellm` (sem chamar o provedor) | 1ª chamada ao LLM do processo 23,8 s → 6,0 s; subida da API ~43 s | **adotada** |
+| Reranker com 25 candidatos | gate de busca (com reranker): R@5 1,000 → 0,986 (perde t16 «amor de perdicao»), nDCG@10 0,956 → 0,954 | **descartada** |
+| Reranker com 35 candidatos | R@5 1,000 → 0,986 (t16 de novo), nDCG@10 0,956 → 0,953 | **descartada**; padrão segue 50, agora em `RERANKER_CANDIDATOS` |
+| Atalho: consulta que é o título exato (sem acento/caixa/pontuação) pula o reranker e põe o livro primeiro | gate (com reranker): R@5 1,000 → 1,000; nDCG@10 título 0,948 → 1,000, geral 0,956 → 0,969; sem reranker inalterado. Dispara em 17 de 73 casos (todos de título); poupa ~1,4 s em cada | **adotada** |
+| Eventos SSE `etapa` (`escrevendo` depois das ferramentas, `revisando` se o grounding regera); a tela mostra "Escrevendo a resposta…" / "Conferindo os livros no acervo…" | percepção; não muda o que o LLM recebe nem o grounding (o texto continua saindo só validado) | **adotada** |
+| Doc de dev: `AQUECER_MODELOS=true` e uma API por vez (README, `.env.example`) | contenção explicava 1,4 s → 4,5 s no reranker | **adotada** |
+
+Na 1ª tentativa de 25 candidatos, t16 caiu porque o livro esperado estava na posição 23 da fusão; com 35 ele entra, mas a ordem do reranker fundida com a da RRF ainda o tira do top 5. Posições na fusão dos esperados mais fundos: 23 a 26 (t16, i05, i32).
+
+**Depois (os mesmos 10 turnos, API sozinha, mesmo modelo, 1h depois da baseline).**
+
+| Medida | Baseline p50 / p95 | Depois p50 / p95 |
+| --- | --- | --- |
+| `buscar_livros` | 4,9 / 6,0 s | **2,1 / 3,8 s** |
+| · reranker | 4,5 / 5,4 s | 2,1 / 3,5 s (1 busca pegou o atalho) |
+| · encode | 0,30 / 0,64 s | 0,17 / 0,38 s |
+| LLM, por chamada | 1,0 / 3,7 s | **2,0 / 12,4 s** |
+| LLM, soma no turno | 2,0 / 14,9 s | 7,2 / 20,8 s |
+| turno no servidor | 5,7 / 20,8 s | **9,0 / 21,9 s** |
+| 1º evento no 1º turno (frio) | 26,0 s | 5,3 s |
+| tokens de entrada por turno | 3986 / 4540 | 4048 / 4577 |
+| regerações de grounding | 0 | 0 |
+
+**Leitura honesta.** A parte que é do Léia ficou mais rápida (busca −58% no p50, partida a frio −80%). O turno inteiro **piorou**, porque o Gemini grátis respondeu 2x mais devagar nesta rodada, com os mesmos tokens e as mesmas 2 chamadas por turno (uma chamada de 22,8 s sem nenhum import pendente). A comparação do turno total está **contaminada pelo provedor** e também pela mudança de contenção (baseline com a API antiga e o Next dev no ar; depois, API sozinha), então não serve para atribuir ganho. A busca é a medida limpa (é CPU local, e a contenção já foi isolada na etapa 2).
+
+**NÃO medido:** suíte do agente (`run_agente.py --gate`), porque nada do que o LLM recebe mudou: prompt, ferramentas e o JSON delas são os mesmos, e o observador só avisa a tela. A ordem dos resultados da busca muda só no atalho, que a suíte de busca cobre. 10 turnos por lado, 1 modelo, 1 execução; nenhum clique de confirmação; deploy não medido; reranker no servidor (2,1 s) ainda acima do isolado (1,4 s), sem causa separada.
+
+**Depende de decisão do usuário:** (1) GPU (torch CUDA, RTX 3050 sem uso): muda a dependência e o tamanho da instalação; (2) streaming real de tokens: exige um desenho com o grounding (hoje ele valida o texto inteiro e pode regerar); (3) comparar outro modelo (o LLM passou a ser a maior fatia e a mais instável; Haiku é pago); (4) reranker quantizado (int8/ONNX), que precisa do gate de busca.
 
 ## 6. Limites conhecidos da medida
 

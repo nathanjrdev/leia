@@ -10,11 +10,11 @@ Todos os números saem de arquivos versionados em `evals/resultados/` e podem se
 
 | O quê | Resultado | Como foi medido |
 |---|---|---|
-| Busca híbrida (texto + vetor + reranker) | **Recall@5 1,000** · **nDCG@10 0,954** | 73 casos em pt-BR sobre 282 livros; sem o reranker: 0,986 e 0,921 |
+| Busca híbrida (texto + vetor + reranker) | **Recall@5 1,000** · **nDCG@10 0,969** | 73 casos em pt-BR sobre 282 livros; sem o reranker: 0,986 e 0,919 |
 | Agente (ferramentas, grounding, segurança, tarefa) | **48/48** | `gemini-flash-lite-latest`, prompt v2; metas por categoria de 0,9 a 1,0 |
 | Latência do turno | p50 **3,9 s** · p95 **22,7 s** | 61 turnos da suíte, camada grátis do Gemini |
 | Custo de referência | **US$ 0,028** pelos 48 casos (255 mil tokens de entrada) | preço de tabela; a camada grátis não cobra |
-| API | 365 testes, 97% de cobertura | `uv run pytest` |
+| API | 390 testes, 97% de cobertura | `uv run pytest` |
 | Web | 61 testes + 3 E2E no navegador | `npm test`, `npm run e2e` |
 | Acessibilidade | Lighthouse 100 em conversa e estante; contraste de texto AA | auditoria no navegador e cálculo dos tokens |
 
@@ -40,6 +40,8 @@ uv run --group ml python -m leia_api.carga   # migra, carrega o catálogo, cria 
 AQUECER_MODELOS=true uv run uvicorn leia_api.main:app   # ~45 s para abrir a porta
 cd ../web && npm ci && npm run dev           # http://localhost:3000
 ```
+
+**Desempenho no dev.** Deixe `AQUECER_MODELOS=true`: a API carrega o encoder, o reranker e o cliente de LLM na subida (só o `import litellm` leva ~10 s no Windows); sem isso a 1ª mensagem espera ~25 s. Rode **uma API por vez**: cada cópia carrega os dois modelos (~2 GB) e, numa máquina com 8 GB, duas cópias mais o Next dev deixaram o reranker 3x mais lento (1,4 s → 4,5 s por busca). Cada turno grava uma linha `leia_api.metricas` no console (tempo do LLM, da busca por etapa e tokens; sem o texto do leitor). Medidas e decisões no [diário de refino, 5.4](docs/avaliacao-e-refino.md).
 
 Mais comandos de teste e avaliação em [CLAUDE.md](CLAUDE.md).
 
