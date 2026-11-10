@@ -58,5 +58,10 @@ class ClienteLiteLLM:
         return RespostaLLM(texto=msg.content, chamadas=chamadas, uso=uso)
 
 
+def aquecer() -> None:
+    """Importa o litellm na subida (~10-13 s no Windows). Não chama o provedor: não gasta cota."""
+    import litellm  # noqa: F401
+
+
 def cliente_padrao() -> CallLLM:
     return ClienteLiteLLM()

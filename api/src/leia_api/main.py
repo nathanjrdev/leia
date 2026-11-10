@@ -13,6 +13,7 @@ async def _ciclo_de_vida(_: FastAPI) -> AsyncIterator[None]:
     if settings.aquecer_modelos:
         dependencias.get_encoder()
         dependencias.get_reranker()
+        dependencias.aquecer_llm()
     yield
 
 

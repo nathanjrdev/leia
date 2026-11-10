@@ -9,7 +9,7 @@ from functools import lru_cache
 
 from sqlalchemy.orm import Session
 
-from leia_api import db
+from leia_api import db, llm
 from leia_api.agente import Agente, ConfigAgente
 from leia_api.busca import Reranker
 from leia_api.config import settings
@@ -44,6 +44,13 @@ def get_reranker() -> Reranker | None:
     from leia_api.modelos import CrossEncoderReranker
 
     return CrossEncoderReranker()
+
+
+def aquecer_llm() -> None:
+    """Deixa o cliente de LLM pronto antes da 1ª mensagem (o import do litellm é lento)."""
+    if settings.modo_teste:
+        return
+    llm.aquecer()
 
 
 def get_fabrica_sessao() -> Callable[[], Session]:
