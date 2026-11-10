@@ -22,7 +22,8 @@ def get_agente() -> Agente:
     if settings.modo_teste:
         from leia_api.modo_teste import LLMDeTeste
 
-        return Agente(LLMDeTeste(), ConfigAgente.da_config())
+        llm = LLMDeTeste(atraso_segundos=settings.modo_teste_atraso_ms / 1000)
+        return Agente(llm, ConfigAgente.da_config())
     return Agente(cliente_padrao(), ConfigAgente.da_config())
 
 

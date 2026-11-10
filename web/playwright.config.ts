@@ -26,7 +26,8 @@ export default defineConfig({
       command: "uv run uvicorn leia_api.main:app --port 8000",
       cwd: "../api",
       url: "http://127.0.0.1:8000/health",
-      env: { MODO_TESTE: "true", PYTHONUTF8: "1" },
+      // O atraso dá duração ao turno do LLM falso: sem ele o andamento nem chega a ser pintado.
+      env: { MODO_TESTE: "true", MODO_TESTE_ATRASO_MS: "400", PYTHONUTF8: "1" },
       reuseExistingServer: false,
       timeout: 120_000,
     },

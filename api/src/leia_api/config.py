@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     aquecer_modelos: bool = False
     # E2E: LLM e encoder falsos (ver modo_teste.py). Nunca ligar em produção.
     modo_teste: bool = False
+    # Só no modo de teste: espera de cada chamada do LLM falso (o E2E usa para ver o andamento).
+    modo_teste_atraso_ms: int = Field(default=0, ge=0)
     llm_timeout_segundos: float = Field(default=30.0, gt=0)
     turno_timeout_segundos: float = Field(default=90.0, gt=0)
     max_regeracoes_grounding: int = Field(default=1, ge=0)

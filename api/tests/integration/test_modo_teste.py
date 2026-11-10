@@ -1,6 +1,7 @@
 """O LLM de teste (E2E) precisa dirigir o agente de verdade: busca, locação, clique."""
 
 import itertools
+import time
 from collections.abc import Iterator
 from typing import Any
 
@@ -59,6 +60,18 @@ def _ctx(session: Session) -> tuple[ContextoFerramentas, str, int]:
 
 def _agente() -> Agente:
     return Agente(LLMDeTeste(), ConfigAgente("PROMPT DE TESTE", 6, 5.0, 60.0, 1))
+
+
+def test_atraso_configurado_segura_cada_chamada_do_llm_de_teste() -> None:
+    """O E2E precisa de um turno com duração para ver o andamento antes do texto."""
+    mensagens = [{"role": "user", "content": "oi"}]
+    inicio = time.perf_counter()
+    LLMDeTeste().completar(mensagens, [], 1.0)
+    assert time.perf_counter() - inicio < 0.1  # padrão: sem atraso
+
+    inicio = time.perf_counter()
+    LLMDeTeste(atraso_segundos=0.2).completar(mensagens, [], 1.0)
+    assert time.perf_counter() - inicio >= 0.2
 
 
 def test_busca_responde_citando_o_livro_achado(session: Session) -> None:
