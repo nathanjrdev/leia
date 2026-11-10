@@ -367,6 +367,8 @@ class Agente:
                     "content": json.dumps(resultado, ensure_ascii=False),
                 }
             )
+        if e["observador"] is not None:  # a próxima chamada ao LLM escreve com os resultados
+            e["observador"]("etapa", {"etapa": "escrevendo"})
         return {
             "mensagens": mensagens,
             "propostas": propostas,
@@ -384,6 +386,8 @@ class Agente:
         if not sem_origem:
             return {"texto": texto}
         if e["regeracoes"] < self._config.max_regeracoes:
+            if e["observador"] is not None:  # o texto inválido nunca chega à tela
+                e["observador"]("etapa", {"etapa": "revisando"})
             citados = ", ".join(f"“{t}”" for t in sem_origem)
             correcao: Mensagem = {
                 "role": "user",
@@ -443,7 +447,10 @@ class Agente:
         `mensagem` é o que o leitor digitou (`None` num turno disparado só por clique). `eventos`
         são fatos do aplicativo criados pelo servidor, como o resultado de um clique; só entram
         pelo bloco de sistema. Todo texto de leitor passa por `neutralizar`. `observador`, se
-        dado, é avisado de cada ferramenta que vai rodar (alimenta o stream da API).
+        dado, recebe o andamento do turno (alimenta o stream da API): `("ferramenta", {nome})`
+        antes de cada ferramenta, `("etapa", {"etapa": "escrevendo"})` depois delas e
+        `("etapa", {"etapa": "revisando"})` quando o grounding manda regerar. Nunca recebe texto
+        da resposta: ele só sai, validado, em `RespostaAgente.texto`.
         """
         if mensagem is None and not eventos:
             raise ValueError("o turno precisa de uma fala do leitor ou de um evento do aplicativo")

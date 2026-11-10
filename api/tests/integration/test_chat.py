@@ -209,6 +209,9 @@ def test_mensagem_responde_por_sse_e_persiste(api: TestClient, engine: Engine) -
     eventos = _sse(r)
     nomes = [e for e, _ in eventos]
     assert nomes[0] == "ferramenta" and eventos[0][1] == {"nome": "buscar_livros"}
+    # progresso antes do texto: depois da ferramenta, a Léia avisa que está escrevendo
+    assert eventos[1] == ("etapa", {"etapa": "escrevendo"})
+    assert nomes.index("etapa") < nomes.index("resposta")
     assert nomes[-1] == "fim" and eventos[-1][1] == {"erro": None}
     pedacos = [d["texto"] for e, d in eventos if e == "resposta"]
     assert len(pedacos) > 1  # a resposta chega em pedaços

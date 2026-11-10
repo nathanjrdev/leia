@@ -43,6 +43,13 @@ const ROTULO_FERRAMENTA: Record<string, string> = {
   reservar: "Preparando a reserva…",
 };
 
+// Andamento depois das ferramentas. O texto só chega validado pelo grounding, então o leitor vê
+// a etapa em vez de uma resposta que ainda pode ser refeita.
+const ROTULO_ETAPA: Record<string, string> = {
+  escrevendo: "Escrevendo a resposta…",
+  revisando: "Conferindo os livros no acervo…",
+};
+
 function guardado(): number | null {
   try {
     const v = sessionStorage.getItem(CHAVE);
@@ -140,6 +147,11 @@ export function Conversa() {
           ferramenta: ROTULO_FERRAMENTA[String(d.nome)] ?? "Consultando o acervo…",
         }));
         break;
+      case "etapa": {
+        const rotulo = ROTULO_ETAPA[String(d.etapa)];
+        if (rotulo) alterar(chave, (m) => ({ ...m, ferramenta: rotulo }));
+        break;
+      }
       case "resposta":
         alterar(chave, (m) => ({ ...m, ferramenta: null, texto: m.texto + String(d.texto ?? "") }));
         break;

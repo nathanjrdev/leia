@@ -536,3 +536,52 @@ def test_auditoria_da_busca_traz_o_tempo_de_cada_etapa(session: Session) -> None
     assert detalhe.etapas_ms is None
     enviado = json.dumps(llm.chamadas[1]["mensagens"][-1], ensure_ascii=False)
     assert "etapas" not in enviado and "sql_vetor" not in enviado  # o LLM não vê a medição
+
+
+# ---------- progresso do turno para a tela (perf/latencia-resposta, item 4) ----------
+
+
+def test_observador_ve_ferramenta_e_depois_escrevendo(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarsigma")
+    llm = LLMFalso(_chama("buscar_livros", consulta="quasarsigma"), _fala(f"Achei “{titulo}”."))
+    vistos: list[tuple[str, dict[str, Any]]] = []
+
+    _agente(llm).responder(
+        _ctx(session, _usuario(session)),
+        [],
+        "quasarsigma",
+        observador=lambda e, d: vistos.append((e, d)),
+    )
+
+    assert vistos == [
+        ("ferramenta", {"nome": "buscar_livros"}),
+        ("etapa", {"etapa": "escrevendo"}),
+    ]
+
+
+def test_observador_ve_revisando_quando_o_grounding_manda_regerar(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasartau")
+    llm = LLMFalso(
+        _chama("buscar_livros", consulta="quasartau"),
+        _fala("Leia “Livro Que Não Existe”."),
+        _fala(f"Achei “{titulo}”."),
+    )
+    vistos: list[str] = []
+
+    res = _agente(llm).responder(
+        _ctx(session, _usuario(session)),
+        [],
+        "quasartau",
+        observador=lambda e, d: vistos.append(f"{e}:{d.get('etapa') or d.get('nome')}"),
+    )
+
+    assert vistos == ["ferramenta:buscar_livros", "etapa:escrevendo", "etapa:revisando"]
+    assert res.texto == f"Achei “{titulo}”."  # o texto só sai depois de validado
+
+
+def test_turno_sem_ferramenta_nao_emite_etapa(session: Session) -> None:
+    vistos: list[str] = []
+    _agente(LLMFalso(_fala("Oi!"))).responder(
+        _ctx(session, _usuario(session)), [], "oi", observador=lambda e, d: vistos.append(e)
+    )
+    assert vistos == []

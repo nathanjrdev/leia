@@ -1,7 +1,9 @@
 """Rotas do chat: conversas, mensagens com resposta por SSE e confirmação por clique.
 
-Eventos do stream, nesta ordem: `ferramenta`* (uma por ferramenta que o agente vai usar),
-`acao` (só no clique: resultado da confirmação), `resposta`* (a resposta em pedaços),
+Eventos do stream, nesta ordem: `acao` (só no clique: resultado da confirmação, antes de tudo),
+`ferramenta`* (uma por ferramenta que o agente vai usar) e `etapa`* (`escrevendo` depois das
+ferramentas, `revisando` se o grounding mandou regerar), intercalados conforme o andamento;
+`resposta`* (a resposta já validada, em pedaços),
 `livros` (cartões dos livros que a resposta cita, dados do banco; só se citar algum),
 `propostas` (botões de confirmação, se houver) e `fim` (`erro` nulo ou o código).
 
