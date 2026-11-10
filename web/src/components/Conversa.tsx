@@ -12,6 +12,14 @@ import { useSessao } from "./SessaoProvider";
 const CHAVE = "leia:conversa";
 const MAX_CARACTERES = 2000;
 
+// Perguntas que o acervo sabe responder; cobrem busca, tema e dúvida sobre o que o leitor já tem.
+const SUGESTOES = [
+  "Quero um romance curto para o fim de semana",
+  "Me indique um livro sobre o sentido da vida",
+  "Tem poesia brasileira disponível agora?",
+  "O que eu tenho locado e quando devolvo?",
+];
+
 type Msg = {
   chave: string;
   papel: "usuario" | "assistente";
@@ -34,6 +42,27 @@ const ROTULO_FERRAMENTA: Record<string, string> = {
   devolver: "Preparando a devolução…",
   reservar: "Preparando a reserva…",
 };
+
+// Andamento depois das ferramentas. O texto só chega validado pelo grounding, então o leitor vê
+// a etapa em vez de uma resposta que ainda pode ser refeita.
+const ROTULO_ETAPA: Record<string, string> = {
+  escrevendo: "Escrevendo a resposta…",
+  revisando: "Conferindo os livros no acervo…",
+};
+
+/** Aviso de andamento: os pontos são decorativos; quem anuncia é o `role="status"` da conversa. */
+function Andamento({ rotulo }: { rotulo: string }) {
+  return (
+    <p className="flex items-center gap-2 text-tinta-suave">
+      <span aria-hidden="true" className="inline-flex gap-1">
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+      </span>
+      <span>{rotulo}</span>
+    </p>
+  );
+}
 
 function guardado(): number | null {
   try {
@@ -132,6 +161,15 @@ export function Conversa() {
           ferramenta: ROTULO_FERRAMENTA[String(d.nome)] ?? "Consultando o acervo…",
         }));
         break;
+      case "descartar":
+        // a resposta parcial vai ser refeita (grounding) ou trocada pela final: some da tela
+        alterar(chave, (m) => ({ ...m, texto: "" }));
+        break;
+      case "etapa": {
+        const rotulo = ROTULO_ETAPA[String(d.etapa)];
+        if (rotulo) alterar(chave, (m) => ({ ...m, ferramenta: rotulo }));
+        break;
+      }
       case "resposta":
         alterar(chave, (m) => ({ ...m, ferramenta: null, texto: m.texto + String(d.texto ?? "") }));
         break;
@@ -184,7 +222,11 @@ export function Conversa() {
 
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
-    const t = texto.trim();
+    await enviarTexto(texto);
+  }
+
+  async function enviarTexto(bruto: string) {
+    const t = bruto.trim();
     if (!t || ocupado || conversaId === null) return;
     setTexto("");
     // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
@@ -262,9 +304,25 @@ export function Conversa() {
         className="flex min-h-[40vh] flex-col gap-4 border-y border-linha py-4"
       >
         {pronto && mensagens.length === 0 && (
-          <li className="text-tinta-suave">
-            Conte o que você quer ler. Por exemplo: “um romance curto sobre memória” ou “poesia
-            brasileira do século XX”.
+          <li className="flex flex-col gap-3 text-tinta-suave">
+            <p>Conte o que você quer ler, ou comece por uma destas perguntas:</p>
+            <div
+              role="group"
+              aria-label="Sugestões para começar"
+              className="flex flex-col items-start gap-2"
+            >
+              {SUGESTOES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={ocupado || conversaId === null}
+                  onClick={() => void enviarTexto(s)}
+                  className="transicao rounded-md border border-controle px-3 py-1.5 text-left text-tinta hover:bg-papel-2 disabled:opacity-60"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </li>
         )}
         {mensagens.map((m) => (
@@ -282,9 +340,9 @@ export function Conversa() {
               <span className="sr-only">{m.papel === "usuario" ? "Você: " : "Léia: "}</span>
               {m.texto && <p className="whitespace-pre-wrap">{m.texto}</p>}
               {!m.texto && m.papel === "assistente" && ocupado && !m.nota && (
-                <p className="text-tinta-suave">{m.ferramenta ?? "Pensando…"}</p>
+                <Andamento rotulo={m.ferramenta ?? "Pensando…"} />
               )}
-              {m.texto && m.ferramenta && <p className="text-tinta-suave">{m.ferramenta}</p>}
+              {m.texto && m.ferramenta && <Andamento rotulo={m.ferramenta} />}
               {m.livros.map((l) => (
                 <CartaoLivroChat key={l.id} livro={l} comAcao={!m.teveProposta} />
               ))}
@@ -333,7 +391,10 @@ export function Conversa() {
         </p>
       )}
 
-      <form onSubmit={enviar} className="flex flex-col gap-2">
+      <form
+        onSubmit={enviar}
+        className="sticky bottom-0 flex flex-col gap-2 border-t border-linha bg-papel pb-4 pt-3"
+      >
         <label htmlFor="mensagem" className="font-medium">
           Mensagem para a Léia
         </label>

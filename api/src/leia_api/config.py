@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     max_chamadas_ferramenta_por_turno: int = Field(default=6, ge=1)
     busca_limite_maximo: int = Field(default=10, ge=1)
     sinopse_max_caracteres: int = Field(default=1500, ge=1)
+    # Quantos candidatos da fusão RRF o cross-encoder repontua. É o custo dominante da busca
+    # (~linear: 50 → 1,35 s, 25 → 0,7 s em CPU). Mudar exige o gate de busca (run_busca.py).
+    reranker_candidatos: int = Field(default=50, ge=1)
     pendente_ttl_segundos: int = Field(default=300, ge=1)
     prompt_versao: str = "v2"
     # Carrega encoder e reranker na subida (a 1ª mensagem não espera o modelo). Desligado por
@@ -28,6 +31,8 @@ class Settings(BaseSettings):
     aquecer_modelos: bool = False
     # E2E: LLM e encoder falsos (ver modo_teste.py). Nunca ligar em produção.
     modo_teste: bool = False
+    # Só no modo de teste: espera de cada chamada do LLM falso (o E2E usa para ver o andamento).
+    modo_teste_atraso_ms: int = Field(default=0, ge=0)
     llm_timeout_segundos: float = Field(default=30.0, gt=0)
     turno_timeout_segundos: float = Field(default=90.0, gt=0)
     max_regeracoes_grounding: int = Field(default=1, ge=0)
@@ -57,6 +62,9 @@ class Settings(BaseSettings):
     mensagem_max_caracteres: int = Field(default=2000, ge=1)
     historico_mensagens_limite: int = Field(default=40, ge=2)  # mensagens devolvidas ao agente
     stream_pedaco_caracteres: int = Field(default=40, ge=1)
+    # Transmite a resposta do LLM enquanto ele escreve (o grounding filtra cada título antes de
+    # mostrar). Desligado, a resposta só sai inteira no fim do turno.
+    stream_tokens: bool = True
     cartoes_por_resposta: int = Field(default=5, ge=1)  # cartões de livro por resposta no chat
 
 

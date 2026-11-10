@@ -10,6 +10,7 @@ Uso da carga sem embeddings (em api/): uv run python -m leia_api.modo_teste
 import itertools
 import json
 import re
+import time
 from collections.abc import Sequence
 from typing import Any
 
@@ -57,11 +58,20 @@ def _ultima_fala_do_leitor(mensagens: list[dict[str, Any]]) -> str:
 
 
 class LLMDeTeste:
-    """Regras: pedido do leitor → busca → (locar, se pediu) → resposta com o título achado."""
+    """Regras: pedido do leitor → busca → (locar, se pediu) → resposta com o título achado.
+
+    `atraso_segundos` segura cada chamada, para o E2E ver o andamento antes do texto (com o LLM
+    instantâneo, todos os eventos chegam juntos e a tela só mostra o fim).
+    """
+
+    def __init__(self, atraso_segundos: float = 0.0) -> None:
+        self.atraso_segundos = atraso_segundos
 
     def completar(
         self, mensagens: list[dict[str, Any]], ferramentas: list[dict[str, Any]], timeout: float
     ) -> RespostaLLM:
+        if self.atraso_segundos:
+            time.sleep(self.atraso_segundos)
         ultima = mensagens[-1]
         if ultima.get("role") == "tool":
             return self._depois_da_ferramenta(mensagens, json.loads(ultima["content"]))

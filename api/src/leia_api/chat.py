@@ -1,7 +1,11 @@
 """Rotas do chat: conversas, mensagens com resposta por SSE e confirmação por clique.
 
-Eventos do stream, nesta ordem: `ferramenta`* (uma por ferramenta que o agente vai usar),
-`acao` (só no clique: resultado da confirmação), `resposta`* (a resposta em pedaços),
+Eventos do stream, nesta ordem: `acao` (só no clique: resultado da confirmação, antes de tudo),
+`ferramenta`* (uma por ferramenta que o agente vai usar) e `etapa`* (`escrevendo` depois das
+ferramentas, `revisando` se o grounding mandou regerar), intercalados conforme o andamento;
+`resposta`* (a resposta em pedaços: com `STREAM_TOKENS`, enquanto o modelo escreve, cada
+título entre aspas só depois de conferido; sem, a resposta já validada no fim), `descartar` (a
+tela apaga o texto parcial: a resposta vai ser refeita ou trocada pela final),
 `livros` (cartões dos livros que a resposta cita, dados do banco; só se citar algum),
 `propostas` (botões de confirmação, se houver) e `fim` (`erro` nulo ou o código).
 
@@ -15,6 +19,7 @@ import logging
 import queue
 import re
 import threading
+import time
 import unicodedata
 from collections.abc import Callable, Iterator
 from typing import Annotated, Any, Literal
@@ -36,6 +41,7 @@ from leia_api.dependencias import get_agente, get_encoder, get_fabrica_sessao, g
 from leia_api.embeddings import Encoder
 from leia_api.ferramentas import AcaoPendente, ContextoFerramentas, cancelar_acao, confirmar_acao
 from leia_api.locacao import RegrasLocacao
+from leia_api.metricas import registrar_turno, resumo_do_turno
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/conversas", tags=["conversas"])
@@ -110,6 +116,7 @@ def _turno(
     texto: str | None,
     clique: tuple[str, AcaoPendente, Decisao] | None,
 ) -> None:
+    inicio = time.perf_counter()
     with fabrica() as s:
         conversa = conversas.obter(s, conversa_id, usuario_id)
         if conversa is None:  # a conversa sumiu entre a checagem e o turno
@@ -146,7 +153,16 @@ def _turno(
                 eventos = [evento_de_cancelamento([pendente.resumo])]
                 emitir("acao", {"decisao": decisao, "ok": True, "erro": None})
         historico = conversas.historico_para_agente(s, conversa_id)
-        resposta = agente.responder(ctx, historico, texto, eventos, observador=emitir)
+        transmitido: list[str] = []  # o que o streaming já pôs na tela (após `descartar`)
+
+        def observar(evento: str, dados: dict[str, Any]) -> None:
+            if evento == "resposta":
+                transmitido.append(str(dados["texto"]))
+            elif evento == "descartar":
+                transmitido.clear()
+            emitir(evento, dados)
+
+        resposta = agente.responder(ctx, historico, texto, eventos, observador=observar)
         if texto is not None:
             conversas.registrar(s, conversa_id, "usuario", resposta.historico[-2]["content"])
         else:
@@ -156,7 +172,31 @@ def _turno(
         conversa.livros_vistos = sorted(ctx.livros_vistos)
         cartoes_do_turno = dict(ctx.cartoes)
         conversas.sincronizar_pendentes(s, conversa_id, ctx)  # faz o commit
-    for pedaco in _pedacos(resposta.texto, settings.stream_pedaco_caracteres):
+    registrar_turno(
+        resumo_do_turno(
+            resposta.metricas,
+            resposta.auditoria,
+            total_ms=round((time.perf_counter() - inicio) * 1000),
+            origem="mensagem" if texto is not None else "clique",
+            erro=resposta.erro,
+            conversa_id=conversa_id,
+        )
+    )
+    # A resposta final (já validada) é a que vale. O streaming costuma tê-la mostrado inteira;
+    # se mostrou só o começo, completa; se o final for outro (resposta segura, erro), troca.
+    na_tela = "".join(transmitido).lstrip()  # o que o leitor está vendo, como foi enviado
+    if na_tela.strip() == resposta.texto:
+        falta = ""  # já está inteira (o final só perde espaços das pontas)
+    elif na_tela.strip() and resposta.texto.startswith(na_tela):
+        falta = resposta.texto[len(na_tela) :]
+    else:
+        if na_tela.strip():
+            emitir("descartar", {})
+        falta = resposta.texto
+    pedacos = list(_pedacos(falta, settings.stream_pedaco_caracteres))
+    if pedacos and (espaco := falta[: len(falta) - len(falta.lstrip())]):
+        pedacos[0] = espaco + pedacos[0]  # ao completar um parcial, não cola as palavras
+    for pedaco in pedacos:
         emitir("resposta", {"texto": pedaco})
     if cartoes := _cartoes_citados(cartoes_do_turno, resposta.texto):
         emitir("livros", {"livros": cartoes})
@@ -198,7 +238,9 @@ def _stream(**turno: Any) -> StreamingResponse:
     return StreamingResponse(
         gerar(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        # no-transform: proxies que comprimem (o do Next com gzip) acumulam o SSE até o fim;
+        # com ele, o andamento e o texto chegam ao navegador durante o turno.
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
 
 

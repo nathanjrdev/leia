@@ -107,6 +107,63 @@ def titulos_sem_origem(texto: str, permitidos: set[str]) -> list[str]:
     return sem_origem
 
 
+_FECHA_ASPAS = {"“": "”", '"': '"', "«": "»"}
+_MAX_TRECHO_ENTRE_ASPAS = 200  # o mesmo limite de `_TRECHO_ENTRE_ASPAS`
+
+
+class FiltroDeTitulos:
+    """Grounding durante o streaming: decide o que da resposta parcial pode ir para a tela.
+
+    Texto fora de aspas sai na hora. Um trecho entre aspas fica retido até fechar e só sai se
+    `titulos_sem_origem` (a mesma checagem do texto inteiro) o aceitar; senão o filtro trava e
+    nada mais sai. Assim um título que nenhuma ferramenta devolveu nunca chega à tela, mesmo que
+    o texto inteiro seja depois regerado. A decisão final continua sendo a do nó `grounding`.
+    """
+
+    def __init__(self, permitidos: set[str], emitir: Callable[[str], None]) -> None:
+        self._permitidos = permitidos
+        self._emitir = emitir
+        self._fora = ""
+        self._trecho: str | None = None  # dentro de aspas: o trecho com a aspa de abertura
+        self._fecha = ""
+        self.bloqueado = False
+        self.emitiu = False
+
+    def _soltar(self, texto: str) -> None:
+        if texto and not self.bloqueado:
+            self._emitir(texto)
+            self.emitiu = True
+
+    def receber(self, pedaco: str) -> None:
+        for c in pedaco:
+            if self.bloqueado:
+                return
+            if self._trecho is None:
+                if c in _FECHA_ASPAS:
+                    self._soltar(self._fora)
+                    self._fora, self._trecho, self._fecha = "", c, _FECHA_ASPAS[c]
+                else:
+                    self._fora += c
+                continue
+            self._trecho += c
+            if c == self._fecha:
+                trecho, self._trecho = self._trecho, None
+                if titulos_sem_origem(trecho, self._permitidos):
+                    self.bloqueado = True
+                else:
+                    self._soltar(trecho)
+            elif len(self._trecho) > _MAX_TRECHO_ENTRE_ASPAS + 1:
+                self.bloqueado = True  # aspas abertas demais: por precaução, para de mostrar
+        self._soltar(self._fora)
+        self._fora = ""
+
+    def finalizar(self) -> None:
+        """Fim da resposta: aspas que nunca fecharam não são título (a checagem final concorda)."""
+        if self._trecho is not None:
+            self._soltar(self._trecho)
+            self._trecho = None
+
+
 @dataclass(frozen=True)
 class ChamadaFerramenta:
     id: str
@@ -144,6 +201,7 @@ class ConfigAgente:
     timeout_chamada: float
     timeout_turno: float
     max_regeracoes: int
+    transmitir: bool = True  # streaming de tokens quando o cliente LLM e a API suportam
 
     @classmethod
     def da_config(cls, config: Settings = settings) -> "ConfigAgente":
@@ -153,6 +211,7 @@ class ConfigAgente:
             timeout_chamada=config.llm_timeout_segundos,
             timeout_turno=config.turno_timeout_segundos,
             max_regeracoes=config.max_regeracoes_grounding,
+            transmitir=config.stream_tokens,
         )
 
 
@@ -164,12 +223,57 @@ class Proposta:
 
 @dataclass(frozen=True)
 class ChamadaAuditada:
-    """Registro de uma chamada de ferramenta para a trilha de auditoria (`chamadas_ferramenta`)."""
+    """Registro de uma chamada de ferramenta para a trilha de auditoria (`chamadas_ferramenta`).
+
+    `tokens_*` são os da chamada ao LLM que pediu a ferramenta; quando uma resposta pede várias,
+    só a primeira os leva (para a soma não contar duas vezes). `etapas_ms` é o tempo por etapa
+    que a ferramenta mediu (hoje só `buscar_livros`); não vai para o LLM.
+    """
 
     nome: str
     argumentos: dict[str, Any]
     resultado: dict[str, Any]
     latencia_ms: int
+    tokens_entrada: int | None = None
+    tokens_saida: int | None = None
+    etapas_ms: dict[str, int] | None = None
+
+
+@dataclass(frozen=True)
+class ChamadaLLMMedida:
+    """Uma chamada ao modelo no turno: duração, tokens (se o provedor informa) e o que pediu."""
+
+    latencia_ms: int
+    tokens_entrada: int | None
+    tokens_saida: int | None
+    ferramentas: int = 0  # quantas ferramentas a resposta pediu
+    erro: str | None = None  # timeout | erro_llm
+
+
+def _soma(valores: list[int | None]) -> int | None:
+    conhecidos = [v for v in valores if v is not None]
+    return sum(conhecidos) if conhecidos else None
+
+
+@dataclass(frozen=True)
+class MetricasTurno:
+    """Latência do turno dentro do agente (sem o banco e o stream da API)."""
+
+    latencia_ms: int
+    chamadas_llm: list[ChamadaLLMMedida]
+    regeracoes: int
+
+    @property
+    def llm_ms(self) -> int:
+        return sum(c.latencia_ms for c in self.chamadas_llm)
+
+    @property
+    def tokens_entrada(self) -> int | None:
+        return _soma([c.tokens_entrada for c in self.chamadas_llm])
+
+    @property
+    def tokens_saida(self) -> int | None:
+        return _soma([c.tokens_saida for c in self.chamadas_llm])
 
 
 @dataclass(frozen=True)
@@ -180,6 +284,7 @@ class RespostaAgente:
     erro: str | None = None  # timeout | erro_llm | limite_chamadas | grounding | resposta_vazia
     chamadas_ferramenta: int = 0
     auditoria: list[ChamadaAuditada] = field(default_factory=list)
+    metricas: MetricasTurno = field(default_factory=lambda: MetricasTurno(0, [], 0))
 
 
 class _Estado(TypedDict):
@@ -194,6 +299,12 @@ class _Estado(TypedDict):
     propostas: list[Proposta]
     observador: Callable[[str, dict[str, Any]], None] | None
     auditoria: list[ChamadaAuditada]
+    llm: list[ChamadaLLMMedida]
+    parcial: bool  # a última chamada ao LLM já mostrou texto na tela (streaming)
+
+
+def _ms(inicio: float, fim: float) -> int:
+    return max(0, round((fim - inicio) * 1000))
 
 
 def _exigir(ultima: RespostaLLM | None) -> RespostaLLM:
@@ -215,10 +326,12 @@ class Agente:
         llm: CallLLM,
         config: ConfigAgente,
         relogio: Callable[[], float] = time.monotonic,
+        cronometro: Callable[[], float] = time.perf_counter,
     ) -> None:
         self._llm = llm
         self._config = config
-        self._relogio = relogio
+        self._relogio = relogio  # prazo do turno
+        self._cronometro = cronometro  # só medição; não decide nada
         self._grafo = self._montar()
 
     # ---------- nós ----------
@@ -226,14 +339,43 @@ class Agente:
     def _modelo(self, e: _Estado) -> dict[str, Any]:
         if self._relogio() - e["inicio"] > self._config.timeout_turno:
             return {"texto": MSG_TIMEOUT, "erro": "timeout"}
+        inicio = self._cronometro()
+        observador = e["observador"]
+        transmitir = getattr(self._llm, "completar_stream", None)
+        filtro: FiltroDeTitulos | None = None
         try:
-            resposta = self._llm.completar(
-                e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada
-            )
+            if self._config.transmitir and observador is not None and transmitir is not None:
+                filtro = FiltroDeTitulos(
+                    _titulos_vistos(e["ctx"]),
+                    lambda t: observador("resposta", {"texto": t}),
+                )
+                resposta = transmitir(
+                    e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada, filtro.receber
+                )
+            else:
+                resposta = self._llm.completar(
+                    e["mensagens"], ESPECIFICACOES, self._config.timeout_chamada
+                )
         except TimeoutError:
-            return {"texto": MSG_TIMEOUT, "erro": "timeout"}
+            falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="timeout")
+            return {"texto": MSG_TIMEOUT, "erro": "timeout", "llm": [*e["llm"], falha]}
         except Exception:  # noqa: BLE001 - detalhes do provedor não chegam ao usuário
-            return {"texto": MSG_ERRO_LLM, "erro": "erro_llm"}
+            falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="erro_llm")
+            return {"texto": MSG_ERRO_LLM, "erro": "erro_llm", "llm": [*e["llm"], falha]}
+        medida = ChamadaLLMMedida(
+            latencia_ms=_ms(inicio, self._cronometro()),
+            tokens_entrada=resposta.uso.tokens_entrada if resposta.uso else None,
+            tokens_saida=resposta.uso.tokens_saida if resposta.uso else None,
+            ferramentas=len(resposta.chamadas),
+        )
+        parcial = False
+        if filtro is not None:
+            if resposta.chamadas:
+                if filtro.emitiu and observador is not None:  # era preâmbulo de ferramenta
+                    observador("descartar", {})
+            else:
+                filtro.finalizar()
+                parcial = filtro.emitiu
         if resposta.chamadas:
             registro: Mensagem = {
                 "role": "assistant",
@@ -249,7 +391,12 @@ class Agente:
             }
         else:
             registro = {"role": "assistant", "content": resposta.texto or ""}
-        return {"ultima": resposta, "mensagens": [*e["mensagens"], registro]}
+        return {
+            "ultima": resposta,
+            "mensagens": [*e["mensagens"], registro],
+            "llm": [*e["llm"], medida],
+            "parcial": parcial,
+        }
 
     def _depois_do_modelo(self, e: _Estado) -> str:
         if e["erro"] is not None:
@@ -271,9 +418,11 @@ class Agente:
         mensagens = list(e["mensagens"])
         propostas = list(e["propostas"])
         auditoria = list(e["auditoria"])
-        for chamada in ultima.chamadas:
+        uso = ultima.uso
+        for posicao, chamada in enumerate(ultima.chamadas):
             if e["observador"] is not None:
                 e["observador"]("ferramenta", {"nome": chamada.nome})
+            e["ctx"].etapas_ms = None
             inicio = time.perf_counter()
             resultado = executar(e["ctx"], chamada.nome, chamada.argumentos)
             auditoria.append(
@@ -282,8 +431,12 @@ class Agente:
                     argumentos=chamada.argumentos,
                     resultado=resultado,
                     latencia_ms=int((time.perf_counter() - inicio) * 1000),
+                    tokens_entrada=uso.tokens_entrada if uso and posicao == 0 else None,
+                    tokens_saida=uso.tokens_saida if uso and posicao == 0 else None,
+                    etapas_ms=e["ctx"].etapas_ms,
                 )
             )
+            e["ctx"].etapas_ms = None
             if resultado.get("status") == "aguardando_confirmacao":
                 proposta = Proposta(resultado["confirmacao_id"], resultado["resumo"])
                 if proposta not in propostas:
@@ -295,6 +448,8 @@ class Agente:
                     "content": json.dumps(resultado, ensure_ascii=False),
                 }
             )
+        if e["observador"] is not None:  # a próxima chamada ao LLM escreve com os resultados
+            e["observador"]("etapa", {"etapa": "escrevendo"})
         return {
             "mensagens": mensagens,
             "propostas": propostas,
@@ -312,6 +467,10 @@ class Agente:
         if not sem_origem:
             return {"texto": texto}
         if e["regeracoes"] < self._config.max_regeracoes:
+            if e["observador"] is not None:  # o texto inválido nunca chega à tela
+                if e["parcial"]:  # apaga o que o streaming já mostrou dessa resposta
+                    e["observador"]("descartar", {})
+                e["observador"]("etapa", {"etapa": "revisando"})
             citados = ", ".join(f"“{t}”" for t in sem_origem)
             correcao: Mensagem = {
                 "role": "user",
@@ -371,7 +530,10 @@ class Agente:
         `mensagem` é o que o leitor digitou (`None` num turno disparado só por clique). `eventos`
         são fatos do aplicativo criados pelo servidor, como o resultado de um clique; só entram
         pelo bloco de sistema. Todo texto de leitor passa por `neutralizar`. `observador`, se
-        dado, é avisado de cada ferramenta que vai rodar (alimenta o stream da API).
+        dado, recebe o andamento do turno (alimenta o stream da API): `("ferramenta", {nome})`
+        antes de cada ferramenta, `("etapa", {"etapa": "escrevendo"})` depois delas e
+        `("etapa", {"etapa": "revisando"})` quando o grounding manda regerar. Nunca recebe texto
+        da resposta: ele só sai, validado, em `RespostaAgente.texto`.
         """
         if mensagem is None and not eventos:
             raise ValueError("o turno precisa de uma fala do leitor ou de um evento do aplicativo")
@@ -413,9 +575,17 @@ class Agente:
             "propostas": [],
             "observador": observador,
             "auditoria": [],
+            "llm": [],
+            "parcial": False,
         }
+        inicio = self._cronometro()
         passos = 4 * (self._config.max_chamadas_ferramenta + self._config.max_regeracoes + 3)
         final: _Estado = self._grafo.invoke(inicial, {"recursion_limit": passos + 10})
+        metricas = MetricasTurno(
+            latencia_ms=_ms(inicio, self._cronometro()),
+            chamadas_llm=final["llm"],
+            regeracoes=final["regeracoes"],
+        )
         texto = final["texto"] or MSG_VAZIA
         return RespostaAgente(
             texto=texto,
@@ -424,4 +594,5 @@ class Agente:
             erro=final["erro"],
             chamadas_ferramenta=final["n_chamadas"],
             auditoria=final["auditoria"],
+            metricas=metricas,
         )

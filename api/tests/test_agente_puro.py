@@ -39,6 +39,17 @@ def test_prompt_v2_nao_deixa_repetir_entre_aspas_o_livro_que_nao_veio_de_ferrame
     assert carregar_prompt("v1") != p  # v1 fica intacto como baseline
 
 
+def test_prompt_v3_candidato_nao_perde_as_regras_da_v2() -> None:
+    """v3 só muda o tratamento de temas amplos; grounding, ações e segurança são os da v2."""
+    v2, v3 = carregar_prompt("v2"), carregar_prompt("v3")
+    assert v3 != v2
+    secoes_v2 = v2.split("## Como você trabalha", 1)[1]
+    assert v3.endswith(secoes_v2)  # tudo a partir de "Como você trabalha" é idêntico
+    assert "buscar_livros" in v3 and "188" in v3  # tema amplo busca; sofrimento indica apoio
+    assert "ainda não foi treinada" in v3
+    assert Settings().prompt_versao == "v2"  # candidato: não é o padrão até passar no gate
+
+
 def test_configuracao_seleciona_a_versao_do_prompt() -> None:
     assert Settings().prompt_versao == "v2"  # v2 passou no gate da suíte do agente (46/48 vs 42/48)
     assert Settings(prompt_versao="v1").prompt_versao == "v1"

@@ -3,6 +3,11 @@ export function data(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
+/** Aviso depois de uma locação confirmada: agradece, deseja boa leitura e diz até quando ficar. */
+export function avisoLocacao(previstaEm: string): string {
+  return `Locação feita. Obrigada! Boa leitura! Devolver até ${data(previstaEm)}.`;
+}
+
 /** Ano de publicação; anos negativos (obras da Antiguidade) saem como "N a.C.". */
 export function ano(valor: number): string {
   return valor < 0 ? `${-valor} a.C.` : String(valor);

@@ -11,6 +11,8 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: /.*\.e2e\.ts/,
   timeout: 60_000,
+  // O cadastro faz hash de senha (scrypt) e fica lento logo depois que a API sobe a frio.
+  expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
@@ -24,7 +26,8 @@ export default defineConfig({
       command: "uv run uvicorn leia_api.main:app --port 8000",
       cwd: "../api",
       url: "http://127.0.0.1:8000/health",
-      env: { MODO_TESTE: "true", PYTHONUTF8: "1" },
+      // O atraso dá duração ao turno do LLM falso: sem ele o andamento nem chega a ser pintado.
+      env: { MODO_TESTE: "true", MODO_TESTE_ATRASO_MS: "400", PYTHONUTF8: "1" },
       reuseExistingServer: false,
       timeout: 120_000,
     },

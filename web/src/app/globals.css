@@ -65,12 +65,45 @@ h3 {
   outline-offset: 2px;
 }
 
+/* Aviso de andamento do chat: três pontos; só pulsam (opacidade) sem movimento reduzido. */
+.andamento-ponto {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: currentColor;
+  opacity: 0.5;
+}
+
+@keyframes andamento-pulso {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .transicao {
     transition:
       background-color 150ms ease,
       border-color 150ms ease,
       opacity 150ms ease;
+  }
+
+  .andamento-ponto {
+    animation: andamento-pulso 1.2s ease-in-out infinite;
+  }
+
+  .andamento-ponto:nth-child(2) {
+    animation-delay: 150ms;
+  }
+
+  .andamento-ponto:nth-child(3) {
+    animation-delay: 300ms;
   }
 }
 
