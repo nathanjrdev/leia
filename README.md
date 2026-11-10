@@ -15,7 +15,7 @@ Todos os números saem de arquivos versionados em `evals/resultados/` e podem se
 | Latência do turno | p50 **3,9 s** · p95 **22,7 s** | 61 turnos da suíte, camada grátis do Gemini |
 | Custo de referência | **US$ 0,028** pelos 48 casos (255 mil tokens de entrada) | preço de tabela; a camada grátis não cobra |
 | API | 390 testes, 97% de cobertura | `uv run pytest` |
-| Web | 61 testes + 3 E2E no navegador | `npm test`, `npm run e2e` |
+| Web | 61 testes + 4 E2E no navegador | `npm test`, `npm run e2e` |
 | Acessibilidade | Lighthouse 100 em conversa e estante; contraste de texto AA | auditoria no navegador e cálculo dos tokens |
 
 O que **não** foi medido, e vale dizer: a suíte do agente tem 48 casos (a meta é ~150); os casos de busca e as sinopses vêm do mesmo conhecimento geral de LLM, então o ganho da busca tende a ser otimista; o p95 vem da camada grátis, que oscila; não há medição com outro modelo nem com tráfego real. O método, as regressões que a suíte pegou e o que ficou em aberto estão no [diário de refino](docs/avaliacao-e-refino.md) e no [estudo de caso da busca](docs/estudo-de-caso-busca.md).

@@ -91,6 +91,8 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 
 | 10/11 | Latência do chat: medição por etapa, `litellm` no aquecimento, atalho de título exato no reranker, eventos de andamento; 25/35 candidatos testados | busca p50 4,9 → 2,1 s; 1ª chamada ao LLM 23,8 → 6,0 s; nDCG@10 0,956 → 0,969; turno p50 5,7 → 9,0 s (Gemini 2x mais lento na rodada) | atalho, aquecimento e andamento **adotados**; 25/35 candidatos **descartados** (ver 5.4) |
 
+| 10/11 | SSE com `no-transform` (o proxy do Next comprimia e acumulava), E2E do andamento, animação do aviso | pelo Next com gzip: `content-encoding` gzip → ausente; 2 → 14 blocos; navegador: "Pensando…" o turno todo → Pensando, Buscando, Escrevendo e texto crescendo | **adotado**; suíte do agente não rodada (nada do que o LLM recebe mudou; ver 5.4.1) |
+
 **Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
 
 **Rodada parcial não é oficial.** Filtro de casos ou falha de infraestrutura gravam em `agente_parcial.json` (ignorado no git); o `agente.json` continua sendo a última rodada completa e válida.
@@ -270,7 +272,41 @@ Na 1ª tentativa de 25 candidatos, t16 caiu porque o livro esperado estava na po
 
 **Streaming real de tokens (decisão do usuário em 10/11, commit `e5412e6`).** Desenho escolhido para não enfraquecer o grounding: `ClienteLiteLLM.completar_stream` transmite os pedaços e remonta a resposta inteira (texto, tool calls, tokens); `FiltroDeTitulos` solta o texto fora de aspas na hora e retém cada trecho entre aspas até ele passar por `titulos_sem_origem` (a mesma checagem do texto inteiro), travando se o título não veio de ferramenta; o evento SSE `descartar` apaga o parcial antes de regerar, quando o texto era preâmbulo de ferramenta ou quando a resposta final é outra; a rota concilia o transmitido com a resposta final. Configuração `STREAM_TOKENS` (padrão ligado). LLM sem stream (a suíte do agente, o modo de teste do E2E) segue o caminho antigo, então a suíte **não exercita** o streaming; o que o LLM recebe não mudou. Smoke real com o Gemini: tool call remontada e 1º pedaço de texto em 0,62 s de 0,77 s.
 
-**Defeito achado no teste do usuário (aberto).** No navegador a tela fica em "Pensando…" o turno todo e o texto aparece de uma vez. Causa medida: o navegador pede `Accept-Encoding: gzip` e o proxy do Next (`/api/*` → API) comprime o `text/event-stream` (`content-encoding: gzip`), acumulando os eventos até o fim (com gzip: 2 blocos, o grosso aos 8,6 s; sem compressão: 15 blocos de 1,25 a 7,3 s). Isso já escondia o rótulo "Buscando no acervo…" antes do streaming. O compressor do Next pula `Cache-Control: no-transform`. **Erro de medida meu:** o teste em Python não pedia compressão, e eu disse ao usuário que o streaming funcionava pelo Next; não funcionava no navegador. Nesse mesmo teste o reranker levou 11,1 s (Chrome de teste aberto, pouca RAM). Correção planejada: `no-transform` no SSE, E2E que confira o cabeçalho e o rótulo antes do texto, animação discreta no aviso de andamento (com `prefers-reduced-motion`) e nova linha do tempo no navegador.
+**Defeito achado no teste do usuário (aberto).** No navegador a tela fica em "Pensando…" o turno todo e o texto aparece de uma vez. Causa medida: o navegador pede `Accept-Encoding: gzip` e o proxy do Next (`/api/*` → API) comprime o `text/event-stream` (`content-encoding: gzip`), acumulando os eventos até o fim (com gzip: 2 blocos, o grosso aos 8,6 s; sem compressão: 15 blocos de 1,25 a 7,3 s). Isso já escondia o rótulo "Buscando no acervo…" antes do streaming. O compressor do Next pula `Cache-Control: no-transform`. **Erro de medida meu:** o teste em Python não pedia compressão, e eu disse ao usuário que o streaming funcionava pelo Next; não funcionava no navegador. Nesse mesmo teste o reranker levou 11,1 s (Chrome de teste aberto, pouca RAM). Correção planejada: `no-transform` no SSE, E2E que confira o cabeçalho e o rótulo antes do texto, animação discreta no aviso de andamento (com `prefers-reduced-motion`) e nova linha do tempo no navegador. **Corrigido em 5.4.1.**
+
+#### 5.4.1 Correção do SSE comprimido e animação do andamento (10/11/2026, commits `69e7a86`, `9fc3a46`, `916599f`)
+
+**O que mudou.** (1) O SSE das rotas de mensagens e de confirmação sai com `Cache-Control: no-cache, no-transform` (`chat._stream`); o compressor do Next pula respostas com `no-transform`. (2) E2E novo: grava a linha do tempo da última mensagem e exige `no-transform`, nenhum `content-encoding` e o aviso de andamento antes do texto. Para isso o LLM falso ganhou `MODO_TESTE_ATRASO_MS` (padrão 0, o E2E usa 400 ms): sem duração, todos os eventos chegam juntos e o aviso nem é pintado, e o teste passaria mesmo com o defeito. (3) O aviso ("Pensando…", "Buscando no acervo…", "Escrevendo a resposta…", "Conferindo os livros no acervo…") ganhou três pontos que pulsam em opacidade.
+
+**Antes e depois.** Mesmo turno ("Um romance sobre memória"), pelo Next (`:3000/api`), com cliente que pede `Accept-Encoding: gzip, deflate, br` e registra cada bloco com `read1`, LLM real (`gemini-flash-lite-latest`):
+
+| Medida | Antes (API sem a correção) | Depois |
+| --- | --- | --- |
+| `content-encoding` da resposta | `gzip` | ausente |
+| blocos de bytes no turno | 2 (2,9 s e 8,2 s, o grosso no fim) | 14, de 5,9 s a 12,3 s |
+| E2E novo, com o cabeçalho antigo | falha (`content-encoding` = `gzip`) | passa; suíte E2E 4/4 duas rodadas seguidas |
+
+Linha do tempo **no Chrome** (chrome-devtools, contexto isolado, leitor fictício `nav-*@leia.example`, `MutationObserver` na última mensagem; a requisição sai com `accept-encoding: gzip, deflate, br, zstd` e a resposta volta sem `content-encoding`):
+
+| Turno | Pensando | Buscando no acervo | Escrevendo a resposta | 1º texto → texto completo |
+| --- | --- | --- | --- | --- |
+| "Um romance sobre memória, me conte com detalhes" | 0,1 s | (não gravado¹) | (não gravado¹) | 12,0 → 12,7 s |
+| "A Culpa é das Estrelas" (atalho de título) | 0,1 s | 1,5 s | 1,9 s | 3,0 → 4,0 s |
+| "Poesia sobre o mar e a saudade, me explique cada sugestão" | 0,1 s | 1,5 s | 5,5 s (+ "Lendo a ficha do livro…" 7,6 e 8,5 s) | 10,3 → 11,4 s |
+| "Me indique um romance de formação, com detalhes" | 0,1 s | 1,5 s | 4,7 s (+ ficha 5,4 e 6,2 s) | 7,1 → 8,0 s |
+| "Oi, tudo bem? Me sugira um livro de mistério, com detalhes" | 0,1 s | 1,9 s | 5,9 s | 6,8 → 7,7 s |
+
+¹ No 1º turno o gravador lia o rótulo com um seletor errado (pegava o último ponto); a troca de rótulos não ficou registrada, só o texto crescendo (2 → 1085 caracteres em 0,8 s). Corrigido do 2º turno em diante. Antes da correção, no mesmo navegador, a tela ficava em "Pensando…" de 0,8 s a 24,8 s e o texto aparecia de uma vez. Print do meio do turno: "••• Buscando no acervo…" com o Enviar desabilitado.
+
+**Decisões.**
+- **`no-transform` na API, e não `compress: false` no Next.** Conserta na origem para qualquer intermediário que respeite a diretiva (o compressor do Next, CDN, nginx no deploy) e não desliga a compressão das outras respostas do app. `X-Accel-Buffering: no` segue para o nginx.
+- **Atraso só no modo de teste.** Não toca o LLM real, o prompt, as ferramentas nem o grounding; é a forma de o E2E ter um turno com duração sem depender de cota.
+- **Animação:** três pontos de 6 px na cor `tinta-suave`, só opacidade (0,25 ↔ 1, 1,2 s, defasagem de 150 ms; barato, não mexe no layout), declarada só dentro de `@media (prefers-reduced-motion: no-preference)`, no mesmo padrão de `.transicao`; com movimento reduzido os pontos ficam parados. Os pontos são `aria-hidden` e o aviso continua sem `role`/`aria-live`: quem anuncia é o `role="status"` da conversa ("A Léia está respondendo…"), então o leitor de tela não ouve cada troca de rótulo.
+- **Defeito lateral do E2E:** o spec do cartão locava Dom Casmurro e nunca devolvia; cada rodada prendia 1 dos 3 exemplares e a 3ª rodada falhava (foi o que derrubou 2 specs na 1ª tentativa). Agora devolve no fim; 4 locações presas de leitores `e2e-*@leia.example` foram devolvidas no banco dev.
+
+**Registro do erro de medida anterior:** a medida que deu "streaming funcionando pelo Next" usava um cliente Python **sem** `Accept-Encoding`; o navegador sempre pede gzip. Medidas de SSE daqui em diante: com gzip pedido ou pelo navegador.
+
+**NÃO medido.** Deploy (proxy real, outro servidor na frente); a suíte do agente (nada do que o LLM recebe mudou, e ela não usa streaming); o clique de confirmação no navegador (a rota tem o mesmo cabeçalho, coberta por teste de integração); o navegador com `prefers-reduced-motion: reduce` ligado no sistema (conferido pelo CSSOM: a regra base não tem `animation`, só a de `no-preference`; e por teste do CSS); 1 execução, 5 turnos, 1 modelo. Os tempos até o 1º texto (6 a 12 s) são do Gemini grátis e do reranker nesta máquina com pouca RAM, não efeito da correção. Chamadas reais ao Gemini: 6 turnos (~15 chamadas).
 
 ## 6. Limites conhecidos da medida
 
