@@ -269,3 +269,35 @@ def test_candidatos_do_reranker_padrao_e_configuracao() -> None:
 
     assert Settings().reranker_candidatos == 50
     assert Settings(reranker_candidatos=25).reranker_candidatos == 25
+
+
+class _RerankerProibido:
+    def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+        raise AssertionError("consulta com título exato não deveria passar pelo reranker")
+
+
+@pytest.mark.parametrize(
+    "consulta", ["Dom Casmurro", "dom casmurro", "  DOM  CASMURRO! ", "dóm casmurro"]
+)
+def test_titulo_exato_pula_o_reranker_e_vem_primeiro(session: Session, consulta: str) -> None:
+    tempos: dict[str, int] = {}
+    r = buscar_livros(session, consulta, HashEncoder(), reranker=_RerankerProibido(), tempos=tempos)
+    assert _titulos(r)[0] == "Dom Casmurro"
+    assert "reranker" not in tempos and "atalho_titulo" in tempos
+
+
+def test_titulo_exato_ignora_caixa(session: Session) -> None:
+    r = buscar_livros(session, "vidas secas", HashEncoder(), reranker=_RerankerProibido())
+    assert _titulos(r)[0] == "Vidas Secas"
+
+
+def test_consulta_que_nao_e_titulo_passa_pelo_reranker(session: Session) -> None:
+    chamado: list[bool] = []
+
+    class Marca:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            chamado.append(True)
+            return [0.0 for _ in documentos]
+
+    buscar_livros(session, "um romance sobre ciúme", HashEncoder(), reranker=Marca())
+    assert chamado == [True]

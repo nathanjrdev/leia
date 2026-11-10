@@ -9,7 +9,9 @@ Disponibilidade vem da view `disponibilidade_livro`, nunca de coluna.
 Somente leitura: o LLM chega aqui por ferramenta, nunca por SQL próprio.
 """
 
+import re
 import time
+import unicodedata
 from collections.abc import Callable, Hashable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -172,6 +174,14 @@ def ranking_autor(
     )
 
 
+def _chave_titulo(texto: str) -> str:
+    """Título comparável: sem acento, caixa, pontuação nem espaços repetidos."""
+    sem_acento = "".join(
+        c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c)
+    )
+    return " ".join(re.sub(r"[^\w\s]", " ", sem_acento.casefold()).split())
+
+
 @contextmanager
 def _etapa(
     tempos: dict[str, int] | None, nome: str, cronometro: Callable[[], float] = time.perf_counter
@@ -237,7 +247,15 @@ def buscar_livros(
         consulta_livros = select(Livro).where(Livro.id.in_(ids))
         livros = {livro.id: livro for livro in session.scalars(consulta_livros)}
     pontuacao = dict(fundidos)
-    if reranker is not None:
+    chave = _chave_titulo(consulta)
+    exatos = [i for i in ids if chave and _chave_titulo(livros[i].titulo) == chave]
+    if reranker is not None and exatos:
+        # Atalho: a consulta é o título de um livro. O reranker (~1,4 s em CPU) não mudaria o
+        # que o leitor pediu; o livro vem primeiro e o resto segue a ordem da fusão.
+        with _etapa(tempos, "atalho_titulo"):
+            ids = exatos + [i for i in ids if i not in exatos]
+            pontuacao = {i: pontuacao[i] + (1.0 if i in exatos else 0.0) for i in ids}
+    elif reranker is not None:
         with _etapa(tempos, "reranker"):
             notas = reranker.score(consulta, [documento_do_livro(livros[i]) for i in ids])
         ordem_reranker = [i for i, _ in sorted(zip(ids, notas, strict=True), key=lambda p: -p[1])]
