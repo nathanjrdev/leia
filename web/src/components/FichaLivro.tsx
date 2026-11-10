@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
-import { ano, data } from "@/lib/formato";
+import { ano, avisoLocacao } from "@/lib/formato";
 import type { Ficha } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
 import { Capa } from "./CartaoLivro";
@@ -49,7 +49,7 @@ export function FichaLivro({ id }: { id: number }) {
       metodo: "POST",
       corpo: { confirmo: true },
     });
-    setAviso(`Locação feita. Devolver até ${data(r.prevista_em)}.`);
+    setAviso(avisoLocacao(r.prevista_em));
     await recarregar();
   }
 

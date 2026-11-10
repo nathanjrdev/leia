@@ -153,7 +153,10 @@ describe("Conversa", () => {
       metodo: "POST",
       corpo: { confirmo: true },
     });
-    expect(await within(cartao).findByRole("status")).toHaveTextContent("Locação feita");
+    const aviso = await within(cartao).findByRole("status");
+    expect(aviso).toHaveTextContent("Locação feita");
+    expect(aviso).toHaveTextContent("Obrigada");
+    expect(aviso).toHaveTextContent("Boa leitura");
     expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
   });
 

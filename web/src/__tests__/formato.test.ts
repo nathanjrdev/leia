@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { ano } from "@/lib/formato";
+import { ano, avisoLocacao } from "@/lib/formato";
+
+describe("avisoLocacao", () => {
+  it("agradece, deseja boa leitura e informa a data de devolução", () => {
+    const aviso = avisoLocacao("2026-11-23T12:00:00Z");
+    expect(aviso).toContain("Obrigada");
+    expect(aviso).toContain("Boa leitura");
+    expect(aviso).toContain("Devolver até 23/11/2026");
+  });
+});
 
 describe("ano", () => {
   it("ano comum fica como está", () => {

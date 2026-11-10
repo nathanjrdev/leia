@@ -76,7 +76,9 @@ describe("FichaLivro", () => {
         corpo: { confirmo: true },
       }),
     );
-    expect(await screen.findByRole("status")).toHaveTextContent("Devolver até 23/11/2026");
+    const aviso = await screen.findByRole("status");
+    expect(aviso).toHaveTextContent("Devolver até 23/11/2026");
+    expect(aviso).toHaveTextContent("Boa leitura");
   });
 
   it("sem exemplar livre oferece reservar e mostra a posição", async () => {

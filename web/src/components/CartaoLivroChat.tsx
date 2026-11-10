@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/lib/api";
-import { data } from "@/lib/formato";
+import { avisoLocacao } from "@/lib/formato";
 import type { LivroDoChat } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
 import { Capa } from "./CartaoLivro";
@@ -27,7 +27,7 @@ export function CartaoLivroChat({
       metodo: "POST",
       corpo: { confirmo: true },
     });
-    setAviso(`Locação feita. Devolver até ${data(r.prevista_em)}.`);
+    setAviso(avisoLocacao(r.prevista_em));
   }
 
   async function reservar() {
