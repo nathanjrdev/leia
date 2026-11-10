@@ -216,7 +216,22 @@ Visto pelo navegador: o 1º evento (`ferramenta`) chega depois da 1ª chamada ao
 
 **Leitura.** (1) O reranker é ~90% da busca e a maior fatia do turno aquecido. (2) A 1ª chamada ao LLM do processo levou 23,8 s: `import litellm` sozinho mede 12,9 s nesta máquina e o adaptador só importa na 1ª chamada (o aquecimento não cobre o LLM). (3) Grounding não regerou em nenhum turno; não é fonte de demora nesta amostra.
 
-**NÃO medido ainda:** amostra pequena (10 turnos, 1 execução, 1 modelo); nada de clique de confirmação; máquina com só 0,4 GB de RAM livre durante as medidas (pressão de memória pode inflar tudo); a diferença isolado vs. servidor está na etapa 2.
+**NÃO medido ainda:** amostra pequena (10 turnos, 1 execução, 1 modelo); nada de clique de confirmação; máquina com só 0,4 GB de RAM livre durante as medidas (pressão de memória pode inflar tudo).
+
+**Etapa 2: por que o servidor era 2–3x mais lento que o script isolado.** Mesma máquina (i5-13450HX, 7,7 GB de RAM), mesmos 50 candidatos reais de "um romance sobre memória" (pares de ~169 tokens, máx. 199; `max_length` do CrossEncoder 512, então truncar em 256 não cortaria nada).
+
+| Teste | Resultado |
+| --- | --- |
+| `torch.set_num_threads` (padrão 10), thread principal | 1 → 7,0 s; 2 → 3,2 s; 4 → 1,8 s; 8 → 1,6 s; 10 → 1,4 s; 16 → 2,0 s |
+| mesmo, numa thread de trabalho (como o `_turno`) | igual à principal (10 → 1,45 s) |
+| reranker depois de 0/5/15/30 s ocioso | 1,38 a 1,52 s (ociosidade não pesa) |
+| 1ª pontuação depois de carregar sob pressão de memória | 7,0 s (as seguintes 1,4 s) |
+| 20 / 25 / 50 candidatos | 0,71 / 0,69 / 1,35 s |
+| busca HTTP completa (`/livros/busca`, com reranker) com a API **sozinha** | p50 ~1,9 s (1ª fria 4,0 s) |
+| `buscar_livros` na baseline, com a API `:8000` antiga (outra cópia dos 2 modelos) e o `next dev` no ar | p50 4,9 s |
+| `import litellm` | 9,7 a 12,9 s (3 medidas) |
+
+**Conclusão (medida, não chute):** o servidor em si (thread de trabalho, threads do torch) não é a causa; o padrão de 10 threads já é o melhor, e 16 piora. A diferença vem de **contenção com outros processos pesados** ao lado, com uma segunda API carregando os mesmos modelos e o Next dev, em uma máquina com pouca RAM livre (0,4 a 1,1 GB). **NÃO separado:** se o que pesa é CPU ou paginação; dev com uma API só já remove a maior parte. A 1ª chamada lenta ao LLM (23,8 s) vem principalmente do `import litellm` preguiçoso.
 
 ## 6. Limites conhecidos da medida
 
