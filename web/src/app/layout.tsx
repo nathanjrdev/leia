@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <main
             id="conteudo"
             tabIndex={-1}
-            className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 outline-none"
+            className="mx-auto w-full max-w-6xl flex-1 pt-6 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(2rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] outline-none sm:pt-10"
           >{children}</main>
         </SessaoProvider>
       </body>
