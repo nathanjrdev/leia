@@ -14,6 +14,7 @@ from leia_api.avaliacao_agente import (
     ResultadoCaso,
     executar_caso,
 )
+from leia_api.canal import TEXTO_CLIQUE, TEXTO_CLIQUE_FALHA
 from leia_api.locacao import RegrasLocacao
 from leia_api.models import Livro, Usuario
 from tests.integration.test_agente import LLMFalso, _agente, _chama, _fala, _livro
@@ -132,6 +133,71 @@ def test_titulo_do_acervo_citado_sem_consulta_reprova_no_grounding(session: Sess
 
     assert not resultado.passou
     assert any("grounding" in f for f in resultado.falhas)
+
+
+def _sistema_e_usuario(llm: LLMFalso, chamada: int = 0) -> tuple[str, str]:
+    mensagens = llm.chamadas[chamada]["mensagens"]
+    return mensagens[0]["content"], mensagens[-1]["content"]
+
+
+def test_cartao_locar_executa_pelo_canal_do_servidor_e_nao_como_fala(session: Session) -> None:
+    livro_id, titulo = _livro(session)
+    caso = _caso(
+        turnos=[
+            {
+                "cartao": "locar",
+                "livro": titulo,
+                "esperado": {
+                    "texto_contem": ["pronto"],
+                    "ferramentas_proibidas": ["locar", "renovar", "devolver", "reservar"],
+                },
+            }
+        ],
+        final={"locacoes_ativas": [titulo], "pendentes": 0},
+    )
+    llm = LLMFalso(_fala(f"Pronto! “{titulo}” é seu."))
+
+    resultado = _rodar(session, caso, llm)
+
+    assert resultado.falhas == []
+    sistema, usuario = _sistema_e_usuario(llm)
+    assert "A ação foi concluída com sucesso" in sistema  # o fato vai no bloco de sistema
+    assert usuario == TEXTO_CLIQUE  # e a mensagem de usuário é a fixa, nunca texto livre
+    assert resultado.transcricao[0]["quem"] == "app"
+    assert _ativas(session) == 0  # o preparo desfez a locação
+
+
+def test_cartao_recusado_pela_regra_entrega_a_falha_ao_agente(session: Session) -> None:
+    previos = [_livro(session)[1] for _ in range(3)]
+    _, alvo = _livro(session)
+    caso = _caso(
+        turnos=[
+            {
+                "cartao": "locar",
+                "livro": alvo,
+                "esperado": {"texto_contem_alguma": ["limite"]},
+            }
+        ],
+        preparo={"locacoes_previas": previos},
+        final={"locacoes_ativas": previos},
+    )
+    llm = LLMFalso(_fala(f"Não consegui locar “{alvo}”: você atingiu o limite de locações."))
+
+    resultado = _rodar(session, caso, llm)
+
+    assert resultado.falhas == []
+    sistema, usuario = _sistema_e_usuario(llm)
+    assert "limite_locacoes" in sistema
+    assert usuario == TEXTO_CLIQUE_FALHA
+
+
+def test_cartao_com_livro_inexistente_reprova_com_motivo(session: Session) -> None:
+    caso = _caso(turnos=[{"cartao": "locar", "livro": "Livro que não existe no acervo"}])
+
+    resultado = _rodar(session, caso, LLMFalso())
+
+    assert not resultado.passou
+    assert any("cartão" in f for f in resultado.falhas)
 
 
 def test_botao_sem_botao_aberto_reprova(session: Session) -> None:

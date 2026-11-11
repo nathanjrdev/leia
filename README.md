@@ -11,14 +11,16 @@ Todos os números saem de arquivos versionados em `evals/resultados/` e podem se
 | O quê | Resultado | Como foi medido |
 |---|---|---|
 | Busca híbrida (texto + vetor + reranker) | **Recall@5 1,000** · **nDCG@10 0,969** | 73 casos em pt-BR sobre 282 livros; sem o reranker: 0,986 e 0,919 |
-| Agente (ferramentas, grounding, segurança, tarefa) | **48/48** | `gemini-flash-lite-latest`, prompt v2; metas por categoria de 0,9 a 1,0 |
-| Latência do turno | p50 **3,9 s** · p95 **22,7 s** | 61 turnos da suíte, camada grátis do Gemini |
-| Custo de referência | **US$ 0,028** pelos 48 casos (255 mil tokens de entrada) | preço de tabela; a camada grátis não cobra |
-| API | 390 testes, 97% de cobertura | `uv run pytest` |
-| Web | 61 testes + 4 E2E no navegador | `npm test`, `npm run e2e` |
+| Agente (ferramentas, grounding, segurança, tarefa) | **54/55** | `claude-haiku-5-5`, prompt v5; todas as metas por categoria (0,9 a 1,0) batidas; a falha é um caso que oscila (2 de 3 também na v4) |
+| Latência do turno | p50 **3,5 s** · p95 **9,3 s** | 69 turnos da suíte, Haiku 5.5 |
+| Custo de referência | **US$ 0,09** pelos 55 casos (762 mil tokens de entrada) | preço de tabela do plano |
+| API | 451 testes, 97% de cobertura | `uv run pytest` |
+| Web | 95 testes + 4 E2E no navegador | `npm test`, `npm run e2e` |
 | Acessibilidade | Lighthouse 100 em conversa e estante; contraste de texto AA | auditoria no navegador e cálculo dos tokens |
 
-O que **não** foi medido, e vale dizer: a suíte do agente tem 48 casos (a meta é ~150); os casos de busca e as sinopses vêm do mesmo conhecimento geral de LLM, então o ganho da busca tende a ser otimista; o p95 vem da camada grátis, que oscila; não há medição com outro modelo nem com tráfego real. O método, as regressões que a suíte pegou e o que ficou em aberto estão no [diário de refino](docs/avaliacao-e-refino.md) e no [estudo de caso da busca](docs/estudo-de-caso-busca.md).
+**O que o prompt ensinou sobre modelos:** a v2 fez 48/48 no Gemini e só **46/55 no Haiku** (perguntava "quer que eu proponha?" em vez de chamar a ferramenta, respondia de memória, usava markdown). O prompt não se transfere entre modelos; o gate roda no modelo que vai para a demo. Regras que não devem depender de o LLM obedecer foram para o código (por exemplo, o limite de 3 títulos por resposta).
+
+O que **não** foi medido, e vale dizer: a suíte do agente tem 57 casos (a meta é ~150; a rodada oficial de 55 não inclui os 2 mais novos); os casos de busca e as sinopses vêm do mesmo conhecimento geral de LLM, então o ganho da busca tende a ser otimista; o Haiku oscila entre rodadas (há casos instáveis declarados); a falsa autocorreção da conversa 69 **não foi reproduzida** em nenhuma das 11 rodadas, então não se sabe se a v5 a conserta; não há medição com tráfego real. O método, as regressões que a suíte pegou e o que ficou em aberto estão no [diário de refino](docs/avaliacao-e-refino.md) e no [estudo de caso da busca](docs/estudo-de-caso-busca.md).
 
 ## Regras que o código garante
 
@@ -65,7 +67,13 @@ uv run --group ml python ../evals/run_agente.py --falhas    # chama o LLM de ver
 
 Casos em `evals/busca_casos.jsonl` e `evals/casos/<categoria>.jsonl`.
 
-O teste manual também faz parte do processo: o que se acha usando o produto vira caso de regressão quando dá, com o registro de se o caso **reproduz** o defeito ou só protege o que já funciona ([como e por quê](docs/avaliacao-e-refino.md#3-o-ciclo-de-refino); exemplo com a conversa 69 na [seção 5.9](docs/avaliacao-e-refino.md)).
+### O teste manual também é avaliação
+
+O que se acha usando o produto vira caso de regressão quando dá, e o diário registra se o caso **reproduz** o defeito (falha na versão antiga) ou só protege o que já funcionava. Exemplo real, conversa 69: três frases estranhas numa recusa por limite. O caso por cartão (`tarefa-016`) detecta uma delas (1/3 no código antigo, 5/5 no novo); a terceira, a falsa autocorreção, não foi reproduzida e está declarada assim. Para chegar lá o runner ganhou um tipo de turno `cartao`, que simula o clique em Locar no cartão. [Como e por quê](docs/avaliacao-e-refino.md#3-o-ciclo-de-refino); [o caso completo, seção 5.9](docs/avaliacao-e-refino.md).
+
+## Pós-MVP: ajuste fino de embeddings (congelado)
+
+Os scripts para ajustar o modelo de embeddings ao catálogo estão prontos no branch [`pos-mvp/embeddings-finetune`](https://github.com/nathanjrdev/leia/tree/pos-mvp/embeddings-finetune), em `evals/embeddings/`: gerar pares livro-consulta com LLM, treinar, avaliar (Recall@5 antes e depois, sem tocar nos casos de avaliação da busca) e publicar no Hugging Face. **Nenhum resultado foi medido e nenhum modelo foi publicado**: ficou congelado até o MVP fechar. Só vira afirmação aqui quando houver número em `evals/resultados/`.
 
 ## Deploy
 

@@ -37,7 +37,13 @@ from leia_api.agente import (
 )
 from leia_api.busca import Reranker
 from leia_api.canal import EventoApp
-from leia_api.cli_conversa import aplicar_botao, botoes, locacoes_ativas, zerar_usuario
+from leia_api.cli_conversa import (
+    aplicar_botao,
+    aplicar_cartao,
+    botoes,
+    locacoes_ativas,
+    zerar_usuario,
+)
 from leia_api.embeddings import Encoder
 from leia_api.ferramentas import ESPECIFICACOES, ContextoFerramentas
 from leia_api.locacao import RegrasLocacao, locar
@@ -118,14 +124,21 @@ class Esperado(_Modelo):
 
 
 class Turno(_Modelo):
+    """Um turno do caso: o leitor fala, clica no botão de uma proposta ou clica Locar/Reservar
+    no cartão de um livro (`cartao` + `livro`, o caminho `POST /conversas/{id}/acoes`)."""
+
     fala: str | None = None
     botao: Literal["confirmar", "cancelar"] | None = None
+    cartao: Literal["locar", "reservar"] | None = None
+    livro: str | None = None  # título do cartão clicado
     esperado: Esperado = Esperado()
 
     @model_validator(mode="after")
-    def _um_dos_dois(self) -> Self:
-        if (self.fala is None) == (self.botao is None):
-            raise ValueError("o turno precisa de `fala` ou de `botao`, nunca dos dois")
+    def _um_dos_tres(self) -> Self:
+        if sum(x is not None for x in (self.fala, self.botao, self.cartao)) != 1:
+            raise ValueError("o turno precisa de `fala`, `botao` ou `cartao`, só um deles")
+        if (self.cartao is None) != (self.livro is None):
+            raise ValueError("`cartao` e `livro` andam juntos")
         return self
 
 
@@ -184,6 +197,8 @@ def titulos_do_caso(caso: CasoAgente) -> set[str]:
     if caso.preparo.sinopse_injetada:
         achados.add(caso.preparo.sinopse_injetada.titulo)
     for turno in caso.turnos:
+        if turno.livro:
+            achados.add(turno.livro)
         for args in turno.esperado.argumentos.values():
             for chave in ("livro_titulo", "locacao_titulo"):
                 if isinstance(args.get(chave), str):
@@ -578,7 +593,21 @@ def executar_caso(
         for i, turno in enumerate(caso.turnos, 1):
             enviar: str | None
             eventos: list[EventoApp] = []
-            if turno.botao:
+            if turno.cartao:
+                try:
+                    livro_do_cartao = _livro_id(session, str(turno.livro))
+                except LookupError:  # título que não está no catálogo
+                    falhas.append(
+                        f"turno {i}: cartão de livro que não está no acervo: {turno.livro}"
+                    )
+                    break
+                # o cartão só existe para livro que a conversa já mostrou (no servidor, o
+                # `livros_vistos` da conversa), então o grounding já o conhece
+                ctx.livros_vistos.add(livro_do_cartao)
+                linha, evento = aplicar_cartao(ctx, turno.cartao, livro_do_cartao)
+                eventos, enviar = [evento], None  # como o botão: pelo canal do servidor
+                transcricao.append({"quem": "app", "texto": linha})
+            elif turno.botao:
                 if not abertas:
                     falhas.append(f"turno {i}: clicou em {turno.botao} sem botão aberto")
                     break
