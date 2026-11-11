@@ -65,6 +65,8 @@ uv run --group ml python ../evals/run_agente.py --falhas    # chama o LLM de ver
 
 Casos em `evals/busca_casos.jsonl` e `evals/casos/<categoria>.jsonl`.
 
+O teste manual também faz parte do processo: o que se acha usando o produto vira caso de regressão quando dá, com o registro de se o caso **reproduz** o defeito ou só protege o que já funciona ([como e por quê](docs/avaliacao-e-refino.md#3-o-ciclo-de-refino); exemplo com a conversa 69 na [seção 5.9](docs/avaliacao-e-refino.md)).
+
 ## Deploy
 
 Checklist e variáveis em [docs/deploy.md](docs/deploy.md).
