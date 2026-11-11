@@ -29,8 +29,13 @@ type Msg = {
   livros: LivroDoChat[];
   // a Léia já propôs uma ação nesta mensagem: o cartão não oferece outro caminho de locação
   teveProposta: boolean;
+  // a ação do clique foi negada; o aviso só aparece no fim, se a Léia não a explicou
+  acaoFalhou: boolean;
   nota: string | null;
 };
+
+const NOTA_ACAO_FALHOU = "Não foi possível concluir essa ação.";
+const NOTA_ERRO = "A Léia teve um problema para responder. Tente de novo.";
 
 const ROTULO_FERRAMENTA: Record<string, string> = {
   buscar_livros: "Buscando no acervo…",
@@ -90,6 +95,7 @@ const nova = (papel: Msg["papel"], texto = ""): Msg => ({
   propostas: [],
   livros: [],
   teveProposta: false,
+  acaoFalhou: false,
   nota: null,
 });
 
@@ -110,6 +116,10 @@ export function Conversa() {
   // Abertura da conversa em andamento: o efeito pode rodar duas vezes (StrictMode) e não deve
   // criar duas conversas.
   const abertura = useRef<Promise<{ id: number; historico: MensagemHistorico[] }> | null>(null);
+  // A abertura já foi aplicada na tela. Com `cacheComponents`, o Next guarda a rota num <Activity>:
+  // ao voltar (ex.: da ficha do livro) o efeito roda de novo com o estado preservado, e reaplicar
+  // o histórico de quando a conversa abriu apagaria o que foi conversado depois.
+  const aberta = useRef(false);
 
   const comecar = useCallback(async () => {
     const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
@@ -122,6 +132,7 @@ export function Conversa() {
     if (carregando) return;
     if (!logado) {
       abertura.current = null; // outra conta não herda a conversa aberta
+      aberta.current = false;
       return;
     }
     let vivo = true;
@@ -141,7 +152,8 @@ export function Conversa() {
     })();
     abertura.current
       .then(({ id, historico }) => {
-        if (!vivo) return;
+        if (!vivo || aberta.current) return;
+        aberta.current = true;
         setConversaId(id);
         setMensagens(
           historico.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),
@@ -200,19 +212,18 @@ export function Conversa() {
         }));
         break;
       case "acao":
-        if (d.ok === false) {
-          alterar(chave, (m) => ({ ...m, nota: "Não foi possível concluir essa ação." }));
-        }
+        if (d.ok === false) alterar(chave, (m) => ({ ...m, acaoFalhou: true }));
         break;
       case "fim":
-        alterar(chave, (m) => ({
-          ...m,
-          ferramenta: null,
-          nota:
-            d.erro && !m.texto
-              ? "A Léia teve um problema para responder. Tente de novo."
-              : m.nota,
-        }));
+        alterar(chave, (m) => {
+          // Com resposta normal, a Léia já explicou a falha; o aviso só repetiria. Com erro do
+          // turno (LLM fora, grounding), o texto não fala da ação e o aviso é o que sobra.
+          const semExplicacao = !m.texto || !!d.erro;
+          let nota = m.nota;
+          if (m.acaoFalhou && semExplicacao) nota = NOTA_ACAO_FALHOU;
+          else if (d.erro && !m.texto) nota = NOTA_ERRO;
+          return { ...m, ferramenta: null, nota };
+        });
         break;
     }
   }

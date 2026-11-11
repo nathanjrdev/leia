@@ -128,11 +128,14 @@ def _linha_de_resultado(resultado: dict[str, Any]) -> str:
             )
         return " ".join(partes)
     codigo = _valor(resultado.get("erro", "erro_desconhecido"))
-    motivo = _valor(resultado.get("mensagem", ""))
+    motivo = _valor(resultado.get("mensagem", "")).rstrip(".")
+    # A ordem de não repetir a ação segura tarefa-008; dita ao leitor ("não vou tentar de novo")
+    # soa estranha, por isso o pedido de não anunciá-la (sessão de teste de 11/11).
     return (
         f"O leitor clicou em Confirmar, mas a ação não foi concluída. Código: {codigo}. "
-        f"Motivo: {motivo}. Não tente de novo, nem proponha a ação outra vez, "
-        "a menos que o leitor peça de novo."
+        f"Motivo: {motivo}. Explique o motivo ao leitor e, se couber, um próximo passo. "
+        "Não chame a ferramenta da ação de novo nem abra outra confirmação, a menos que o "
+        "leitor peça de novo. Não anuncie ao leitor o que você deixou de fazer."
     )
 
 
@@ -152,7 +155,7 @@ def evento_de_cancelamento(resumos: list[str]) -> EventoApp:
         linhas=(
             f"O leitor clicou em Cancelar: {itens}. A ação foi descartada e nada foi feito. "
             "Não proponha de novo, nem peça confirmação outra vez, "
-            "a menos que o leitor peça de novo.",
+            "a menos que o leitor peça de novo. Não anuncie ao leitor o que você deixou de fazer.",
         ),
     )
 

@@ -215,7 +215,28 @@ def test_confirmacao_que_falhou_tem_clique_proprio_e_manda_nao_tentar_de_novo() 
     )
 
     assert evento.clique == TEXTO_CLIQUE_FALHA
-    assert "não tente de novo" in " ".join(evento.linhas).lower()
+    linha = " ".join(evento.linhas).lower()
+    assert "não chame a ferramenta da ação de novo" in linha
+    # a ordem é interna: o leitor não deve ouvir "não vou tentar de novo" (sessão de 11/11)
+    assert "não tente de novo" not in linha
+    assert "não anuncie" in linha
+
+
+def test_motivo_que_ja_termina_em_ponto_nao_ganha_ponto_duplo() -> None:
+    evento = evento_de_confirmacao(
+        [{"ok": False, "erro": "limite_locacoes", "mensagem": "Limite atingido."}]
+    )
+
+    linha = " ".join(evento.linhas)
+    assert "Motivo: Limite atingido." in linha
+    assert ".." not in linha
+
+
+def test_cancelamento_tambem_pede_para_nao_anunciar_a_ordem_interna() -> None:
+    linha = " ".join(evento_de_cancelamento(["Locar “A”"]).linhas).lower()
+
+    assert "não proponha de novo" in linha
+    assert "não anuncie" in linha
 
 
 def test_confirmacao_mista_conta_como_falha() -> None:

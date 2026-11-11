@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from leia_api import catalogo, locacao
 from leia_api import limite as limites
@@ -27,8 +27,8 @@ from leia_api.contas import Conta
 from leia_api.db import get_session
 from leia_api.dependencias import get_encoder, get_reranker
 from leia_api.embeddings import Encoder
-from leia_api.locacao import ErroLocacao, RegrasLocacao
-from leia_api.models import Categoria
+from leia_api.locacao import ErroLocacao, LocacaoResumo, RegrasLocacao, ReservaResumo
+from leia_api.models import Categoria, Livro
 
 router = APIRouter(tags=["acervo"])
 
@@ -165,10 +165,33 @@ def ficha(livro_id: int, session: Sessao) -> dict[str, Any] | JSONResponse:
 @router.get("/estante")
 def estante(conta: Logado, session: Sessao) -> dict[str, Any]:
     meu = locacao.minhas_locacoes(session, conta.id)
+    # A capa e os autores são da tela: ficam aqui e não em `minhas_locacoes`, que também alimenta
+    # a ferramenta do agente, e o LLM não recebe URL externa (vetor de injeção).
+    todos: list[LocacaoResumo | ReservaResumo] = [*meu.ativas, *meu.reservas, *meu.historico]
+    ids = {x.livro_id for x in todos}
+    livros = (
+        {
+            lv.id: lv
+            for lv in session.scalars(
+                select(Livro).where(Livro.id.in_(ids)).options(selectinload(Livro.autores))
+            )
+        }
+        if ids
+        else {}
+    )
+
+    def item(x: LocacaoResumo | ReservaResumo) -> dict[str, Any]:
+        livro = livros.get(x.livro_id)
+        return {
+            **asdict(x),
+            "autores": sorted(a.nome for a in livro.autores) if livro else [],
+            "capa_url": livro.capa_url if livro else None,
+        }
+
     return {
-        "ativas": [asdict(x) for x in meu.ativas],
-        "reservas": [asdict(x) for x in meu.reservas],
-        "historico": [asdict(x) for x in meu.historico],
+        "ativas": [item(x) for x in meu.ativas],
+        "reservas": [item(x) for x in meu.reservas],
+        "historico": [item(x) for x in meu.historico],
     }
 
 

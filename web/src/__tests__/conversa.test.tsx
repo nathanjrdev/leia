@@ -188,6 +188,30 @@ describe("Conversa", () => {
     await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
     expect(await screen.findByText("Você já está com 3 livros.")).toBeInTheDocument();
     expect(within(cartao).getByRole("button", { name: "Locar" })).toBeInTheDocument();
+    // a Léia já explicou a falha: o aviso genérico em vermelho só repetiria
+    expect(screen.queryByText("Não foi possível concluir essa ação.")).not.toBeInTheDocument();
+  });
+
+  it("ação negada sem explicação da Léia (LLM falhou) mostra o aviso da falha", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Achei “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: false, erro: "limite_locacoes" } },
+      { evento: "resposta", dados: { texto: "Tive um problema para responder agora." } },
+      { evento: "fim", dados: { erro: "erro_llm" } },
+    ]);
+    await u.click(within(cartao).getByRole("button", { name: "Locar" }));
+    await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
+    expect(await screen.findByText("Não foi possível concluir essa ação.")).toBeInTheDocument();
   });
 
   it("reservar pelo cartão também passa pelo chat", async () => {
@@ -248,6 +272,58 @@ describe("Conversa", () => {
       </StrictMode>,
     );
     await screen.findByRole("group", { name: "Sugestões para começar" });
+    const criacoes = apiMock.mock.calls.filter(
+      ([c, o]) => c === "/conversas" && (o as { metodo?: string })?.metodo === "POST",
+    );
+    expect(criacoes).toHaveLength(1);
+  });
+
+  // `cacheComponents` do Next guarda a rota num <Activity>: ao sair, os efeitos são desfeitos; ao
+  // voltar (ex.: da ficha do livro), rodam de novo com o estado preservado. O efeito de abertura
+  // não pode reaplicar o histórico de quando a conversa abriu por cima do que já foi conversado.
+  it("voltar à conversa (rota guardada em Activity) mantém o que já foi conversado", async () => {
+    const { Activity } = await import("react");
+    turno([
+      { evento: "resposta", dados: { texto: "Que tal Neuromancer?" } },
+      {
+        evento: "livros",
+        dados: {
+          livros: [
+            {
+              id: 265,
+              titulo: "Neuromancer",
+              autores: ["William Gibson"],
+              capa_url: null,
+              livres: 1,
+            },
+          ],
+        },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    const tela = render(
+      <Activity mode="visible">
+        <Conversa />
+      </Activity>,
+    );
+    await enviar("um livro da área tech");
+    expect(await screen.findByText("Que tal Neuromancer?")).toBeInTheDocument();
+
+    tela.rerender(
+      <Activity mode="hidden">
+        <Conversa />
+      </Activity>,
+    );
+    tela.rerender(
+      <Activity mode="visible">
+        <Conversa />
+      </Activity>,
+    );
+
+    await new Promise((r) => setTimeout(r, 0)); // deixa a abertura reaplicar, se fosse o caso
+    expect(screen.getByText("um livro da área tech")).toBeInTheDocument();
+    expect(screen.getByText("Que tal Neuromancer?")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Livro: Neuromancer" })).toBeInTheDocument();
     const criacoes = apiMock.mock.calls.filter(
       ([c, o]) => c === "/conversas" && (o as { metodo?: string })?.metodo === "POST",
     );

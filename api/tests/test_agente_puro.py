@@ -12,10 +12,24 @@ def test_prompt_v4_candidato_soma_as_regras_da_sessao_de_teste_a_v3() -> None:
     assert "use só a sinopse que a ferramenta devolveu" in v4
     assert "reservar) é só para livro sem exemplar livre" in v4
     assert "livros de programação ou tecnologia" in v4
-    assert Settings().prompt_versao == "v4"  # adotada: gate no Haiku 54/55 vs v2 46/55 (diário 5.7)
+    assert Settings().prompt_versao != "v3"  # v4 adotada (diário 5.7), depois a v5 (5.8)
 
 
-@pytest.mark.parametrize("versao", ["v1", "v2", "v4"])
+def test_prompt_v5_candidato_e_a_v4_mais_a_regra_dos_titulos_ja_conferidos() -> None:
+    """Sessão de 11/11: a Léia "desmentiu" um título que veio de busca num turno anterior.
+
+    O histórico que o modelo recebe só tem texto (sem os resultados das ferramentas), então ele
+    não consegue conferir o que já citou; o grounding do código já conferiu.
+    """
+    v4, v5 = carregar_prompt("v4"), carregar_prompt("v5")
+    for linha in v4.splitlines():
+        assert linha in v5  # nada da v4 se perde
+    assert len(v5.splitlines()) == len(v4.splitlines()) + 1  # uma regra só
+    assert "já foram conferidos pelo sistema no acervo" in v5
+    assert "não se corrija por eles" in v5
+
+
+@pytest.mark.parametrize("versao", ["v1", "v2", "v4", "v5"])
 def test_prompt_traz_as_regras_do_plano(versao: str) -> None:
     p = carregar_prompt(versao)
 
@@ -62,7 +76,7 @@ def test_prompt_v3_candidato_nao_perde_as_regras_da_v2() -> None:
 
 
 def test_configuracao_seleciona_a_versao_do_prompt() -> None:
-    assert Settings().prompt_versao == "v4"  # v4 passou no gate da suíte do agente (diário 5.7)
+    assert Settings().prompt_versao == "v5"  # v5 passou no gate da suíte do agente (diário 5.8)
     assert Settings(prompt_versao="v1").prompt_versao == "v1"
 
 

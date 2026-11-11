@@ -35,6 +35,8 @@ export type LocacaoResumo = {
   locacao_id: number;
   livro_id: number;
   titulo: string;
+  autores: string[];
+  capa_url: string | null;
   retirada_em: string;
   prevista_em: string;
   devolvida_em: string | null;
@@ -46,6 +48,8 @@ export type ReservaResumo = {
   reserva_id: number;
   livro_id: number;
   titulo: string;
+  autores: string[];
+  capa_url: string | null;
   posicao: number;
   pronta: boolean;
   retirar_ate: string | null;
