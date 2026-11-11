@@ -28,6 +28,7 @@ from leia_api.busca import Reranker, buscar_livros
 from leia_api.config import settings
 from leia_api.embeddings import Encoder
 from leia_api.locacao import ErroLocacao, RegrasLocacao
+from leia_api.models import Livro
 
 Resultado = dict[str, Any]
 
@@ -460,7 +461,13 @@ def confirmar_acao(ctx: ContextoFerramentas, confirmacao_id: str) -> Resultado:
         ctx.pendentes[confirmacao_id] = pendente  # falha inesperada não queima o token
         return _falha_interna(ctx, pendente.ferramenta, erro)
     ctx.livros_vistos.add(corpo["livro_id"])
-    return {"ok": True, "acao": pendente.ferramenta, **corpo}
+    resultado: Resultado = {"ok": True, "acao": pendente.ferramenta, **corpo}
+    if pendente.ferramenta in ("locar", "reservar"):
+        # a Léia comenta o livro na resposta do clique com base só no acervo (grounding)
+        livro = ctx.session.get(Livro, corpo["livro_id"])
+        if livro is not None and (sinopse := _sinopse_segura(livro.sinopse)):
+            resultado["sinopse"] = sinopse
+    return resultado
 
 
 def cancelar_acao(ctx: ContextoFerramentas, confirmacao_id: str) -> Resultado:

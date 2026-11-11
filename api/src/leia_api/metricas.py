@@ -39,6 +39,8 @@ def resumo_do_turno(
         "llm_ms": metricas.llm_ms,
         "n_llm": len(metricas.chamadas_llm),
         "llm_lista_ms": [c.latencia_ms for c in metricas.chamadas_llm],
+        # tipo da exceção e status HTTP das chamadas que falharam (ex.: "RateLimitError:429")
+        "llm_causas": [c.causa for c in metricas.chamadas_llm if c.causa],
         "tokens_entrada": metricas.tokens_entrada,
         "tokens_saida": metricas.tokens_saida,
         "regeracoes": metricas.regeracoes,

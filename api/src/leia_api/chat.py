@@ -14,19 +14,23 @@ O turno roda numa thread própria com sessão de banco própria e termina (e per
 navegador feche a conexão no meio.
 """
 
+import dataclasses
 import json
 import logging
 import queue
 import re
+import secrets
 import threading
 import time
 import unicodedata
 from collections.abc import Callable, Iterator
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy.orm import Session
 
 from leia_api import conversas
@@ -66,6 +70,72 @@ class MensagemIn(_Corpo):
 
 class DecisaoIn(_Corpo):
     decisao: Decisao
+
+
+class AcaoIn(_Corpo):
+    """Clique no cartão de um livro citado na conversa (o cartão já pediu a confirmação)."""
+
+    acao: Literal["locar", "reservar"]
+    livro_id: Annotated[int, Field(ge=1)]
+
+
+class TurnosEmAndamento:
+    """Conversas com um turno rodando agora: um turno por vez em cada conversa.
+
+    Dois envios quase juntos (duplo Enter, clique duplo) gerariam duas respostas e
+    embaralhariam o histórico. Vale para um processo só (o deploy roda um worker); com mais de
+    um, a trava teria de ir para o banco.
+    """
+
+    def __init__(self) -> None:
+        self._trava = threading.Lock()
+        self._ocupadas: set[int] = set()
+
+    def ocupar(self, conversa_id: int) -> bool:
+        with self._trava:
+            if conversa_id in self._ocupadas:
+                return False
+            self._ocupadas.add(conversa_id)
+            return True
+
+    def liberar(self, conversa_id: int) -> None:
+        with self._trava:
+            self._ocupadas.discard(conversa_id)
+
+    def ocupada(self, conversa_id: int) -> bool:
+        with self._trava:
+            return conversa_id in self._ocupadas
+
+
+turnos = TurnosEmAndamento()
+
+
+def _data_local(iso: str) -> str:
+    """dd/mm/aaaa no fuso de Brasília (o mesmo dia que a tela mostra), ou UTC sem tzdata."""
+    momento = datetime.fromisoformat(iso)
+    try:
+        momento = momento.astimezone(ZoneInfo("America/Sao_Paulo"))
+    except ZoneInfoNotFoundError:
+        pass
+    return momento.strftime("%d/%m/%Y")
+
+
+def aviso_da_acao(resultado: dict[str, Any]) -> str | None:
+    """Texto fixo de uma ação concluída, para quando o LLM falha depois dela.
+
+    A ação já aconteceu: o leitor precisa ver isso, não "tive um problema".
+    """
+    if not resultado.get("ok") or not resultado.get("titulo"):
+        return None
+    titulo = resultado["titulo"]
+    if resultado.get("acao") == "locar" and resultado.get("prevista_em"):
+        return (
+            f"Pronto! “{titulo}” está com você. "
+            f"Devolução até {_data_local(resultado['prevista_em'])}. Boa leitura!"
+        )
+    if resultado.get("acao") == "reservar" and resultado.get("posicao"):
+        return f"Pronto! Você entrou na fila de “{titulo}”, na posição {resultado['posicao']}."
+    return None
 
 
 def _pedacos(texto: str, tamanho: int) -> Iterator[str]:
@@ -134,11 +204,13 @@ def _turno(
             pendentes=conversas.carregar_pendentes(s, conversa_id),
         )
         eventos: list[EventoApp] = []
+        aviso_fixo: str | None = None  # se o LLM falhar depois de uma ação concluída
         if clique is not None:
             token, pendente, decisao = clique
             ctx.pendentes[token] = pendente
             if decisao == "confirmar":
                 resultado = confirmar_acao(ctx, token)
+                aviso_fixo = aviso_da_acao(resultado)
                 eventos = [evento_de_confirmacao([resultado])]
                 emitir(
                     "acao",
@@ -163,6 +235,8 @@ def _turno(
             emitir(evento, dados)
 
         resposta = agente.responder(ctx, historico, texto, eventos, observador=observar)
+        if aviso_fixo is not None and resposta.erro in ("erro_llm", "timeout"):
+            resposta = dataclasses.replace(resposta, texto=aviso_fixo)
         if texto is not None:
             conversas.registrar(s, conversa_id, "usuario", resposta.historico[-2]["content"])
         else:
@@ -226,6 +300,7 @@ def _stream(**turno: Any) -> StreamingResponse:
             log.error("falha no turno do chat: %s", type(erro).__name__)
             emitir("fim", {"erro": "erro_interno"})
         finally:
+            turnos.liberar(turno["conversa_id"])  # a rota ocupou a conversa antes do turno
             fila.put(None)
 
     threading.Thread(target=trabalho, daemon=True).start()
@@ -246,6 +321,12 @@ def _stream(**turno: Any) -> StreamingResponse:
 
 def _conversa_inexistente() -> JSONResponse:
     return erro_json(404, "conversa_inexistente", "Conversa não encontrada.")
+
+
+def _turno_em_andamento() -> JSONResponse:
+    return erro_json(
+        409, "turno_em_andamento", "A Léia ainda está respondendo. Espere a resposta terminar."
+    )
 
 
 @router.post("", status_code=201)
@@ -284,6 +365,8 @@ def mensagem(
         return erro_json(
             429, "limite_diario", "Você atingiu o limite de mensagens de hoje. Volte amanhã."
         )
+    if not turnos.ocupar(conversa_id):
+        return _turno_em_andamento()
     return _stream(
         fabrica=fabrica,
         agente=agente,
@@ -310,8 +393,11 @@ def confirmacao(
 ) -> StreamingResponse | JSONResponse:
     if conversas.obter(session, conversa_id, conta.id) is None:
         return _conversa_inexistente()
+    if not turnos.ocupar(conversa_id):  # antes de reivindicar: o token não se perde no 409
+        return _turno_em_andamento()
     pendente = conversas.reivindicar(session, conversa_id, conta.id, confirmacao_id)
     if pendente is None:
+        turnos.liberar(conversa_id)
         return erro_json(404, "confirmacao_inexistente", "Não há ação pendente com esse código.")
     return _stream(
         fabrica=fabrica,
@@ -322,4 +408,43 @@ def confirmacao(
         usuario_id=conta.id,
         texto=None,
         clique=(confirmacao_id, pendente, corpo.decisao),
+    )
+
+
+@router.post("/{conversa_id}/acoes", response_model=None)
+def acao_do_cartao(
+    conversa_id: int,
+    corpo: AcaoIn,
+    conta: Annotated[Conta, Depends(usuario_atual)],
+    session: Annotated[Session, Depends(get_session)],
+    fabrica: Annotated[Fabrica, Depends(get_fabrica_sessao)],
+    agente: Annotated[Agente, Depends(get_agente)],
+    encoder: Annotated[Encoder, Depends(get_encoder)],
+    reranker: Annotated[Reranker | None, Depends(get_reranker)],
+) -> StreamingResponse | JSONResponse:
+    """Locar/reservar pelo cartão do livro no chat, com a resposta da Léia na conversa.
+
+    O cartão já fez a confirmação em duas etapas; aqui a ação segue o mesmo caminho do botão
+    Confirmar (serviço valida a regra, o agente recebe um `EventoApp`, nunca texto).
+    """
+    if conversas.obter(session, conversa_id, conta.id) is None:
+        return _conversa_inexistente()
+    if not turnos.ocupar(conversa_id):
+        return _turno_em_andamento()
+    pendente = AcaoPendente(
+        usuario_id=conta.id,
+        ferramenta=corpo.acao,
+        argumentos={"livro_id": corpo.livro_id},
+        resumo=f"{corpo.acao} pelo cartão do livro",
+        criada_em=datetime.now(UTC),
+    )
+    return _stream(
+        fabrica=fabrica,
+        agente=agente,
+        encoder=encoder,
+        reranker=reranker,
+        conversa_id=conversa_id,
+        usuario_id=conta.id,
+        texto=None,
+        clique=(secrets.token_urlsafe(16), pendente, "confirmar"),
     )

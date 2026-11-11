@@ -643,6 +643,18 @@ def executar_caso(
     )
 
 
+def casos_instaveis(resultados: list[ResultadoCaso]) -> dict[str, str]:
+    """Com repetições: casos que passaram em umas e falharam em outras, como "passou/total".
+
+    O LLM não tem temperatura fixa; uma rodada só pode aprovar ou reprovar por sorte.
+    """
+    contagem: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    for r in resultados:
+        contagem[r.id][0] += int(r.passou)
+        contagem[r.id][1] += 1
+    return {i: f"{p}/{n}" for i, (p, n) in contagem.items() if 0 < p < n}
+
+
 def resumir(resultados: list[ResultadoCaso]) -> dict[str, dict[str, Any]]:
     por_categoria: dict[str, list[ResultadoCaso]] = defaultdict(list)
     for r in resultados:

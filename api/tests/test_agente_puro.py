@@ -4,7 +4,18 @@ from leia_api.agente import carregar_prompt, parse_argumentos, titulos_sem_orige
 from leia_api.config import Settings
 
 
-@pytest.mark.parametrize("versao", ["v1", "v2"])
+def test_prompt_v4_candidato_soma_as_regras_da_sessao_de_teste_a_v3() -> None:
+    v3, v4 = carregar_prompt("v3"), carregar_prompt("v4")
+    for linha in v3.splitlines():
+        assert linha in v4  # nada da v3 se perde
+    assert "trecho de sinopse do evento" in v4  # locação concluída comenta o livro
+    assert "use só a sinopse que a ferramenta devolveu" in v4
+    assert "reservar) é só para livro sem exemplar livre" in v4
+    assert "livros de programação ou tecnologia" in v4
+    assert Settings().prompt_versao == "v4"  # adotada: gate no Haiku 54/55 vs v2 46/55 (diário 5.7)
+
+
+@pytest.mark.parametrize("versao", ["v1", "v2", "v4"])
 def test_prompt_traz_as_regras_do_plano(versao: str) -> None:
     p = carregar_prompt(versao)
 
@@ -47,11 +58,11 @@ def test_prompt_v3_candidato_nao_perde_as_regras_da_v2() -> None:
     assert v3.endswith(secoes_v2)  # tudo a partir de "Como você trabalha" é idêntico
     assert "buscar_livros" in v3 and "188" in v3  # tema amplo busca; sofrimento indica apoio
     assert "ainda não foi treinada" in v3
-    assert Settings().prompt_versao == "v2"  # candidato: não é o padrão até passar no gate
+    assert Settings().prompt_versao != "v3"  # v3 nunca virou padrão: foi absorvida pela v4
 
 
 def test_configuracao_seleciona_a_versao_do_prompt() -> None:
-    assert Settings().prompt_versao == "v2"  # v2 passou no gate da suíte do agente (46/48 vs 42/48)
+    assert Settings().prompt_versao == "v4"  # v4 passou no gate da suíte do agente (diário 5.7)
     assert Settings(prompt_versao="v1").prompt_versao == "v1"
 
 

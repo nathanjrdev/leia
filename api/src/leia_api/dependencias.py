@@ -48,9 +48,14 @@ def get_reranker() -> Reranker | None:
 
 
 def aquecer_llm() -> None:
-    """Deixa o cliente de LLM pronto antes da 1ª mensagem (o import do litellm é lento)."""
+    """Deixa o cliente de LLM pronto antes da 1ª mensagem (o import do litellm é lento).
+
+    Também confere a chave do provedor: sem ela a API não sobe (erro claro na subida, em vez de
+    um 401 na primeira mensagem do leitor).
+    """
     if settings.modo_teste:
         return
+    settings.exigir_chave_do_modelo()
     llm.aquecer()
 
 

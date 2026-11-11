@@ -161,6 +161,18 @@ def test_buscar_livros_usa_reranker_e_registra_ids_vistos(session: Session) -> N
     json.dumps(res)
 
 
+def test_buscar_livros_traz_as_paginas_para_comparar_tamanho(session: Session) -> None:
+    livro = _livro(session, palavra="quasarpaginas")
+    session.get(Livro, livro).paginas = 180  # type: ignore[union-attr]
+    session.commit()
+    ctx = _ctx(session, _usuario(session))
+
+    res = executar(ctx, "buscar_livros", {"consulta": "quasarpaginas"})
+
+    # "algo mais curto" se resolve com a busca, sem detalhar livro por livro
+    assert res["resultados"][0]["paginas"] == 180
+
+
 def test_buscar_livros_filtra_apenas_disponiveis(session: Session) -> None:
     sem_exemplar = _livro(session, exemplares=0, palavra="nebulosaomega")
     com_exemplar = _livro(session, exemplares=1, palavra="nebulosaomega")
@@ -261,6 +273,19 @@ def test_confirmar_executa_a_acao_com_o_usuario_da_sessao(session: Session) -> N
     assert session.query(Locacao).filter_by(usuario_id=u).count() == 1
     # token de uso único
     assert confirmar_acao(ctx, pendente["confirmacao_id"])["erro"] == "confirmacao_inexistente"
+
+
+def test_locacao_confirmada_traz_a_sinopse_para_a_leia_comentar(session: Session) -> None:
+    u, livro = _usuario(session), _livro(session, palavra="faroleiros")
+    sem_sinopse = _livro(session)
+    ctx = _ctx(session, u)
+    ctx.livros_vistos.update({livro, sem_sinopse})
+
+    com = confirmar_acao(ctx, executar(ctx, "locar", {"livro_id": livro})["confirmacao_id"])
+    sem = confirmar_acao(ctx, executar(ctx, "locar", {"livro_id": sem_sinopse})["confirmacao_id"])
+
+    assert com["sinopse"] == "Uma história sobre faroleiros."
+    assert "sinopse" not in sem
 
 
 def test_confirmacao_de_outro_usuario_nao_vale(session: Session) -> None:

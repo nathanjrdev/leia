@@ -18,7 +18,6 @@ zera antes de cada cenário (use --manter-estado para não zerar).
 
 import argparse
 import json
-import os
 import re
 import sys
 import time
@@ -40,11 +39,6 @@ from leia_api.models import Usuario
 
 RAIZ = Path(__file__).resolve().parents[3]
 SUFIXO_FICTICIO = "@leia.example"
-CHAVES_POR_PROVEDOR = {
-    "gemini": "GEMINI_API_KEY",
-    "groq": "GROQ_API_KEY",
-    "anthropic": "ANTHROPIC_API_KEY",
-}
 
 CLIENTE_SYSTEM = """Você simula um leitor de uma biblioteca, conversando com a bibliotecária \
 virtual Léia, apenas para teste.
@@ -104,25 +98,12 @@ CENARIOS = [
 ]
 
 
-def carregar_env(caminho: Path) -> None:
-    """Exporta o .env para os.environ (o Settings não faz isso e o LiteLLM lê de lá)."""
-    if not caminho.exists():
-        return
-    for linha in caminho.read_text(encoding="utf-8").splitlines():
-        linha = linha.strip()
-        if not linha or linha.startswith("#") or "=" not in linha:
-            continue
-        chave, valor = linha.split("=", 1)
-        valor = valor.strip().strip('"').strip("'")
-        if valor:
-            os.environ.setdefault(chave.strip(), valor)
-
-
-def exigir_chave() -> None:
-    provedor = settings.leia_model.split("/")[0]
-    variavel = CHAVES_POR_PROVEDOR.get(provedor)
-    if variavel and not os.environ.get(variavel):
-        sys.exit(f"{variavel} vazia. Preencha no .env da raiz ({RAIZ / '.env'}).")
+def exigir_chave() -> str | None:
+    """Chave do provedor do LEIA_MODEL, do Settings (a mesma fonte da API); sai com aviso claro."""
+    try:
+        return settings.exigir_chave_do_modelo()
+    except ValueError as erro:
+        sys.exit(str(erro))
 
 
 _FIM_FINAL = re.compile(r"\s*\bFIM\b[\s.!]*$")
@@ -154,6 +135,7 @@ def simular_leitor(system: str, turnos: list[dict[str, str]]) -> str:
                 model=settings.leia_model,
                 messages=[{"role": "system", "content": system}, *turnos],
                 timeout=60,
+                api_key=settings.chave_do_modelo(),
             )
         except RateLimitError:
             if tentativa == 2:
@@ -385,15 +367,14 @@ def main(argv: list[str] | None = None) -> None:
             f"Só usuários fictícios ({SUFIXO_FICTICIO}): o plano grátis do Gemini usa os dados."
         )
 
-    carregar_env(RAIZ / ".env")
-    exigir_chave()
+    chave = exigir_chave()
 
     print("Carregando modelos...", flush=True)
     from leia_api.modelos import CrossEncoderReranker, EncoderST
 
     encoder = EncoderST()
     reranker: Reranker | None = None if args.sem_reranker else CrossEncoderReranker()
-    agente = Agente(ClienteLiteLLM(), ConfigAgente.da_config())
+    agente = Agente(ClienteLiteLLM(settings.leia_model, chave), ConfigAgente.da_config())
     regras = RegrasLocacao.da_config()
     pasta = RAIZ / "evals" / "resultados" / "conversas"
 

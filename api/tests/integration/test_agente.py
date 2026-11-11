@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine, select, text
 from sqlalchemy.orm import Session
 
 from leia_api.agente import (
@@ -496,6 +496,69 @@ def test_metricas_registram_a_chamada_ao_llm_que_falhou(session: Session) -> Non
     assert len(res.metricas.chamadas_llm) == 1
     c = res.metricas.chamadas_llm[0]
     assert c.erro == "erro_llm" and c.latencia_ms == 1000 and c.tokens_entrada is None
+    assert c.causa == "RuntimeError"  # o tipo, nunca a mensagem do provedor
+
+
+def test_resposta_com_titulos_demais_e_refeita_com_no_maximo_o_limite(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(5)]
+    longa = "Sugiro: " + ", ".join(f"“{t}”" for t in livros) + "."
+    curta = "Sugiro: " + ", ".join(f"“{t}”" for t in livros[:3]) + ". Posso mostrar outros."
+    llm = LLMFalso(_fala(longa), _fala(curta))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "me recomenda 10 livros")
+
+    assert res.texto == curta and res.erro is None
+    assert res.metricas.regeracoes == 1
+    correcao = llm.chamadas[1]["mensagens"][-1]["content"]
+    assert "5 títulos" in correcao and "no máximo 3" in correcao
+
+
+def test_titulos_demais_de_novo_apos_refazer_seguem_sem_virar_erro(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(4)]
+    longa = " ".join(f"“{t}”" for t in livros)
+    llm = LLMFalso(_fala(longa), _fala(longa))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "quero 4")
+
+    # os títulos são todos do acervo: uma lista longa não vira mensagem de erro
+    assert res.texto == longa and res.erro is None
+
+
+def test_limite_de_titulos_conta_titulos_distintos(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(3)]
+    texto = " ".join(f"“{t}”" for t in livros) + f" e de novo “{livros[0]}”."
+    llm = LLMFalso(_fala(texto))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "três livros")
+
+    assert res.texto == texto and res.metricas.regeracoes == 0
+
+
+class _ErroDoProvedor(Exception):
+    status_code = 429
+
+
+def test_causa_do_erro_llm_leva_o_status_http_sem_a_mensagem(session: Session) -> None:
+    agente = Agente(
+        LLMFalso(_ErroDoProvedor("RESOURCE_EXHAUSTED sk-secreta")),
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "oi")
+
+    assert res.metricas.chamadas_llm[0].causa == "_ErroDoProvedor:429"
 
 
 def test_auditoria_leva_os_tokens_da_chamada_que_pediu_a_ferramenta(session: Session) -> None:

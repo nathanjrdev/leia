@@ -5,10 +5,15 @@ fora da cobertura, como os adaptadores de modelos do Hugging Face. O modelo vem 
 `settings.leia_model` (LEIA_MODEL), então trocar de provedor não muda código.
 """
 
+import os
 from collections.abc import Callable
 from typing import Any
 
-from leia_api.agente import (
+# Em modo DEV (o padrão) o LiteLLM procura um .env subindo pelas pastas ao ser importado. A
+# chave aqui é explícita (vem do Settings), então essa busca só esconderia erro de configuração.
+os.environ.setdefault("LITELLM_MODE", "PRODUCTION")
+
+from leia_api.agente import (  # noqa: E402 - o modo do LiteLLM tem de vir antes de qualquer import dele
     CallLLM,
     ChamadaFerramenta,
     Mensagem,
@@ -16,12 +21,15 @@ from leia_api.agente import (
     Uso,
     parse_argumentos,
 )
-from leia_api.config import settings
+from leia_api.config import settings  # noqa: E402
 
 
 class ClienteLiteLLM:
-    def __init__(self, modelo: str = settings.leia_model) -> None:
-        self._modelo = modelo
+    """`chave` vai em cada chamada (`api_key`); None deixa o LiteLLM decidir (modelo local)."""
+
+    def __init__(self, modelo: str | None = None, chave: str | None = None) -> None:
+        self._modelo = modelo or settings.leia_model
+        self._chave = chave
 
     def completar(
         self, mensagens: list[Mensagem], ferramentas: list[dict[str, Any]], timeout: float
@@ -35,6 +43,7 @@ class ClienteLiteLLM:
                 messages=mensagens,
                 tools=ferramentas,
                 timeout=timeout,
+                api_key=self._chave,
             )
         except Timeout as erro:
             raise TimeoutError(str(erro)) from erro
@@ -65,6 +74,7 @@ class ClienteLiteLLM:
                 messages=mensagens,
                 tools=ferramentas,
                 timeout=timeout,
+                api_key=self._chave,
                 stream=True,
                 stream_options={"include_usage": True},
             )
@@ -110,4 +120,5 @@ def aquecer() -> None:
 
 
 def cliente_padrao() -> CallLLM:
-    return ClienteLiteLLM()
+    """Cliente do `LEIA_MODEL` com a chave do Settings (falha claro se ela faltar)."""
+    return ClienteLiteLLM(settings.leia_model, settings.exigir_chave_do_modelo())

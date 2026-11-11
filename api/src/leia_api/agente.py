@@ -107,6 +107,17 @@ def titulos_sem_origem(texto: str, permitidos: set[str]) -> list[str]:
     return sem_origem
 
 
+def titulos_citados(texto: str) -> list[str]:
+    """Títulos distintos citados entre aspas, na ordem (mesma convenção de `titulos_sem_origem`)."""
+    vistos: dict[str, str] = {}
+    for achado in _TRECHO_ENTRE_ASPAS.finditer(texto):
+        trecho = next(g for g in achado.groups() if g is not None).strip()
+        n = _normalizar(trecho)
+        if n and len(n.split()) <= _MAX_PALAVRAS_TITULO:
+            vistos.setdefault(n, trecho)
+    return list(vistos.values())
+
+
 _FECHA_ASPAS = {"“": "”", '"': '"', "«": "»"}
 _MAX_TRECHO_ENTRE_ASPAS = 200  # o mesmo limite de `_TRECHO_ENTRE_ASPAS`
 
@@ -202,6 +213,7 @@ class ConfigAgente:
     timeout_turno: float
     max_regeracoes: int
     transmitir: bool = True  # streaming de tokens quando o cliente LLM e a API suportam
+    max_titulos: int = 3  # títulos distintos por resposta; acima disso, refaz uma vez
 
     @classmethod
     def da_config(cls, config: Settings = settings) -> "ConfigAgente":
@@ -211,6 +223,7 @@ class ConfigAgente:
             timeout_chamada=config.llm_timeout_segundos,
             timeout_turno=config.turno_timeout_segundos,
             max_regeracoes=config.max_regeracoes_grounding,
+            max_titulos=config.max_titulos_por_resposta,
             transmitir=config.stream_tokens,
         )
 
@@ -248,6 +261,15 @@ class ChamadaLLMMedida:
     tokens_saida: int | None
     ferramentas: int = 0  # quantas ferramentas a resposta pediu
     erro: str | None = None  # timeout | erro_llm
+    # Só para o log: tipo da exceção e status HTTP (ex.: "RateLimitError:429"). Nunca a
+    # mensagem do provedor, que pode trazer chave ou texto do leitor.
+    causa: str | None = None
+
+
+def _causa(erro: Exception) -> str:
+    status = getattr(erro, "status_code", None)
+    nome = type(erro).__name__
+    return f"{nome}:{status}" if isinstance(status, int) else nome
 
 
 def _soma(valores: list[int | None]) -> int | None:
@@ -359,8 +381,10 @@ class Agente:
         except TimeoutError:
             falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="timeout")
             return {"texto": MSG_TIMEOUT, "erro": "timeout", "llm": [*e["llm"], falha]}
-        except Exception:  # noqa: BLE001 - detalhes do provedor não chegam ao usuário
-            falha = ChamadaLLMMedida(_ms(inicio, self._cronometro()), None, None, erro="erro_llm")
+        except Exception as exc:  # noqa: BLE001 - detalhes do provedor não chegam ao usuário
+            falha = ChamadaLLMMedida(
+                _ms(inicio, self._cronometro()), None, None, erro="erro_llm", causa=_causa(exc)
+            )
             return {"texto": MSG_ERRO_LLM, "erro": "erro_llm", "llm": [*e["llm"], falha]}
         medida = ChamadaLLMMedida(
             latencia_ms=_ms(inicio, self._cronometro()),
@@ -465,7 +489,7 @@ class Agente:
             return {"texto": MSG_VAZIA, "erro": "resposta_vazia"}
         sem_origem = titulos_sem_origem(texto, _titulos_vistos(e["ctx"]))
         if not sem_origem:
-            return {"texto": texto}
+            return self._limitar_titulos(e, texto)
         if e["regeracoes"] < self._config.max_regeracoes:
             if e["observador"] is not None:  # o texto inválido nunca chega à tela
                 if e["parcial"]:  # apaga o que o streaming já mostrou dessa resposta
@@ -486,6 +510,33 @@ class Agente:
                 "texto": None,
             }
         return {"texto": MSG_GROUNDING, "erro": "grounding"}
+
+    def _limitar_titulos(self, e: _Estado, texto: str) -> dict[str, Any]:
+        """Mais títulos do que a regra permite: pede para refazer uma vez.
+
+        Os títulos já passaram pelo grounding (são do acervo); se o modelo insistir, a resposta
+        segue como está, porque uma lista longa não justifica trocar tudo por uma mensagem de erro.
+        """
+        citados = titulos_citados(texto)
+        limite = self._config.max_titulos
+        if len(citados) <= limite or e["regeracoes"] >= self._config.max_regeracoes:
+            return {"texto": texto}
+        if e["observador"] is not None:  # a lista longa não fica na tela
+            if e["parcial"]:
+                e["observador"]("descartar", {})
+            e["observador"]("etapa", {"etapa": "revisando"})
+        correcao: Mensagem = {
+            "role": "user",
+            "content": (
+                f"[Verificação automática] Sua resposta citou {len(citados)} títulos. Reescreva "
+                f"citando no máximo {limite} e ofereça mostrar outros depois."
+            ),
+        }
+        return {
+            "mensagens": [*e["mensagens"], correcao],
+            "regeracoes": e["regeracoes"] + 1,
+            "texto": None,
+        }
 
     def _depois_do_grounding(self, e: _Estado) -> str:
         return "modelo" if e["texto"] is None else "fim"

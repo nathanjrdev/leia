@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from leia_api import dependencias
 from leia_api.config import settings
@@ -44,6 +45,9 @@ def test_aquecer_llm_importa_o_cliente_sem_chamar_o_provedor(
     vistas: list[str] = []
     monkeypatch.setattr(llm, "aquecer", lambda: vistas.append("import"))
     monkeypatch.setattr(settings, "modo_teste", False)
+    # a chave vem do Settings; sem ela o aquecimento falha (test_config_chaves.py)
+    monkeypatch.setattr(settings, "leia_model", "gemini/gemini-flash-lite-latest")
+    monkeypatch.setattr(settings, "gemini_api_key", SecretStr("g-teste"))
     dependencias.aquecer_llm()
     assert vistas == ["import"]
 

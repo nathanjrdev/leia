@@ -57,6 +57,7 @@ class ResultadoBusca:
     livres: int
     fila: int
     score: float
+    paginas: int | None = None  # para comparar tamanho sem detalhar cada livro
 
 
 def fundir_rrf[T: Hashable](listas: Sequence[Sequence[T]], k: int = RRF_K) -> list[tuple[T, float]]:
@@ -284,6 +285,7 @@ def buscar_livros(
             livres=disponibilidade.get(i, (0, 0))[0],
             fila=disponibilidade.get(i, (0, 0))[1],
             score=pontuacao[i],
+            paginas=livros[i].paginas,
         )
         for i in ids[:limite]
     ]

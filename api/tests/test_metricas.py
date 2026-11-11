@@ -70,6 +70,22 @@ def test_tokens_desconhecidos_somam_como_nulos() -> None:
     assert r["tokens_entrada"] is None and r["tokens_saida"] is None
 
 
+def test_resumo_leva_a_causa_das_falhas_do_llm() -> None:
+    m = MetricasTurno(
+        latencia_ms=10,
+        chamadas_llm=[
+            ChamadaLLMMedida(10, None, None, erro="erro_llm", causa="RateLimitError:429"),
+        ],
+        regeracoes=0,
+    )
+    r = resumo_do_turno(m, [], total_ms=12, origem="mensagem", erro="erro_llm", conversa_id=1)
+    assert r["llm_causas"] == ["RateLimitError:429"]
+    sem_falha = resumo_do_turno(
+        _metricas(), [], total_ms=1, origem="mensagem", erro=None, conversa_id=1
+    )
+    assert sem_falha["llm_causas"] == []
+
+
 def test_registrar_turno_loga_uma_linha_json(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO, logger="leia_api.metricas"):
         registrar_turno({"evento": "turno", "total_ms": 3})

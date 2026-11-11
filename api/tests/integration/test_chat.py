@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session
 
-from leia_api import sessao
+from leia_api import chat, sessao
 from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM, Uso
 from leia_api.canal import AVISO_IMITACAO
 from leia_api.chat import _cartoes_citados
@@ -578,6 +578,132 @@ def test_cancelar_nao_executa_e_consome_o_token(api: TestClient, engine: Engine)
     assert next(d for e, d in _sse(r) if e == "acao")["decisao"] == "cancelar"
     assert _locacoes_ativas(engine, uid) == 0
     assert _agir(api, conversa, confirmacao, "confirmar").status_code == 404
+
+
+# ---------- um turno por vez na mesma conversa ----------
+
+
+def test_segundo_turno_na_mesma_conversa_enquanto_o_primeiro_roda_e_409(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(_fala("Oi!"), _fala("Oi de novo!"))
+    conversa = _conversa(api)
+    assert chat.turnos.ocupar(conversa)  # simula o 1º turno ainda rodando
+
+    r = _falar(api, conversa, "oi")
+    assert r.status_code == 409 and r.json()["erro"] == "turno_em_andamento"
+    assert _agir(api, conversa, "qualquer", "confirmar").status_code == 409
+
+    chat.turnos.liberar(conversa)
+    assert _sse(_falar(api, conversa, "oi"))[-1] == ("fim", {"erro": None})
+    assert not chat.turnos.ocupada(conversa)  # o turno libera a conversa ao terminar
+    assert _sse(_falar(api, conversa, "oi"))[-1] == ("fim", {"erro": None})
+
+
+def test_turno_que_falha_tambem_libera_a_conversa(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(RuntimeError("cota"))
+    conversa = _conversa(api)
+
+    _falar(api, conversa, "oi")
+
+    assert not chat.turnos.ocupada(conversa)
+
+
+# ---------- ação pelo cartão do livro (locar/reservar sem proposta do agente) ----------
+
+
+def _acao(client: TestClient, conversa: int, corpo: dict[str, Any]) -> Any:
+    return client.post(f"/conversas/{conversa}/acoes", json=corpo)
+
+
+def test_locar_pelo_cartao_executa_e_a_leia_responde_no_chat_com_a_sinopse(
+    api: TestClient, engine: Engine
+) -> None:
+    uid, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, titulo = _livro(engine, "quasarcartao")
+    llm = _agente(_fala(f"Prontinho, “{titulo}” é seu até a data. Boa leitura!"))
+    conversa = _conversa(api)
+
+    r = _acao(api, conversa, {"acao": "locar", "livro_id": livro_id})
+
+    assert r.status_code == 200
+    eventos = _sse(r)
+    acao = next(d for e, d in eventos if e == "acao")
+    assert acao == {"decisao": "confirmar", "ok": True, "erro": None}
+    assert titulo in _na_tela(eventos)
+    assert eventos[-1] == ("fim", {"erro": None})
+    assert _locacoes_ativas(engine, uid) == 1
+    sistema = llm.chamadas[0][0]["content"]
+    assert "concluída com sucesso" in sistema and "Uma história sobre quasarcartao." in sistema
+    historico = api.get(f"/conversas/{conversa}/mensagens").json()
+    assert [m["papel"] for m in historico] == ["assistente"]  # o evento não aparece
+
+
+def test_acao_pelo_cartao_que_a_regra_nega_chega_ao_agente_como_falha(
+    api: TestClient, engine: Engine
+) -> None:
+    uid, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, _ = _livro(engine, "quasarfila")
+    llm = _agente(_fala("Esse livro tem exemplar livre, então não precisa de fila."))
+    conversa = _conversa(api)
+
+    eventos = _sse(_acao(api, conversa, {"acao": "reservar", "livro_id": livro_id}))
+
+    assert next(d for e, d in eventos if e == "acao")["ok"] is False
+    assert "não foi concluída" in llm.chamadas[0][0]["content"]
+    assert _locacoes_ativas(engine, uid) == 0
+
+
+def test_falha_do_llm_depois_da_locacao_mostra_o_aviso_fixo_no_chat(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, titulo = _livro(engine, "quasarqueda")
+    _agente(RuntimeError("cota"))
+    conversa = _conversa(api)
+
+    eventos = _sse(_acao(api, conversa, {"acao": "locar", "livro_id": livro_id}))
+
+    texto = _na_tela(eventos)
+    assert titulo in texto and "Devolução até" in texto and "Boa leitura" in texto
+    assert "Tive um problema" not in texto  # a locação foi feita: não parece falha
+    assert eventos[-1] == ("fim", {"erro": "erro_llm"})
+
+
+@pytest.mark.parametrize(
+    "corpo",
+    [
+        {"acao": "devolver", "livro_id": 1},
+        {"acao": "locar"},
+        {"acao": "locar", "livro_id": 0},
+        {"acao": "locar", "livro_id": 1, "usuario_id": 1},
+    ],
+)
+def test_acao_pelo_cartao_invalida_e_422(
+    api: TestClient, engine: Engine, corpo: dict[str, Any]
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    conversa = _conversa(api)
+    assert _acao(api, conversa, corpo).status_code == 422
+
+
+def test_acao_pelo_cartao_em_conversa_alheia_e_404(api: TestClient, engine: Engine) -> None:
+    _, dona = _usuario(engine)
+    _, intruso = _usuario(engine)
+    livro_id, _ = _livro(engine, "quasaralheia")
+    _logar(api, dona)
+    conversa = _conversa(api)
+    _logar(api, intruso)
+
+    assert _acao(api, conversa, {"acao": "locar", "livro_id": livro_id}).status_code == 404
 
 
 def _sem_transformacao(resposta: Any) -> None:
