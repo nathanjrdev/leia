@@ -96,7 +96,7 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 | 10/11 | SSE com `no-transform` (o proxy do Next comprimia e acumulava), E2E do andamento, animação do aviso | pelo Next com gzip: `content-encoding` gzip → ausente; 2 → 14 blocos; navegador: "Pensando…" o turno todo → Pensando, Buscando, Escrevendo e texto crescendo | **adotado**; suíte do agente não rodada (nada do que o LLM recebe mudou; ver 5.4.1) |
 
 | 10–11/11 | Sessão de teste manual (5.5), chave do LLM explícita (5.6) e gate no Haiku (5.7): prompt v4 + limite de títulos no código | Haiku: v2 46/55 → v4 54/55; grounding 9 → 10/10, segurança 14 → 16/16 (com seguranca-012 corrigido), tarefa 9 → 14/14 | **v4 adotada** |
-| 11/11 | Falha de ação na conversa e prompt v5 (5.8); caso de regressão do teste manual (5.9) | Haiku: 54/55 (v4 54/55), sem categoria abaixo da meta; tarefa-015 passa 3/3 na v4 e na v5 (não reproduz o defeito) | **v5 adotada** |
+| 11/11 | Falha de ação na conversa e prompt v5 (5.8); casos de regressão e turno `cartao` no runner (5.9) | Haiku: 54/55 (v4 54/55), sem categoria abaixo da meta; tarefa-016 (cartão) detecta o defeito "não vou tentar" (1/3 no código antigo, 5/5 no novo); a autocorreção segue sem reproduzir (0 em 11) | **v5 adotada** |
 
 **Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
 
@@ -418,22 +418,32 @@ A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as l
 
 **Decisão.** v5 **adotada** (`prompt_versao="v5"`) e canal novo mantido: nenhuma categoria abaixo da meta, grounding e segurança em 100%, e a única queda é de um caso que oscila igual na v4. `agente.json` = rodada da v5.
 
-### 5.9 Caso de regressão da conversa 69: tarefa-015 (11/11/2026, branch `docs/teste-manual-como-fonte-de-casos`)
+### 5.9 Casos de regressão da conversa 69 e o turno `cartao` no runner (11/11/2026, branch `docs/teste-manual-como-fonte-de-casos`)
 
-**Por quê.** A 5.8 deixou a falsa autocorreção ("desconsidere essa sugestão… não veio de uma busca") sem caso na suíte. Pela regra "defeito do teste manual vira caso", escrevi tarefa-015: recomenda um romance (busca), pede para locar o Dom Casmurro (proposta), confirma com 3 locações já ativas. Exige: ferramentas de ação proibidas, texto que fale do limite e nenhuma das frases "não vou tentar", "não vou propor", "desconsidere", "não veio de uma busca/consulta". Categoria `tarefa` (tag `grounding`), e não `grounding`, para não pôr a meta de 100% de grounding nas mãos de um caso novo e sem histórico de estabilidade.
+**Por quê.** A 5.8 deixou a falsa autocorreção ("desconsidere essa sugestão… não veio de uma busca") sem caso na suíte. Pela regra "defeito do teste manual vira caso", escrevi dois casos e, no meio do caminho, descobri que o primeiro não alcançava o caminho do defeito.
 
-**Medido (Haiku 5.5, só este caso, 3 repetições por versão, custo ~US$ 0,023 no total).**
+**Tentativa 1: tarefa-015 (botão de uma proposta do modelo).** Recomenda um romance, pede para locar o Dom Casmurro, confirma com 3 locações ativas. A v4 passou **3/3** e a v5 **3/3**: o caso não reproduzia nada. Lendo as respostas, o motivo: para chamar `locar` o modelo precisa do id, então busca o livro de novo no mesmo turno, e o histórico só em texto nunca o deixa sem resultado de ferramenta. A conversa 69 seguiu outro caminho: o clique em **Locar no cartão** (`POST /conversas/{id}/acoes`), em que o servidor executa a ação sem proposta do modelo. O runner só simulava o botão de uma proposta.
 
-| Versão | tarefa-015 |
-| --- | --- |
-| v4 | 3/3 |
-| v5 | 3/3 |
+**Mudança no runner.** Novo tipo de turno `{"cartao": "locar"|"reservar", "livro": "<título>"}` (`avaliacao_agente.py`, `aplicar_cartao` em `cli_conversa.py`). Espelha o `/acoes`: cria a ação pendente, executa `confirmar_acao`, entrega o resultado ao agente como `EventoApp` (bloco de sistema; a mensagem de usuário é a fixa do clique) e marca o livro como visto, porque o cartão só existe para livro que a conversa já mostrou. 5 testes novos (2 de validação do esquema, 3 de integração: sucesso, recusa pela regra com a falha chegando ao agente, livro fora do acervo); TDD, vistos falhar antes.
 
-**O caso NÃO prova que detecta o defeito.** A v4 passou nas 3. Lendo as respostas: o título recomendado antes não reaparece no turno do clique, e o Dom Casmurro é buscado de novo no turno 2 (o modelo precisa do id para chamar `locar`), então o histórico só em texto nunca o deixa sem resultado de ferramenta. A conversa 69 seguiu outro caminho: o clique em **Locar no cartão** (`POST /conversas/{id}/acoes`), em que o servidor executa a ação sem proposta do modelo e a resposta é escrita com títulos de turnos anteriores no histórico. O runner (`avaliacao_agente.py`) só simula o botão de uma proposta (`botao: confirmar|cancelar`), não o clique no cartão.
+**tarefa-016 (cartão, após duas buscas).** "algo leve e curto para ler antes de dormir", "tem mais alguma opção curta?", Locar no cartão de "O menino maluquinho" com 3 locações ativas. Exige: ferramentas de ação proibidas, texto que fale do limite e nenhuma de "não vou tentar", "não vou propor", "desconsidere", "não veio de uma busca/consulta".
 
-**Decisão.** tarefa-015 fica como proteção da recusa por limite depois de recomendação em vários turnos (passa nas duas versões), declarada como **não discriminante** para a autocorreção. A v5 continua adotada pelo que a 5.8 mediu, e a falsa autocorreção segue **sem caso que a reproduza**. Próximo passo, se valer o custo: um tipo de turno `cartao` no runner (`{"cartao": "locar", "livro": "<título>"}`, chamando o mesmo caminho do `/acoes`), um caso com recomendação em turno anterior e um clique recusado, e só então medir v4 contra v5 com k ≥ 5 (o defeito foi espontâneo, então a taxa pode ser baixa).
+**Medido (Haiku 5.5, só estes casos; ~US$ 0,05 no total).**
 
-**NÃO medido.** Qualquer repetição fora de 3 por versão; o caminho do cartão; outros modelos. `agente.json` não muda (rodadas filtradas vão para `agente_parcial.json`).
+| Código e prompt | Caso | Resultado |
+| --- | --- | --- |
+| v4, canal novo | tarefa-015 | 3/3 |
+| v5, canal novo | tarefa-015 | 3/3 |
+| v4, canal novo | tarefa-016 | **5/5** |
+| v4, `canal.py` de antes do conserto (`ecbb2a2`, o código da sessão manual) | tarefa-016 | **1/3**: as 2 falhas com "texto contém «não vou tentar»" |
+
+**O que isso prova.** O caso por cartão **detecta o defeito nº 1** ("Não vou tentar de novo"): falha 2 de 3 no código antigo e passa 5 de 5 no novo. O defeito nº 2 (aviso vermelho duplicado) é da tela, não do texto da Léia: fica coberto pelos testes da web, não pela suíte.
+
+**O que NÃO prova.** A **falsa autocorreção (nº 3) não apareceu em nenhuma** das 11 rodadas da v4 (3 + 5 + 3). Com 0 em 11, a taxa do defeito nesses cenários é baixa (limite superior de 95% em torno de 27%, regra dos três). Logo, **não há como afirmar que a v5 a conserta**: o que a 5.8 mediu é só que a v5 não piora nada. O caso foi escrito depois de ver o resultado, como manda o registro de higiene da seção 3; o `canal.py` antigo foi restaurado e conferido logo depois da rodada.
+
+**Decisão.** tarefa-015 e tarefa-016 ficam na suíte (a 015 protege a recusa por limite depois de recomendação em vários turnos; a 016 protege o caminho do cartão e detecta o defeito nº 1). v5 segue adotada pelo que a 5.8 mediu. A autocorreção continua **sem caso que a reproduza**. Se valer o custo, o passo seguinte é reproduzir a conversa 69 por inteiro (histórico idêntico, mesmos títulos) em vez de um cenário parecido, e repetir com k ≥ 5 por versão.
+
+**NÃO medido.** A v5 no cartão (a 016 só rodou na v4); o defeito nº 3 em qualquer versão; outros modelos; a suíte completa com os dois casos novos (`agente.json` não muda: rodadas filtradas vão para `agente_parcial.json`).
 
 ## 6. Limites conhecidos da medida
 
