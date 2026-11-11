@@ -110,6 +110,10 @@ export function Conversa() {
   // Abertura da conversa em andamento: o efeito pode rodar duas vezes (StrictMode) e não deve
   // criar duas conversas.
   const abertura = useRef<Promise<{ id: number; historico: MensagemHistorico[] }> | null>(null);
+  // A abertura já foi aplicada na tela. Com `cacheComponents`, o Next guarda a rota num <Activity>:
+  // ao voltar (ex.: da ficha do livro) o efeito roda de novo com o estado preservado, e reaplicar
+  // o histórico de quando a conversa abriu apagaria o que foi conversado depois.
+  const aberta = useRef(false);
 
   const comecar = useCallback(async () => {
     const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
@@ -122,6 +126,7 @@ export function Conversa() {
     if (carregando) return;
     if (!logado) {
       abertura.current = null; // outra conta não herda a conversa aberta
+      aberta.current = false;
       return;
     }
     let vivo = true;
@@ -141,7 +146,8 @@ export function Conversa() {
     })();
     abertura.current
       .then(({ id, historico }) => {
-        if (!vivo) return;
+        if (!vivo || aberta.current) return;
+        aberta.current = true;
         setConversaId(id);
         setMensagens(
           historico.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),

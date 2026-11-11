@@ -254,6 +254,58 @@ describe("Conversa", () => {
     expect(criacoes).toHaveLength(1);
   });
 
+  // `cacheComponents` do Next guarda a rota num <Activity>: ao sair, os efeitos são desfeitos; ao
+  // voltar (ex.: da ficha do livro), rodam de novo com o estado preservado. O efeito de abertura
+  // não pode reaplicar o histórico de quando a conversa abriu por cima do que já foi conversado.
+  it("voltar à conversa (rota guardada em Activity) mantém o que já foi conversado", async () => {
+    const { Activity } = await import("react");
+    turno([
+      { evento: "resposta", dados: { texto: "Que tal Neuromancer?" } },
+      {
+        evento: "livros",
+        dados: {
+          livros: [
+            {
+              id: 265,
+              titulo: "Neuromancer",
+              autores: ["William Gibson"],
+              capa_url: null,
+              livres: 1,
+            },
+          ],
+        },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    const tela = render(
+      <Activity mode="visible">
+        <Conversa />
+      </Activity>,
+    );
+    await enviar("um livro da área tech");
+    expect(await screen.findByText("Que tal Neuromancer?")).toBeInTheDocument();
+
+    tela.rerender(
+      <Activity mode="hidden">
+        <Conversa />
+      </Activity>,
+    );
+    tela.rerender(
+      <Activity mode="visible">
+        <Conversa />
+      </Activity>,
+    );
+
+    await new Promise((r) => setTimeout(r, 0)); // deixa a abertura reaplicar, se fosse o caso
+    expect(screen.getByText("um livro da área tech")).toBeInTheDocument();
+    expect(screen.getByText("Que tal Neuromancer?")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Livro: Neuromancer" })).toBeInTheDocument();
+    const criacoes = apiMock.mock.calls.filter(
+      ([c, o]) => c === "/conversas" && (o as { metodo?: string })?.metodo === "POST",
+    );
+    expect(criacoes).toHaveLength(1);
+  });
+
   it("livro sem exemplar livre oferece Reservar, não Locar", async () => {
     turno([
       { evento: "resposta", dados: { texto: "“Sagarana” está emprestado." } },
