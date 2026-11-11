@@ -532,3 +532,88 @@ h3 {
   }
 }
 
+
+/* ------------------------------------------------------------------------------------------
+   Página inicial: a marca em pé na prateleira e a única coreografia de entrada do app
+   (rara: primeira tela). Tudo clicável desde o primeiro quadro; atrasos variados, ~650 ms.
+   ------------------------------------------------------------------------------------------ */
+.marca-grande {
+  display: block;
+  padding: 0 0.25rem;
+  color: var(--rosa);
+  font-size: clamp(5rem, 15vw, 10.5rem);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+}
+
+.inicio-marca .prateleira-livros {
+  padding-bottom: 1.6rem;
+}
+
+.inicio-capa {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .inicio-capa > .livro-capa {
+    transition: transform var(--dur-estado) var(--ease-out);
+  }
+  .inicio-capa:hover > .livro-capa {
+    transform: translateY(-4px);
+  }
+}
+
+/* Chaveiro: pendurado na tábua da primeira prateleira, balanço amortecido (sem loop). */
+.chaveiro {
+  position: absolute;
+  top: calc(50% - 1.4rem);
+  left: 18%;
+  z-index: 1;
+  width: 4.5rem;
+  height: auto;
+  transform-origin: 50% 0;
+  filter: drop-shadow(0 10px 12px var(--sombra));
+}
+
+@keyframes balanco {
+  0% { transform: rotate(8deg); }
+  22% { transform: rotate(-5deg); }
+  44% { transform: rotate(3deg); }
+  66% { transform: rotate(-1.5deg); }
+  84% { transform: rotate(0.6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes sobe {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes pilula {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .inicio-marca {
+    animation: sobe var(--dur-foco) var(--ease-out) both;
+  }
+  .inicio-titulo {
+    animation: sobe var(--dur-camada) var(--ease-out) 80ms both;
+  }
+  .inicio-texto {
+    animation: sobe var(--dur-camada) var(--ease-out) 140ms both;
+  }
+  .inicio-acoes {
+    transform-origin: 0 50%;
+    animation: pilula var(--dur-foco) var(--ease-pilula) 200ms both;
+  }
+  .chaveiro {
+    animation: balanco 1.2s var(--ease-out) both;
+  }
+}
