@@ -74,7 +74,12 @@ Os testes encontram a tela por papel, nome acessível e texto. O redesign manté
 - Pílulas que entram com leve *overshoot* (`cubic-bezier(.2,1.4,.4,1)`).
 - O site é todo desenhado em `<canvas>`, numa tela só.
 
-**O que não vem:** a lagarta, a borboleta, o cursor-folha, o chaveiro, o wordmark "my books" e as capas deles. São obra do autor. Levamos a linguagem (cor, tipo, material, ritmo), nunca personagens ou assets. O Léia continua em HTML acessível, sem canvas.
+**O que não vem:**
+
+- **O bicho animado e o cursor-folha:** a lagarta que come a página, o casulo e a borboleta ficam fora (decisão 6). O site de referência foi feito seguindo um workflow público da autora (@juliadesign4me), e o componente pronto é vendido à parte. Não usamos nenhum dos dois.
+- **Assets da autora:** o wordmark "my books", as capas e o render do chaveiro são obra dela.
+
+Levamos a linguagem (cor, tipo, material, ritmo). O único objeto que entra é um **chaveiro de livros nosso** (decisão 7, seção 11), gerado do zero. O Léia continua em HTML acessível, sem canvas.
 
 **Conceito:** a Léia mostra o acervo numa estante de vidro iluminada. As capas dão a cor da página; a interface é vidro e tipo.
 
@@ -130,6 +135,7 @@ Com isso, `bg-papel-2`, `text-lombada` etc. continuam valendo e tudo recolore de
   - Altura mínima de 44 px.
 - **Selo de disponibilidade:** ponto menta + texto. Indisponível: ponto vazado + texto suave. Atraso: ícone + "Atrasada" em `--alerta`.
 - **Alertas e confirmações:** painel de vidro com ícone. Sai o `border-l-4` de hoje, que o impeccable proíbe acima de 1 px.
+- **Objeto (só na página inicial):** o chaveiro de livros, pendurado na prateleira de vidro como na referência. É uma imagem decorativa (`aria-hidden`, `alt=""`), com `width` e `height` fixos para não deslocar o layout. Se o arquivo faltar, a home funciona sem ele.
 - **Ícones:** um conjunto pequeno de SVGs próprios (check, alerta, seta, busca, fechar, livro), com traço único. Nada de emoji ou glifo no lugar de ícone, e nenhuma lib nova.
 - **Desempenho:** `backdrop-filter` só em superfícies grandes e poucas, nunca um por item de lista. Com `@supports not (backdrop-filter: blur(1px))`, o vidro vira cor sólida.
 - **Proibidos (impeccable):** kicker ou rótulo acima de título, texto em degradê, borda lateral colorida, sombra dura deslocada e números de seção decorativos.
@@ -160,6 +166,7 @@ Com isso, `bg-papel-2`, `text-lombada` etc. continuam valendo e tudo recolore de
 - O wordmark "Léia" se monta com as lombadas.
 - As capas entram na prateleira uma vez, em escalonamento variado com no máximo 300 ms no total.
 - A pílula "Conversar com a Léia" entra com o overshoot da referência. Só aqui, por ser raro.
+- **O chaveiro balança e para:** ao carregar a página, ele dá um balanço amortecido em torno do ponto de pendura (`transform-origin` no topo, `rotate` de no máximo 8° caindo até 0 em ~1,2 s). Passar o ponteiro ou tocar nele dá um balanço curto de novo. Nunca balança em loop, então não precisa de botão de pausa (WCAG 2.2.2). Com movimento reduzido, fica parado.
 
 **Continuidade:**
 
@@ -210,7 +217,7 @@ Com isso, `bg-papel-2`, `text-lombada` etc. continuam valendo e tudo recolore de
 | Tela | Hoje | Depois | Cuidado |
 | --- | --- | --- | --- |
 | **Shell** (layout + Cabeçalho) | Barra creme, links sublinhados | Violeta em tela cheia; barra de vidro; wordmark "Léia"; 3 links em pílula, em minúsculas por CSS, com `aria-current="page"` no atual; Entrar/Sair à direita | Skip link continua o 1º link; `nav` com exatamente 3 `<a>`; o texto "Entrar" fica dentro do `banner` |
-| **Início `/`** | Título, parágrafo e 2 botões | Wordmark grande, a frase atual, duas prateleiras de vidro com capas reais do acervo (`GET /livros?limite=8`, com capas geradas enquanto carrega ou se falhar), pílula rosa "Conversar com a Léia" e pílula de vidro "Ver o catálogo" | Única tela Persuade; passa pelo `copy-lint` e pelo gate da taste-skill; nenhum endpoint novo |
+| **Início `/`** | Título, parágrafo e 2 botões | Wordmark grande, a frase atual, duas prateleiras de vidro com capas reais do acervo (`GET /livros?limite=8`, com capas geradas enquanto carrega ou se falhar), pílula rosa "Conversar com a Léia" e pílula de vidro "Ver o catálogo"; o chaveiro de livros pendurado numa das prateleiras | Única tela Persuade; passa pelo `copy-lint` e pelo gate da taste-skill; nenhum endpoint novo |
 | **Entrar / Cadastrar** | Formulário solto | Painel de vidro centrado; labels visíveis (como hoje); pílula rosa; erro com ícone | `method="post"`, nomes dos campos, "Entrando…"/"Criando…" |
 | **Catálogo** | Lista vertical | Busca grande em vidro; `<select>` e checkbox nativos com estilo de vidro; resultados em prateleiras (grade de capas com título, autor e selo); paginação igual | Continua `<ul>`/`<li>`; o link do livro é o título em texto; não reinventar controles |
 | **Ficha** | Capa + texto | Capa grande sobre prateleira (destino do morph); título display; meta; sinopse em 68ch; selo; ação em pílula; aviso em vidro com ícone | `role="status"` no aviso; heading com o título |
@@ -229,7 +236,7 @@ As estimativas de prazo são de planejamento: o objetivo é ter folga antes de 2
 | **1. Fundação** | 1 | DESIGN.md novo (`/impeccable document`); tokens novos + aliases; Inter no display; tons das capas geradas; tokens de movimento; base do `mobile-native` (`viewport-fit=cover`, `dvh`, tap highlight, `text-size-adjust`) | médio (contraste) | todas as telas violetas sem mudar markup; contrastes da tabela 2.1 conferidos; testes verdes | 13/11 |
 | **2. Primitivos** | 1 | `components/ui/` com `Botao`, `Vidro`, `Prateleira`, `Selo`, `Campo` e ícones; `AcaoComConfirmacao` passa a usar `Botao`, mesma API e mesmos nomes | baixo | `acao.test` e o resto verdes | 14/11 |
 | **3. Shell** | 1 | Cabeçalho e layout | baixo | `cabecalho.test` + E2E verdes | 16/11 |
-| **4. Telas** | 6 | 4a Auth → 4b Catálogo → 4c Ficha (+ spike do morph) → 4d Estante → 4e Início → 4f Conversa (extração, depois restyle) | sobe até alto | cada PR com o checklist da seção 7 | 17–24/11 |
+| **4. Telas** | 6 | 4a Auth → 4b Catálogo → 4c Ficha (+ spike do morph) → 4d Estante → 4e Início (com o chaveiro; o asset é gerado antes, seção 11) → 4f Conversa (extração, depois restyle) | sobe até alto | cada PR com o checklist da seção 7 | 17–24/11 |
 | **5. Movimento** | 1 | Varredura com `find-animation-opportunities`; morph da capa; momento da home; `review-animations` + `animation-performance` no conjunto; teste em celular de verdade (`mobile-native`) | médio | nenhum achado bloqueante do `review-animations` | 25–26/11 |
 | **6. Fechamento** | 1 | `impeccable audit` + `harden` (carregando, vazio, erro) + `polish`; Lighthouse de acessibilidade (meta: manter 100 em conversa e estante); remover aliases; README e DESIGN.md finais | baixo | CI verde; checklist completo | 27/11 |
 
@@ -237,8 +244,9 @@ As estimativas de prazo são de planejamento: o objetivo é ter folga antes de 2
 
 1. Morph da capa (fica crossfade).
 2. Momento da home (fica entrada simples).
-3. Histórico em lombadas (fica lista).
-4. Tema ameixa (o violeta serve nos dois modos).
+3. Chaveiro (a home fica só com as prateleiras).
+4. Histórico em lombadas (fica lista).
+5. Tema ameixa (o violeta serve nos dois modos).
 
 O núcleo (Fases 1–4) não depende de nenhum desses.
 
@@ -270,7 +278,8 @@ O redesign não muda o comportamento do agente nem da busca, então não precisa
 | View Transition + `cacheComponents`/`<Activity>` | Perder a conversa ao voltar da ficha (o último merge corrigiu justamente isso) | Teste manual "voltar da ficha" em cada PR que toca navegação; nada de mexer nas refs `abertura`/`aberta` |
 | Saída animada segura o item no DOM | Teste vê o livro devolvido ainda na lista | Saídas por View Transition (snapshot), DOM muda na hora |
 | Prazo do MVP (29/11) | Redesign compete com o gate | Fases mergeáveis isoladas; lista de corte |
-| Copiar a referência | Problema de autoria | Só linguagem; nenhum personagem, capa ou wordmark do my-book.site |
+| Copiar a referência | Problema de autoria | Só linguagem; nenhum personagem, capa, wordmark ou render do my-book.site; o chaveiro é gerado do zero (seção 11) |
+| Asset do chaveiro com halo ou pesado | Borda branca sobre o violeta; home mais lenta | Conferir a transparência sobre fundo xadrez e sobre o violeta; WebP ≤ 80 KB; sem o asset a home funciona igual |
 | Skills em conflito | Taste-skill troca o violeta; impeccable limita o tracking | Seção 3: o brief vence; regras do impeccable valem nas telas de tarefa |
 | Hook de Stop da taste-skill | Pode travar o fim de uma sessão do Claude Code | Armar o gate só no trabalho da home; `gate.mjs --done` ao encerrar |
 
@@ -283,6 +292,8 @@ O redesign não muda o comportamento do agente nem da busca, então não precisa
 3. **Home:** capas reais do acervo, com capas geradas enquanto carrega ou se a API falhar.
 4. **Skills versionadas:** todas, menos as de app nativo (`write-swift`, `animate-expo`, `apple-design`).
 5. **Marca:** "Léia" com L maiúsculo, também no logotipo. Só os links de navegação ficam em minúsculas (por CSS).
+6. **Bicho animado** (lagarta, casulo, borboleta, cursor-folha): fora.
+7. **Chaveiro de livros:** entra, só na página inicial, como objeto nosso (seção 11).
 
 ---
 
@@ -302,3 +313,29 @@ Tudo vai para `.claude/skills/` + `skills-lock.json`. No repositório, a mídia 
 1. `/impeccable` (carrega PRODUCT.md e DESIGN.md).
 2. `/impeccable hooks on` (detector após cada edição de UI).
 3. Revise os SKILL.md: eles rodam com as permissões do agente.
+
+---
+
+## 11. Asset do chaveiro de livros
+
+**O que é:** um chaveiro de metal com uma pequena pilha de livros, pendurado numa corrente, como objeto 3D pontual sobre o violeta. É desenho nosso, inspirado no tipo de objeto, sem copiar o render do my-book.site.
+
+**Ferramenta:** gerador de imagem, por exemplo o Higgsfield (o mesmo do workflow da referência). O MCP dele se conecta como conector personalizado no Claude, pelo endereço `https://mcp.higgsfield.ai/mcp`; ele não aparece no diretório de conectores. Outra opção é gerar fora e subir o PNG.
+
+**Requisitos** (os mesmos que o workflow pede para os sprites):
+
+- PNG com fundo transparente (canal alfa), sem halo branco.
+- Vista frontal, com a corrente saindo reta para cima: o ponto de pendura vira o `transform-origin`.
+- Metal prateado com luz de estúdio suave. Livros sem texto legível e sem marca.
+- Para a web, WebP com transparência, ≤ 80 KB, em 2× do tamanho exibido. Fica em `web/public/objetos/chaveiro-livros.webp`.
+
+**Prompt de partida:**
+
+> Chrome keychain charm shaped like a small stack of three closed books, hanging from a short silver ball chain with a ring at the top, strict front view, chain perfectly vertical, polished silver metal, soft studio lighting, subtle reflections, no text, no logos, transparent background, photorealistic product render.
+
+**Como conferir:**
+
+1. Abrir sobre fundo xadrez: nada de branco ou xadrez em volta da corrente.
+2. Abrir sobre `#7a0ccf` e sobre `#1b0b2a`: a borda continua limpa.
+3. A corrente sai do centro do topo.
+

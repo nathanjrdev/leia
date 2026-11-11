@@ -78,6 +78,7 @@ Os tons são iguais nos dois temas (a capa é um objeto).
   `--controle`; de texto, sublinhado. Altura mínima 44 px.
 - **Selo de disponibilidade:** ponto menta + texto; indisponível, ponto vazado + texto suave;
   atraso, ícone + "Atrasada".
+- **Objeto:** um chaveiro de livros (asset nosso, `web/public/objetos/`), só na página inicial, pendurado na prateleira. É decorativo (`aria-hidden`); balança amortecido ao carregar e ao toque, nunca em loop; parado com movimento reduzido.
 - **Ícones:** um conjunto pequeno de SVGs próprios, traço único. Nada de emoji ou glifo como ícone.
 - `backdrop-filter` só em superfícies grandes e poucas; sem suporte, o vidro vira `--vidro-solido`.
 - Todo campo tem `<label>` visível. Foco visível com anel `--foco` (rosa).
