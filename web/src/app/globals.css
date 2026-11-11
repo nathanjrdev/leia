@@ -1,59 +1,108 @@
 @import "tailwindcss";
 
-/* Tokens da identidade "sala de leitura" (ver DESIGN.md). Componente nenhum usa hex solto. */
+/* Tokens da identidade "Estante de vidro" (ver DESIGN.md e docs/redesign/plano-estante-de-vidro.md).
+   Componente nenhum usa hex solto. Contrastes (WCAG 2.x) anotados ao lado de cada cor de texto. */
 :root {
-  --papel: #f7f1e6;
-  --papel-2: #efe6d4;
-  --tinta: #1d1a16;
-  --tinta-suave: #5a5147;
-  --linha: #d9ccb3;
-  --controle: #857862; /* borda de campos e botões: 3,5:1 ou mais (WCAG 1.4.11) */
-  --lombada: #1f4d3a;
-  --lombada-texto: #ffffff;
-  --alerta: #8a2a1f;
+  color-scheme: dark; /* os dois fundos são escuros: controles nativos, barras e seleção no escuro */
+
+  /* Violeta (padrão) */
+  --fundo: #7a0ccf;
+  --vidro: rgb(255 255 255 / 0.1);
+  --vidro-solido: #8724d4; /* o mesmo vidro já composto sobre o violeta, para o que fica fixo */
+  --vidro-filete: rgb(255 255 255 / 0.3);
+  --texto: #ffffff; /* 7,6:1 no fundo; 6,5:1 no vidro */
+  --texto-suave: #ecddf8; /* branco 86%: 5,9:1 no fundo; 5,0:1 no vidro */
+  --controle: #ca9eec; /* borda de campo e botão: 3,5:1 no fundo (WCAG 1.4.11) */
+  --rosa: #f7ced7; /* ação principal; como texto: 5,3:1 no fundo, 4,6:1 no vidro */
+  --rosa-texto: #3a0566; /* texto sobre o rosa: 10,6:1 */
+  --menta: #7dffb0; /* disponível e sucesso: 6,0:1 no fundo; 5,2:1 no vidro */
+  --alerta: #ffd6cf; /* erro e atraso, sempre com texto: 5,7:1 no fundo; 4,9:1 no vidro */
+  --sombra: rgb(40 0 70 / 0.35);
+  --foco: var(--rosa);
   --medida: 68ch;
-  /* Capa gerada: tons de encadernação em tecido (objetos, iguais nos dois temas).
-     Letra sobre cada tom: 6,2:1 a 10,5:1. Nenhum é o verde da lombada (acento de ação). */
-  --capa-letra: #f3ead8;
-  --capa-vinho: #6b2430;
-  --capa-marinho: #23344f;
-  --capa-musgo: #3f4a2b;
-  --capa-ocre: #7a4a1c;
-  --capa-ardosia: #3a3f47;
-  --capa-castanho: #4f3426;
+
+  /* Movimento (valores das skills de animação; ver DESIGN.md, Movimento) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-pilula: cubic-bezier(0.2, 1.4, 0.4, 1); /* só a entrada da página inicial */
+  --dur-toque: 120ms;
+  --dur-estado: 200ms;
+  --dur-camada: 300ms;
+  --dur-foco: 450ms;
+
+  /* Capa gerada: tons de cartaz (objetos, iguais nos dois temas), cada um com a sua letra.
+     Letra sobre o tom: 5,2:1 a 14,8:1. */
+  --capa-rosa: #f7ced7;
+  --capa-rosa-letra: #3a0566;
+  --capa-verde: #1e7a3c;
+  --capa-verde-letra: #f2ffe8;
+  --capa-amarelo: #ffd84d;
+  --capa-amarelo-letra: #2b1400;
+  --capa-vermelho: #c81e28;
+  --capa-vermelho-letra: #fff1ee;
+  --capa-creme: #f1ece2;
+  --capa-creme-letra: #1a1a1a;
+  --capa-celeste: #9fd3ff;
+  --capa-celeste-letra: #0b2340;
+
+  /* Aliases da identidade anterior, só durante a migração (Fase 6 remove).
+     Com eles, as classes que os componentes já usam (bg-papel-2, text-lombada…) recolorem
+     sem tocar markup. */
+  --papel: var(--fundo);
+  --papel-2: var(--vidro-solido);
+  --tinta: var(--texto);
+  --tinta-suave: var(--texto-suave);
+  --linha: var(--vidro-filete);
+  --lombada: var(--rosa);
+  --lombada-texto: var(--rosa-texto);
 }
 
+/* Ameixa: o mesmo mundo à noite. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --papel: #1f1a14;
-    --papel-2: #2a231b;
-    --tinta: #efe6d4;
-    --tinta-suave: #bfb29c;
-    --linha: #43392c;
-    --controle: #968a72;
-    --lombada: #7fc4a1;
-    --lombada-texto: #10241b;
-    --alerta: #f0a090;
+    --fundo: #1b0b2a;
+    --vidro-solido: #32233f;
+    --texto-suave: #d6d3d9; /* branco 82%: 12,6:1 no fundo; 9,8:1 no vidro */
+    --controle: #8d8594; /* 5,2:1 no fundo */
+    --sombra: rgb(0 0 0 / 0.45);
   }
 }
 
 @theme inline {
+  --color-fundo: var(--fundo);
+  --color-vidro: var(--vidro);
+  --color-vidro-solido: var(--vidro-solido);
+  --color-vidro-filete: var(--vidro-filete);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-rosa: var(--rosa);
+  --color-rosa-texto: var(--rosa-texto);
+  --color-menta: var(--menta);
+  --color-controle: var(--controle);
+  --color-alerta: var(--alerta);
+  /* aliases (migração) */
   --color-papel: var(--papel);
   --color-papel-2: var(--papel-2);
   --color-tinta: var(--tinta);
   --color-tinta-suave: var(--tinta-suave);
   --color-linha: var(--linha);
-  --color-controle: var(--controle);
   --color-lombada: var(--lombada);
   --color-lombada-texto: var(--lombada-texto);
-  --color-alerta: var(--alerta);
   --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), Georgia, serif;
+  /* A Fraunces saiu; `font-serif` ainda aparece nos componentes e aponta para a Inter até a Fase 6. */
+  --font-serif: var(--font-inter), system-ui, sans-serif;
 }
 
 html {
-  background: var(--papel);
-  color: var(--tinta);
+  background: var(--fundo);
+  color: var(--texto);
+  caret-color: var(--rosa);
+  accent-color: var(--rosa);
+  scrollbar-color: rgb(255 255 255 / 0.4) transparent;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -65,13 +114,47 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  line-height: 1.2;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  line-height: 1.1;
+  letter-spacing: -0.03em; /* piso do impeccable: -0,04em */
+  text-wrap: balance;
+}
+
+::selection {
+  background-color: var(--rosa);
+  color: var(--rosa-texto);
 }
 
 :focus-visible {
-  outline: 3px solid var(--lombada);
+  outline: 3px solid var(--foco);
   outline-offset: 2px;
+}
+
+@layer base {
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  /* Toque: sem atraso de duplo toque; botão não seleciona texto num toque longo. */
+  a,
+  button,
+  [role="button"],
+  summary {
+    touch-action: manipulation;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 16 px ou mais: o iOS não dá zoom ao focar o campo. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }
 
 /* Aviso de andamento do chat: três pontos; só pulsam (opacidade) sem movimento reduzido. */
@@ -120,9 +203,9 @@ h3 {
   max-width: var(--medida);
 }
 
-/* Capa gerada (livro sem imagem): título e autoria sobre o tom, com filete e sombra de lombada.
-   Medidas em cqw: a mesma capa serve do cartão do chat (80px) à ficha (192px). A caixa de fora
-   é o contêiner (cqw não vale para o próprio padding dela); o miolo é que usa as medidas. */
+/* Capa gerada (livro sem imagem): título e autoria sobre um tom de cartaz, com filete e sombra de
+   lombada. Medidas em cqw: a mesma capa serve do cartão do chat (80px) à ficha (192px). A caixa de
+   fora é o contêiner (cqw não vale para o próprio padding dela); o miolo é que usa as medidas. */
 .capa-gerada {
   container-type: size;
   position: relative;
@@ -137,7 +220,7 @@ h3 {
   content: "";
   position: absolute;
   inset: 6cqw 6cqw 6cqw 9cqw;
-  border: 1px solid color-mix(in srgb, var(--capa-letra) 45%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
   pointer-events: none;
 }
 
@@ -156,10 +239,11 @@ h3 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
   overflow: hidden;
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: max(0.625rem, 12.5cqw);
-  font-weight: 600;
-  line-height: 1.15;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: max(0.625rem, 13cqw);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
   overflow-wrap: anywhere;
   hyphens: auto;
 }
@@ -170,15 +254,16 @@ h3 {
   -webkit-line-clamp: 2;
   overflow: hidden;
   font-size: max(0.5rem, 7.5cqw);
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.9;
 }
 
-.capa-tom-1 { --capa-tom: var(--capa-vinho); }
-.capa-tom-2 { --capa-tom: var(--capa-marinho); }
-.capa-tom-3 { --capa-tom: var(--capa-musgo); }
-.capa-tom-4 { --capa-tom: var(--capa-ocre); }
-.capa-tom-5 { --capa-tom: var(--capa-ardosia); }
-.capa-tom-6 { --capa-tom: var(--capa-castanho); }
+.capa-tom-1 { --capa-tom: var(--capa-rosa); --capa-letra: var(--capa-rosa-letra); }
+.capa-tom-2 { --capa-tom: var(--capa-verde); --capa-letra: var(--capa-verde-letra); }
+.capa-tom-3 { --capa-tom: var(--capa-amarelo); --capa-letra: var(--capa-amarelo-letra); }
+.capa-tom-4 { --capa-tom: var(--capa-vermelho); --capa-letra: var(--capa-vermelho-letra); }
+.capa-tom-5 { --capa-tom: var(--capa-creme); --capa-letra: var(--capa-creme-letra); }
+.capa-tom-6 { --capa-tom: var(--capa-celeste); --capa-letra: var(--capa-celeste-letra); }
