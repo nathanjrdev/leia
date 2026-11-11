@@ -19,10 +19,11 @@ zera antes de cada cenário (use --manter-estado para não zerar).
 import argparse
 import json
 import re
+import secrets
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import create_engine, select, text
@@ -32,7 +33,12 @@ from leia_api.agente import Agente, ConfigAgente, Mensagem, Proposta
 from leia_api.busca import Reranker
 from leia_api.canal import EventoApp, evento_de_cancelamento, evento_de_confirmacao
 from leia_api.config import settings
-from leia_api.ferramentas import ContextoFerramentas, cancelar_acao, confirmar_acao
+from leia_api.ferramentas import (
+    AcaoPendente,
+    ContextoFerramentas,
+    cancelar_acao,
+    confirmar_acao,
+)
 from leia_api.llm import ClienteLiteLLM
 from leia_api.locacao import RegrasLocacao, locar
 from leia_api.models import Usuario
@@ -211,6 +217,27 @@ def aplicar_botao(
     resultados = [confirmar_acao(ctx, p.confirmacao_id) for p in propostas]
     corpo = json.dumps(resultados, ensure_ascii=False, default=str)
     return f"O leitor clicou em Confirmar. Resultado: {corpo}", evento_de_confirmacao(resultados)
+
+
+def aplicar_cartao(ctx: ContextoFerramentas, acao: str, livro_id: int) -> tuple[str, EventoApp]:
+    """Faz o que `POST /conversas/{id}/acoes` faz no clique em Locar/Reservar do cartão.
+
+    Não há proposta do modelo: o servidor cria a ação pendente, a executa pelo mesmo caminho do
+    botão Confirmar e entrega o resultado ao agente como `EventoApp`.
+    """
+    token = secrets.token_urlsafe(16)
+    ctx.pendentes[token] = AcaoPendente(
+        ctx.usuario_id,
+        acao,
+        {"livro_id": livro_id},
+        f"{acao} pelo cartão do livro",
+        datetime.now(UTC),
+    )
+    resultado = confirmar_acao(ctx, token)
+    corpo = json.dumps(resultado, ensure_ascii=False, default=str)
+    return f"O leitor clicou em {acao.capitalize()} no cartão. Resultado: {corpo}", (
+        evento_de_confirmacao([resultado])
+    )
 
 
 def botoes(propostas: list[Proposta]) -> str:

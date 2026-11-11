@@ -72,6 +72,20 @@ def test_turno_precisa_de_fala_ou_botao_nunca_os_dois() -> None:
         CasoAgente(**_caso(turnos=[{}]))
 
 
+def test_turno_cartao_exige_acao_e_livro_e_nao_mistura_com_fala_ou_botao() -> None:
+    caso = CasoAgente(**_caso(turnos=[{"cartao": "locar", "livro": "Dom Casmurro"}]))
+    assert caso.turnos[0].cartao == "locar" and caso.turnos[0].livro == "Dom Casmurro"
+    for turno in (
+        {"cartao": "locar"},  # sem o livro
+        {"livro": "Dom Casmurro"},  # livro sem cartão
+        {"cartao": "devolver", "livro": "Dom Casmurro"},  # o cartão só locar/reservar
+        {"cartao": "locar", "livro": "x", "fala": "oi"},
+        {"cartao": "locar", "livro": "x", "botao": "confirmar"},
+    ):
+        with pytest.raises(ValidationError):
+            CasoAgente(**_caso(turnos=[turno]))
+
+
 def test_usuario_real_e_recusado() -> None:
     with pytest.raises(ValidationError):
         CasoAgente(**_caso(usuario="pessoa@gmail.com"))
@@ -114,6 +128,12 @@ def test_titulos_do_caso_junta_preparo_argumentos_e_final() -> None:
         "Dom Casmurro",
         "Quincas Borba",
     }
+
+
+def test_titulos_do_caso_inclui_o_livro_do_turno_de_cartao() -> None:
+    caso = CasoAgente(**_caso(turnos=[{"cartao": "reservar", "livro": "Sagarana"}]))
+
+    assert titulos_do_caso(caso) == {"Sagarana"}
 
 
 # ---------- verificação de um turno ----------
