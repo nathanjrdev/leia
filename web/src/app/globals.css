@@ -267,3 +267,268 @@ h3 {
 .capa-tom-4 { --capa-tom: var(--capa-vermelho); --capa-letra: var(--capa-vermelho-letra); }
 .capa-tom-5 { --capa-tom: var(--capa-creme); --capa-letra: var(--capa-creme-letra); }
 .capa-tom-6 { --capa-tom: var(--capa-celeste); --capa-letra: var(--capa-celeste-letra); }
+
+/* ------------------------------------------------------------------------------------------
+   Componentes da casa (components/ui). Em @layer components: utilitários do Tailwind ainda
+   podem ajustar um caso. Hover só com ponteiro fino; toque e movimento reduzido previstos.
+   ------------------------------------------------------------------------------------------ */
+@layer components {
+  .minusculas {
+    text-transform: lowercase;
+  }
+
+  /* Botões: pílula rosa, pílula de vidro e texto. */
+  .botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-estado) ease,
+      box-shadow var(--dur-estado) ease,
+      color var(--dur-estado) ease,
+      transform var(--dur-toque) var(--ease-out);
+  }
+
+  .botao:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .botao-primaria {
+    background-color: var(--rosa);
+    color: var(--rosa-texto);
+  }
+
+  .botao-secundaria {
+    background-color: var(--vidro);
+    color: var(--texto);
+    box-shadow: inset 0 0 0 1px var(--controle);
+  }
+
+  .botao-texto {
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: var(--rosa);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .botao-primaria:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--rosa), #fff 40%);
+    }
+    .botao-secundaria:hover:not(:disabled) {
+      background-color: rgb(255 255 255 / 0.18);
+    }
+    .botao-texto:hover:not(:disabled) {
+      color: var(--texto);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .botao:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+  }
+
+  /* Vidro: superfície sobre o fundo. Fosco (blur) só em superfícies grandes e poucas. */
+  .vidro {
+    border-radius: 1.25rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .vidro-fosco {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vidro-fosco {
+      background-color: var(--vidro-solido);
+    }
+  }
+
+  /* Campos: vidro com borda de controle (3,5:1). */
+  .campo {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.875rem;
+    background-color: var(--vidro);
+    color: var(--texto);
+    box-shadow: inset 0 0 0 1px var(--controle);
+    transition: box-shadow var(--dur-estado) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .campo:hover {
+      box-shadow: inset 0 0 0 1px var(--texto-suave);
+    }
+  }
+
+  .campo::placeholder {
+    color: var(--texto-suave);
+  }
+
+  /* Selo de estado: ponto + texto (ou ícone + texto no alerta). */
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--texto-suave);
+  }
+
+  .selo-ponto {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: none;
+    border-radius: 9999px;
+    background-color: currentColor;
+  }
+
+  .selo-disponivel {
+    color: var(--menta);
+  }
+
+  .selo-indisponivel .selo-ponto {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+
+  .selo-alerta {
+    color: var(--alerta);
+    font-weight: 600;
+  }
+
+  /* Aviso: faixa de vidro com ícone (substitui a borda lateral colorida). */
+  .aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 1rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .aviso-icone {
+    flex: none;
+    margin-top: 0.2em;
+  }
+
+  .aviso-erro {
+    color: var(--alerta);
+  }
+
+  .aviso-sucesso .aviso-icone {
+    color: var(--menta);
+  }
+
+  .aviso-info .aviso-icone {
+    color: var(--rosa);
+  }
+
+  /* Prateleira: painel de vidro atrás da metade de baixo dos livros e tábua fosca na frente,
+     cobrindo a base deles. Poucas por página (o blur custa). */
+  .prateleira {
+    position: relative;
+    padding: 0 1rem;
+  }
+
+  .prateleira::before {
+    content: "";
+    position: absolute;
+    inset: 42% 0 0 0;
+    border-radius: 1.25rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .prateleira-livros {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.875rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .prateleira-tabua {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2.25rem;
+    border-radius: 0 0 1.25rem 1.25rem;
+    background-color: rgb(255 255 255 / 0.12);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      0 18px 28px -16px var(--sombra);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+
+  /* Livro em pé numa grade (catálogo, estante): cada item tem o seu trecho de tábua, sem blur
+     (listas longas), com a base da capa sob um degradê leitoso. */
+  .livro-em-pe {
+    position: relative;
+    display: block;
+    padding-bottom: 0.875rem;
+  }
+
+  .livro-em-pe::after {
+    content: "";
+    position: absolute;
+    right: -0.75rem;
+    bottom: 0;
+    left: -0.75rem;
+    height: 1.75rem;
+    background: linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.1));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      0 14px 22px -14px var(--sombra);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .livro-em-pe > .livro-capa {
+      transition: transform var(--dur-estado) var(--ease-out);
+    }
+    .livro-em-pe:hover > .livro-capa {
+      transform: translateY(-3px);
+    }
+  }
+
+  .livro-capa {
+    display: block;
+    box-shadow: 0 10px 24px -12px var(--sombra);
+  }
+}
+
+/* Entradas: uma por contêiner, curtas, a partir de um estado já quase visível. Com movimento
+   reduzido não há animação nenhuma (regra do projeto, coberta por conversa-etapas.test). */
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .entra {
+    animation: entra var(--dur-estado) var(--ease-out) both;
+  }
+}
+

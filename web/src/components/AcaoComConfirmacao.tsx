@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { mensagemDoErro } from "@/lib/api";
+import { Aviso } from "./ui/Aviso";
+import { Botao } from "./ui/Botao";
 
 type Props = {
   rotulo: string;
@@ -37,53 +39,34 @@ export function AcaoComConfirmacao({
     }
   }
 
-  const botaoPrimario =
-    "transicao rounded-md bg-lombada px-4 py-2 font-medium text-lombada-texto hover:opacity-90 disabled:opacity-60";
-  const botaoSecundario =
-    "transicao rounded-md border border-controle px-4 py-2 hover:bg-papel-2 disabled:opacity-60";
-
   return (
     <div className="flex flex-col gap-2">
       {etapa === "inicio" ? (
-        <button
-          type="button"
+        <Botao
+          variante={primaria ? "primaria" : "secundaria"}
           disabled={desabilitado}
           onClick={() => {
             setErro(null);
             setEtapa("perguntando");
           }}
-          className={primaria ? botaoPrimario : botaoSecundario}
+          className="self-start"
         >
           {rotulo}
-        </button>
+        </Botao>
       ) : (
-        <div role="group" aria-label={`Confirmar: ${rotulo}`} className="flex flex-col gap-2">
+        <div role="group" aria-label={`Confirmar: ${rotulo}`} className="entra flex flex-col gap-2">
           <p className="font-medium">{pergunta}</p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              disabled={etapa === "enviando" || desabilitado}
-              onClick={confirmar}
-              className={botaoPrimario}
-            >
+          <div className="flex flex-wrap gap-2">
+            <Botao variante="primaria" disabled={etapa === "enviando" || desabilitado} onClick={confirmar}>
               {rotuloConfirmar}
-            </button>
-            <button
-              type="button"
-              disabled={etapa === "enviando"}
-              onClick={() => setEtapa("inicio")}
-              className={botaoSecundario}
-            >
+            </Botao>
+            <Botao disabled={etapa === "enviando"} onClick={() => setEtapa("inicio")}>
               Voltar
-            </button>
+            </Botao>
           </div>
         </div>
       )}
-      {erro && (
-        <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
-          {erro}
-        </p>
-      )}
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
     </div>
   );
 }
