@@ -21,7 +21,7 @@ const dados: TEstante = {
     {
       locacao_id: 11,
       livro_id: 3,
-      titulo: "Dom Casmurro",
+      titulo: "Dom Casmurro", capa_url: "https://capas.example/dom-casmurro.jpg", autores: ["Machado de Assis"],
       retirada_em: "2026-11-01T12:00:00Z",
       prevista_em: "2026-11-15T12:00:00Z",
       devolvida_em: null,
@@ -31,7 +31,7 @@ const dados: TEstante = {
     {
       locacao_id: 12,
       livro_id: 4,
-      titulo: "Vidas Secas",
+      titulo: "Vidas Secas", capa_url: null, autores: ["Graciliano Ramos"],
       retirada_em: "2026-10-01T12:00:00Z",
       prevista_em: "2026-10-15T12:00:00Z",
       devolvida_em: null,
@@ -40,11 +40,11 @@ const dados: TEstante = {
     },
   ],
   reservas: [
-    { reserva_id: 21, livro_id: 5, titulo: "Quincas Borba", posicao: 2, pronta: false, retirar_ate: null },
+    { reserva_id: 21, livro_id: 5, titulo: "Quincas Borba", capa_url: null, autores: ["Machado de Assis"], posicao: 2, pronta: false, retirar_ate: null },
     {
       reserva_id: 22,
       livro_id: 6,
-      titulo: "O Cortiço",
+      titulo: "O Cortiço", capa_url: "https://capas.example/cortico.jpg", autores: ["Aluísio Azevedo"],
       posicao: 1,
       pronta: true,
       retirar_ate: "2026-11-12T12:00:00Z",
@@ -54,7 +54,7 @@ const dados: TEstante = {
     {
       locacao_id: 9,
       livro_id: 7,
-      titulo: "Memórias Póstumas",
+      titulo: "Memórias Póstumas", capa_url: "https://capas.example/memorias.jpg", autores: ["Machado de Assis"],
       retirada_em: "2026-09-01T12:00:00Z",
       prevista_em: "2026-09-15T12:00:00Z",
       devolvida_em: "2026-09-10T12:00:00Z",
@@ -92,6 +92,22 @@ describe("Estante", () => {
     const secao = await screen.findByRole("region", { name: "Reservas" });
     expect(within(secao).getByText(/Pronto para retirar até 12\/11\/2026/)).toBeInTheDocument();
     expect(within(secao).getByText(/Posição 2 na fila/)).toBeInTheDocument();
+  });
+
+  it("mostra a capa de cada livro; sem capa cadastrada, a capa gerada", async () => {
+    const { container } = render(<Estante />);
+    await screen.findByRole("region", { name: "Locações ativas" });
+    const srcs = Array.from(container.querySelectorAll("img")).map((i) => i.getAttribute("src"));
+    expect(srcs).toEqual(
+      expect.arrayContaining([
+        "https://capas.example/dom-casmurro.jpg", // ativa
+        "https://capas.example/cortico.jpg", // reserva
+        "https://capas.example/memorias.jpg", // histórico
+      ]),
+    );
+    const geradas = container.querySelectorAll('[data-capa="gerada"]');
+    expect(geradas).toHaveLength(2); // Vidas Secas e Quincas Borba, sem capa cadastrada
+    expect(within(geradas[0] as HTMLElement).getByText("Vidas Secas")).toBeInTheDocument();
   });
 
   it("mostra o histórico", async () => {
@@ -132,7 +148,7 @@ describe("Estante", () => {
       }),
     );
     const reservas = screen.getByRole("region", { name: "Reservas" });
-    const res = within(reservas).getByText("Quincas Borba").closest("li") as HTMLElement;
+    const res = within(reservas).getByRole("link", { name: "Quincas Borba" }).closest("li") as HTMLElement;
     await u.click(within(res).getByRole("button", { name: "Cancelar reserva" }));
     await u.click(within(res).getByRole("button", { name: "Confirmar cancelamento" }));
     await waitFor(() =>

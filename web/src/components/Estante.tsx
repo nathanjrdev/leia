@@ -6,6 +6,7 @@ import { api, mensagemDoErro } from "@/lib/api";
 import { data } from "@/lib/formato";
 import type { Estante as DadosEstante, LocacaoResumo, ReservaResumo } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
+import { Capa } from "./Capa";
 import { useSessao } from "./SessaoProvider";
 
 const confirmo = { metodo: "POST", corpo: { confirmo: true } } as const;
@@ -95,19 +96,41 @@ export function Estante() {
       {estante && estante.historico.length > 0 && (
         <Secao id="historico" titulo="Histórico">
           {estante.historico.map((l) => (
-            <li key={l.locacao_id} className="border-b border-linha py-3">
-              <Link href={`/livro/${l.livro_id}`} className="font-serif text-lg underline">
-                {l.titulo}
-              </Link>
-              <p className="text-tinta-suave">
-                Retirado em {data(l.retirada_em)}
-                {l.devolvida_em ? `, devolvido em ${data(l.devolvida_em)}` : ""}
-              </p>
+            <li key={l.locacao_id} className="flex gap-4 border-b border-linha py-3">
+              <CapaDaEstante livro={l} className="h-20 w-14" />
+              <div>
+                <Link href={`/livro/${l.livro_id}`} className="font-serif text-lg underline">
+                  {l.titulo}
+                </Link>
+                <p className="text-tinta-suave">
+                  Retirado em {data(l.retirada_em)}
+                  {l.devolvida_em ? `, devolvido em ${data(l.devolvida_em)}` : ""}
+                </p>
+              </div>
             </li>
           ))}
         </Secao>
       )}
     </div>
+  );
+}
+
+/** Capa de um item da estante; sem imagem, a capa gerada (a mesma do chat e do catálogo). */
+function CapaDaEstante({
+  livro,
+  className,
+}: {
+  livro: LocacaoResumo | ReservaResumo;
+  className: string;
+}) {
+  return (
+    <Capa
+      url={livro.capa_url}
+      titulo={livro.titulo}
+      autores={livro.autores}
+      semente={livro.livro_id}
+      className={`${className} shrink-0 rounded-sm`}
+    />
   );
 }
 
@@ -128,30 +151,34 @@ function ItemLocacao({ l, aoMudar }: { l: LocacaoResumo; aoMudar: () => Promise<
     await aoMudar();
   };
   return (
-    <li className="flex flex-col gap-3 border-b border-linha py-4">
-      <div>
-        <Link href={`/livro/${l.livro_id}`} className="font-serif text-xl font-semibold underline">
-          {l.titulo}
-        </Link>
-        <p className={l.atrasada ? "text-alerta" : "text-tinta-suave"}>
-          Devolver até {data(l.prevista_em)}
-          {l.atrasada ? " · Atrasada" : ""}
-          {l.renovacoes > 0 ? ` · Renovada ${l.renovacoes} ${l.renovacoes === 1 ? "vez" : "vezes"}` : ""}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-4">
-        <AcaoComConfirmacao
-          rotulo="Renovar"
-          pergunta={`Renovar “${l.titulo}”?`}
-          rotuloConfirmar="Confirmar renovação"
-          aoConfirmar={agir("renovar")}
-        />
-        <AcaoComConfirmacao
-          rotulo="Devolver"
-          pergunta={`Devolver “${l.titulo}” agora?`}
-          rotuloConfirmar="Confirmar devolução"
-          aoConfirmar={agir("devolver")}
-        />
+    <li className="flex gap-4 border-b border-linha py-4">
+      <CapaDaEstante livro={l} className="h-32 w-[5.5rem]" />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div>
+          <Link href={`/livro/${l.livro_id}`} className="font-serif text-xl font-semibold underline">
+            {l.titulo}
+          </Link>
+          {l.autores.length > 0 && <p className="text-tinta-suave">{l.autores.join(", ")}</p>}
+          <p className={l.atrasada ? "text-alerta" : "text-tinta-suave"}>
+            Devolver até {data(l.prevista_em)}
+            {l.atrasada ? " · Atrasada" : ""}
+            {l.renovacoes > 0 ? ` · Renovada ${l.renovacoes} ${l.renovacoes === 1 ? "vez" : "vezes"}` : ""}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <AcaoComConfirmacao
+            rotulo="Renovar"
+            pergunta={`Renovar “${l.titulo}”?`}
+            rotuloConfirmar="Confirmar renovação"
+            aoConfirmar={agir("renovar")}
+          />
+          <AcaoComConfirmacao
+            rotulo="Devolver"
+            pergunta={`Devolver “${l.titulo}” agora?`}
+            rotuloConfirmar="Confirmar devolução"
+            aoConfirmar={agir("devolver")}
+          />
+        </div>
       </div>
     </li>
   );
@@ -163,23 +190,27 @@ function ItemReserva({ r, aoMudar }: { r: ReservaResumo; aoMudar: () => Promise<
     await aoMudar();
   }
   return (
-    <li className="flex flex-col gap-3 border-b border-linha py-4">
-      <div>
-        <Link href={`/livro/${r.livro_id}`} className="font-serif text-xl font-semibold underline">
-          {r.titulo}
-        </Link>
-        <p className={r.pronta ? "font-medium text-lombada" : "text-tinta-suave"}>
-          {r.pronta && r.retirar_ate
-            ? `Pronto para retirar até ${data(r.retirar_ate)}`
-            : `Posição ${r.posicao} na fila`}
-        </p>
+    <li className="flex gap-4 border-b border-linha py-4">
+      <CapaDaEstante livro={r} className="h-32 w-[5.5rem]" />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div>
+          <Link href={`/livro/${r.livro_id}`} className="font-serif text-xl font-semibold underline">
+            {r.titulo}
+          </Link>
+          {r.autores.length > 0 && <p className="text-tinta-suave">{r.autores.join(", ")}</p>}
+          <p className={r.pronta ? "font-medium text-lombada" : "text-tinta-suave"}>
+            {r.pronta && r.retirar_ate
+              ? `Pronto para retirar até ${data(r.retirar_ate)}`
+              : `Posição ${r.posicao} na fila`}
+          </p>
+        </div>
+        <AcaoComConfirmacao
+          rotulo="Cancelar reserva"
+          pergunta={`Cancelar a reserva de “${r.titulo}”?`}
+          rotuloConfirmar="Confirmar cancelamento"
+          aoConfirmar={cancelar}
+        />
       </div>
-      <AcaoComConfirmacao
-        rotulo="Cancelar reserva"
-        pergunta={`Cancelar a reserva de “${r.titulo}”?`}
-        rotuloConfirmar="Confirmar cancelamento"
-        aoConfirmar={cancelar}
-      />
     </li>
   );
 }

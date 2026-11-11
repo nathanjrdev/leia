@@ -226,6 +226,41 @@ def test_fluxo_locar_renovar_devolver_pela_estante(api: TestClient, engine: Engi
     assert [h["titulo"] for h in estante["historico"]] == [titulo]
 
 
+def test_estante_traz_capa_e_autores_de_locacoes_reservas_e_historico(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token_outro = _usuario(engine)
+    _, token = _usuario(engine)
+    ativo, _ = _livro(engine)
+    devolvido, _ = _livro(engine)
+    ocupado, _ = _livro(engine)  # o único exemplar fica com outro leitor: a reserva vira fila
+    capas = {ativo: "https://capas.example/a.jpg", devolvido: "https://capas.example/d.jpg"}
+    with Session(engine) as s:
+        for livro_id, url in capas.items():
+            s.get(Livro, livro_id).capa_url = url  # type: ignore[union-attr]
+        s.commit()
+    _logar(api, token_outro)
+    api.post(f"/livros/{ocupado}/locar", json=CONFIRMO)
+
+    _logar(api, token)
+    api.post(f"/livros/{ativo}/locar", json=CONFIRMO)
+    api.post(f"/livros/{devolvido}/locar", json=CONFIRMO)
+    locacao_devolvida = next(
+        a["locacao_id"] for a in api.get("/estante").json()["ativas"] if a["livro_id"] == devolvido
+    )
+    api.post(f"/locacoes/{locacao_devolvida}/devolver", json=CONFIRMO)
+    assert api.post(f"/livros/{ocupado}/reservar", json=CONFIRMO).status_code == 200
+
+    estante = api.get("/estante").json()
+
+    [loc] = estante["ativas"]
+    assert loc["capa_url"] == capas[ativo] and len(loc["autores"]) == 1
+    [res] = estante["reservas"]
+    assert res["capa_url"] is None and len(res["autores"]) == 1  # livro sem capa cadastrada
+    [hist] = estante["historico"]
+    assert hist["capa_url"] == capas[devolvido] and len(hist["autores"]) == 1
+
+
 @pytest.mark.parametrize("corpo", [None, {}, {"confirmo": False}, {"confirmo": "sim"}])
 def test_escrita_sem_confirmacao_explicita_nao_faz_nada(
     api: TestClient, engine: Engine, corpo: dict[str, Any] | None
