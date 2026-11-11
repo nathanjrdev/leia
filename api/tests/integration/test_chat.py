@@ -2,6 +2,7 @@
 
 import itertools
 import json
+import logging
 from collections.abc import Iterator, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -11,8 +12,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 from sqlalchemy.orm import Session
 
-from leia_api import sessao
-from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM
+from leia_api import chat, sessao
+from leia_api.agente import Agente, ChamadaFerramenta, ConfigAgente, RespostaLLM, Uso
 from leia_api.canal import AVISO_IMITACAO
 from leia_api.chat import _cartoes_citados
 from leia_api.config import settings
@@ -208,6 +209,9 @@ def test_mensagem_responde_por_sse_e_persiste(api: TestClient, engine: Engine) -
     eventos = _sse(r)
     nomes = [e for e, _ in eventos]
     assert nomes[0] == "ferramenta" and eventos[0][1] == {"nome": "buscar_livros"}
+    # progresso antes do texto: depois da ferramenta, a Léia avisa que está escrevendo
+    assert eventos[1] == ("etapa", {"etapa": "escrevendo"})
+    assert nomes.index("etapa") < nomes.index("resposta")
     assert nomes[-1] == "fim" and eventos[-1][1] == {"erro": None}
     pedacos = [d["texto"] for e, d in eventos if e == "resposta"]
     assert len(pedacos) > 1  # a resposta chega em pedaços
@@ -402,6 +406,122 @@ def test_chamadas_de_ferramenta_ficam_auditadas_na_conversa(
     assert latencia >= 0
 
 
+def test_turno_grava_tokens_e_loga_a_latencia_sem_o_texto_do_leitor(
+    api: TestClient, engine: Engine, caplog: pytest.LogCaptureFixture
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _livro(engine, "quasarrho")
+    pede = _chama("buscar_livros", consulta="quasarrho")
+    _agente(
+        RespostaLLM(pede.texto, pede.chamadas, Uso(321, 9)),
+        RespostaLLM("Achei algo.", [], Uso(400, 30)),
+    )
+    conversa = _conversa(api)
+
+    with caplog.at_level(logging.INFO, logger="leia_api.metricas"):
+        _falar(api, conversa, "segredo do leitor quasarrho")
+
+    with Session(engine) as s:
+        tokens = s.execute(
+            text(
+                "SELECT tokens_entrada, tokens_saida FROM chamadas_ferramenta "
+                "WHERE conversa_id = :c"
+            ),
+            {"c": conversa},
+        ).all()
+    assert [tuple(t) for t in tokens] == [(321, 9)]
+    linhas = [r.getMessage() for r in caplog.records if r.name == "leia_api.metricas"]
+    assert len(linhas) == 1
+    resumo = json.loads(linhas[0])
+    assert resumo["conversa_id"] == conversa and resumo["origem"] == "mensagem"
+    assert resumo["n_llm"] == 2 and resumo["tokens_entrada"] == 721
+    assert resumo["total_ms"] >= resumo["agente_ms"] >= 0
+    assert "segredo" not in linhas[0] and "quasarrho" not in linhas[0]
+
+
+class LLMStreamFalso(LLMFalso):
+    def completar_stream(
+        self,
+        mensagens: list[dict[str, Any]],
+        ferramentas: list[dict[str, Any]],
+        timeout: float,
+        ao_texto: Any,
+    ) -> RespostaLLM:
+        resposta = self.completar(mensagens, ferramentas, timeout)
+        texto = resposta.texto or ""
+        for i in range(0, len(texto), 5):
+            ao_texto(texto[i : i + 5])
+        return resposta
+
+
+def _agente_stream(*respostas: RespostaLLM | Exception) -> LLMStreamFalso:
+    llm = LLMStreamFalso(*respostas)
+    agente = Agente(llm, ConfigAgente("PROMPT DE TESTE", 6, 5.0, 60.0, 1))
+    app.dependency_overrides[get_agente] = lambda: agente
+    return llm
+
+
+def _na_tela(eventos: list[tuple[str, dict[str, Any]]]) -> str:
+    """O texto que a tela mostra no fim: `resposta` acumula, `descartar` apaga."""
+    atual = ""
+    for evento, dados in eventos:
+        if evento == "resposta":
+            atual += dados["texto"]
+        elif evento == "descartar":
+            atual = ""
+    return atual
+
+
+def test_stream_real_nao_repete_a_resposta_no_fim(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _, titulo = _livro(engine, "quasaromicronb")
+    _agente_stream(
+        _chama("buscar_livros", consulta="quasaromicronb"), _fala(f"Achei “{titulo}”. Boa leitura!")
+    )
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "quasaromicronb"))
+
+    nomes = [e for e, _ in eventos]
+    assert "descartar" not in nomes
+    assert _na_tela(eventos) == f"Achei “{titulo}”. Boa leitura!"  # uma vez só
+    assert nomes.index("resposta") < nomes.index("livros") < nomes.index("fim")
+    historico = api.get(f"/conversas/{conversa}/mensagens").json()
+    assert historico[-1]["conteudo"] == f"Achei “{titulo}”. Boa leitura!"
+
+
+def test_stream_troca_o_parcial_pela_resposta_segura_quando_o_grounding_falha(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente_stream(_fala("Veja “Livro Fantasma A”."), _fala("Veja “Livro Fantasma B”."))
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "me indica algo"))
+
+    mostrado = "".join(d["texto"] for e, d in eventos if e == "resposta")
+    assert "Fantasma" not in mostrado
+    assert _na_tela(eventos).startswith("Não consegui confirmar no acervo")
+    assert eventos[-1] == ("fim", {"erro": "grounding"})
+
+
+def test_stream_completa_o_parcial_sem_colar_palavras(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    final = "Veja “" + "x" * 250 + "” e mais nada."  # o filtro trava por precaução; o final passa
+    _agente_stream(_fala(final))
+    conversa = _conversa(api)
+
+    eventos = _sse(_falar(api, conversa, "oi"))
+
+    assert "descartar" not in [e for e, _ in eventos]
+    assert _na_tela(eventos) == final
+    assert eventos[-1] == ("fim", {"erro": None})
+
+
 # ---------- confirmação por clique ----------
 
 
@@ -458,6 +578,151 @@ def test_cancelar_nao_executa_e_consome_o_token(api: TestClient, engine: Engine)
     assert next(d for e, d in _sse(r) if e == "acao")["decisao"] == "cancelar"
     assert _locacoes_ativas(engine, uid) == 0
     assert _agir(api, conversa, confirmacao, "confirmar").status_code == 404
+
+
+# ---------- um turno por vez na mesma conversa ----------
+
+
+def test_segundo_turno_na_mesma_conversa_enquanto_o_primeiro_roda_e_409(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(_fala("Oi!"), _fala("Oi de novo!"))
+    conversa = _conversa(api)
+    assert chat.turnos.ocupar(conversa)  # simula o 1º turno ainda rodando
+
+    r = _falar(api, conversa, "oi")
+    assert r.status_code == 409 and r.json()["erro"] == "turno_em_andamento"
+    assert _agir(api, conversa, "qualquer", "confirmar").status_code == 409
+
+    chat.turnos.liberar(conversa)
+    assert _sse(_falar(api, conversa, "oi"))[-1] == ("fim", {"erro": None})
+    assert not chat.turnos.ocupada(conversa)  # o turno libera a conversa ao terminar
+    assert _sse(_falar(api, conversa, "oi"))[-1] == ("fim", {"erro": None})
+
+
+def test_turno_que_falha_tambem_libera_a_conversa(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(RuntimeError("cota"))
+    conversa = _conversa(api)
+
+    _falar(api, conversa, "oi")
+
+    assert not chat.turnos.ocupada(conversa)
+
+
+# ---------- ação pelo cartão do livro (locar/reservar sem proposta do agente) ----------
+
+
+def _acao(client: TestClient, conversa: int, corpo: dict[str, Any]) -> Any:
+    return client.post(f"/conversas/{conversa}/acoes", json=corpo)
+
+
+def test_locar_pelo_cartao_executa_e_a_leia_responde_no_chat_com_a_sinopse(
+    api: TestClient, engine: Engine
+) -> None:
+    uid, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, titulo = _livro(engine, "quasarcartao")
+    llm = _agente(_fala(f"Prontinho, “{titulo}” é seu até a data. Boa leitura!"))
+    conversa = _conversa(api)
+
+    r = _acao(api, conversa, {"acao": "locar", "livro_id": livro_id})
+
+    assert r.status_code == 200
+    eventos = _sse(r)
+    acao = next(d for e, d in eventos if e == "acao")
+    assert acao == {"decisao": "confirmar", "ok": True, "erro": None}
+    assert titulo in _na_tela(eventos)
+    assert eventos[-1] == ("fim", {"erro": None})
+    assert _locacoes_ativas(engine, uid) == 1
+    sistema = llm.chamadas[0][0]["content"]
+    assert "concluída com sucesso" in sistema and "Uma história sobre quasarcartao." in sistema
+    historico = api.get(f"/conversas/{conversa}/mensagens").json()
+    assert [m["papel"] for m in historico] == ["assistente"]  # o evento não aparece
+
+
+def test_acao_pelo_cartao_que_a_regra_nega_chega_ao_agente_como_falha(
+    api: TestClient, engine: Engine
+) -> None:
+    uid, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, _ = _livro(engine, "quasarfila")
+    llm = _agente(_fala("Esse livro tem exemplar livre, então não precisa de fila."))
+    conversa = _conversa(api)
+
+    eventos = _sse(_acao(api, conversa, {"acao": "reservar", "livro_id": livro_id}))
+
+    assert next(d for e, d in eventos if e == "acao")["ok"] is False
+    assert "não foi concluída" in llm.chamadas[0][0]["content"]
+    assert _locacoes_ativas(engine, uid) == 0
+
+
+def test_falha_do_llm_depois_da_locacao_mostra_o_aviso_fixo_no_chat(
+    api: TestClient, engine: Engine
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    livro_id, titulo = _livro(engine, "quasarqueda")
+    _agente(RuntimeError("cota"))
+    conversa = _conversa(api)
+
+    eventos = _sse(_acao(api, conversa, {"acao": "locar", "livro_id": livro_id}))
+
+    texto = _na_tela(eventos)
+    assert titulo in texto and "Devolução até" in texto and "Boa leitura" in texto
+    assert "Tive um problema" not in texto  # a locação foi feita: não parece falha
+    assert eventos[-1] == ("fim", {"erro": "erro_llm"})
+
+
+@pytest.mark.parametrize(
+    "corpo",
+    [
+        {"acao": "devolver", "livro_id": 1},
+        {"acao": "locar"},
+        {"acao": "locar", "livro_id": 0},
+        {"acao": "locar", "livro_id": 1, "usuario_id": 1},
+    ],
+)
+def test_acao_pelo_cartao_invalida_e_422(
+    api: TestClient, engine: Engine, corpo: dict[str, Any]
+) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    conversa = _conversa(api)
+    assert _acao(api, conversa, corpo).status_code == 422
+
+
+def test_acao_pelo_cartao_em_conversa_alheia_e_404(api: TestClient, engine: Engine) -> None:
+    _, dona = _usuario(engine)
+    _, intruso = _usuario(engine)
+    livro_id, _ = _livro(engine, "quasaralheia")
+    _logar(api, dona)
+    conversa = _conversa(api)
+    _logar(api, intruso)
+
+    assert _acao(api, conversa, {"acao": "locar", "livro_id": livro_id}).status_code == 404
+
+
+def _sem_transformacao(resposta: Any) -> None:
+    """O proxy do Next comprime com gzip e acumula o SSE até o fim, salvo com no-transform."""
+    assert resposta.status_code == 200
+    diretivas = {d.strip() for d in resposta.headers["cache-control"].split(",")}
+    assert {"no-cache", "no-transform"} <= diretivas
+    assert resposta.headers["x-accel-buffering"] == "no"
+
+
+def test_sse_proibe_proxy_de_comprimir_ou_acumular(api: TestClient, engine: Engine) -> None:
+    _, token = _usuario(engine)
+    _logar(api, token)
+    _agente(_fala("Olá!"))
+    _sem_transformacao(_falar(api, _conversa(api), "oi"))
+
+    conversa, confirmacao, _ = _propor_locacao(api, engine, "quasarmu")
+    _agente(_fala("Tudo bem, cancelei."))
+    _sem_transformacao(_agir(api, conversa, confirmacao, "cancelar"))
 
 
 def test_nova_mensagem_invalida_as_propostas_anteriores(api: TestClient, engine: Engine) -> None:

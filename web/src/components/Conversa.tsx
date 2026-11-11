@@ -12,6 +12,14 @@ import { useSessao } from "./SessaoProvider";
 const CHAVE = "leia:conversa";
 const MAX_CARACTERES = 2000;
 
+// Perguntas que o acervo sabe responder; cobrem busca, tema e dúvida sobre o que o leitor já tem.
+const SUGESTOES = [
+  "Quero um romance curto para o fim de semana",
+  "Me indique um livro sobre o sentido da vida",
+  "Tem poesia brasileira disponível agora?",
+  "O que eu tenho locado e quando devolvo?",
+];
+
 type Msg = {
   chave: string;
   papel: "usuario" | "assistente";
@@ -34,6 +42,27 @@ const ROTULO_FERRAMENTA: Record<string, string> = {
   devolver: "Preparando a devolução…",
   reservar: "Preparando a reserva…",
 };
+
+// Andamento depois das ferramentas. O texto só chega validado pelo grounding, então o leitor vê
+// a etapa em vez de uma resposta que ainda pode ser refeita.
+const ROTULO_ETAPA: Record<string, string> = {
+  escrevendo: "Escrevendo a resposta…",
+  revisando: "Conferindo os livros no acervo…",
+};
+
+/** Aviso de andamento: os pontos são decorativos; quem anuncia é o `role="status"` da conversa. */
+function Andamento({ rotulo }: { rotulo: string }) {
+  return (
+    <p className="flex items-center gap-2 text-tinta-suave">
+      <span aria-hidden="true" className="inline-flex gap-1">
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+        <span className="andamento-ponto" />
+      </span>
+      <span>{rotulo}</span>
+    </p>
+  );
+}
 
 function guardado(): number | null {
   try {
@@ -75,6 +104,12 @@ export function Conversa() {
   const [erro, setErro] = useState<string | null>(null);
   const fim = useRef<HTMLDivElement>(null);
   const controle = useRef<AbortController | null>(null);
+  // Trava síncrona: `ocupado` é estado e só muda no próximo render, então dois envios no mesmo
+  // quadro (Enter duplo, clique duplo) passariam os dois pela checagem.
+  const enviando = useRef(false);
+  // Abertura da conversa em andamento: o efeito pode rodar duas vezes (StrictMode) e não deve
+  // criar duas conversas.
+  const abertura = useRef<Promise<{ id: number; historico: MensagemHistorico[] }> | null>(null);
 
   const comecar = useCallback(async () => {
     const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
@@ -84,36 +119,46 @@ export function Conversa() {
   }, []);
 
   useEffect(() => {
-    if (carregando || !logado) return;
+    if (carregando) return;
+    if (!logado) {
+      abertura.current = null; // outra conta não herda a conversa aberta
+      return;
+    }
     let vivo = true;
-    (async () => {
-      try {
-        const anterior = guardado();
-        if (anterior) {
-          try {
-            const h = await api<MensagemHistorico[]>(`/conversas/${anterior}/mensagens`);
-            if (!vivo) return;
-            setConversaId(anterior);
-            setMensagens(
-              h.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),
-            );
-            return;
-          } catch (e) {
-            if (!(e instanceof ErroApi && e.status === 404)) throw e;
-          }
+    abertura.current ??= (async () => {
+      const anterior = guardado();
+      if (anterior) {
+        try {
+          const historico = await api<MensagemHistorico[]>(`/conversas/${anterior}/mensagens`);
+          return { id: anterior, historico };
+        } catch (e) {
+          if (!(e instanceof ErroApi && e.status === 404)) throw e;
         }
-        await comecar();
-      } catch (e) {
-        if (vivo) setErro(mensagemDoErro(e));
-      } finally {
-        if (vivo) setPronto(true);
       }
+      const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
+      guardar(id);
+      return { id, historico: [] };
     })();
+    abertura.current
+      .then(({ id, historico }) => {
+        if (!vivo) return;
+        setConversaId(id);
+        setMensagens(
+          historico.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),
+        );
+      })
+      .catch((e) => {
+        abertura.current = null; // deixa tentar de novo ao remontar
+        if (vivo) setErro(mensagemDoErro(e));
+      })
+      .finally(() => {
+        if (vivo) setPronto(true);
+      });
     return () => {
       vivo = false;
       controle.current?.abort();
     };
-  }, [carregando, logado, comecar]);
+  }, [carregando, logado]);
 
   useEffect(() => {
     fim.current?.scrollIntoView?.({ block: "end" });
@@ -132,6 +177,15 @@ export function Conversa() {
           ferramenta: ROTULO_FERRAMENTA[String(d.nome)] ?? "Consultando o acervo…",
         }));
         break;
+      case "descartar":
+        // a resposta parcial vai ser refeita (grounding) ou trocada pela final: some da tela
+        alterar(chave, (m) => ({ ...m, texto: "" }));
+        break;
+      case "etapa": {
+        const rotulo = ROTULO_ETAPA[String(d.etapa)];
+        if (rotulo) alterar(chave, (m) => ({ ...m, ferramenta: rotulo }));
+        break;
+      }
       case "resposta":
         alterar(chave, (m) => ({ ...m, ferramenta: null, texto: m.texto + String(d.texto ?? "") }));
         break;
@@ -163,29 +217,57 @@ export function Conversa() {
     }
   }
 
-  async function transmitir(caminho: string, corpo: unknown, aoFalhar?: () => void) {
+  /** Um turno por vez. Devolve se a ação do clique deu certo (evento `acao`), ou false. */
+  async function transmitir(
+    caminho: string,
+    corpo: unknown,
+    aoFalhar?: () => void,
+  ): Promise<boolean> {
     const resposta = nova("assistente");
+    let acaoOk = false;
     setMensagens((ms) => [...ms, resposta]);
     setOcupado(true);
     setErro(null);
     const ctl = new AbortController();
     controle.current = ctl;
     try {
-      await postarSSE(caminho, corpo, (e) => aplicar(resposta.chave, e), ctl.signal);
+      await postarSSE(
+        caminho,
+        corpo,
+        (e) => {
+          if (e.evento === "acao") acaoOk = (e.dados as { ok?: boolean } | undefined)?.ok === true;
+          aplicar(resposta.chave, e);
+        },
+        ctl.signal,
+      );
+      return acaoOk;
     } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (e instanceof DOMException && e.name === "AbortError") return acaoOk;
       setErro(mensagemDoErro(e));
       setMensagens((ms) => ms.filter((m) => m.chave !== resposta.chave || m.texto !== ""));
       aoFalhar?.();
+      return false;
     } finally {
+      enviando.current = false;
       setOcupado(false);
     }
   }
 
+  /** Reserva a vez do turno de forma síncrona; false se já há um turno saindo. */
+  function reservarVez(): boolean {
+    if (enviando.current || ocupado || conversaId === null) return false;
+    enviando.current = true;
+    return true;
+  }
+
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
-    const t = texto.trim();
-    if (!t || ocupado || conversaId === null) return;
+    await enviarTexto(texto);
+  }
+
+  async function enviarTexto(bruto: string) {
+    const t = bruto.trim();
+    if (!t || !reservarVez()) return;
     setTexto("");
     // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
     setMensagens((ms) => [...ms.map((m) => ({ ...m, propostas: [] })), nova("usuario", t)]);
@@ -193,12 +275,18 @@ export function Conversa() {
   }
 
   async function decidir(chaveMsg: string, p: Proposta, decisao: "confirmar" | "cancelar") {
-    if (ocupado || conversaId === null) return;
+    if (!reservarVez()) return;
     alterar(chaveMsg, (m) => ({
       ...m,
       propostas: m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id),
     }));
     await transmitir(`/conversas/${conversaId}/confirmacoes/${p.confirmacao_id}`, { decisao });
+  }
+
+  /** Locar/reservar pelo cartão: a ação passa pelo chat e a Léia responde na conversa. */
+  async function agirNoCartao(acao: "locar" | "reservar", livroId: number): Promise<boolean> {
+    if (!reservarVez()) return false;
+    return transmitir(`/conversas/${conversaId}/acoes`, { acao, livro_id: livroId });
   }
 
   async function reiniciar() {
@@ -262,9 +350,25 @@ export function Conversa() {
         className="flex min-h-[40vh] flex-col gap-4 border-y border-linha py-4"
       >
         {pronto && mensagens.length === 0 && (
-          <li className="text-tinta-suave">
-            Conte o que você quer ler. Por exemplo: “um romance curto sobre memória” ou “poesia
-            brasileira do século XX”.
+          <li className="flex flex-col gap-3 text-tinta-suave">
+            <p>Conte o que você quer ler, ou comece por uma destas perguntas:</p>
+            <div
+              role="group"
+              aria-label="Sugestões para começar"
+              className="flex flex-col items-start gap-2"
+            >
+              {SUGESTOES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={ocupado || conversaId === null}
+                  onClick={() => void enviarTexto(s)}
+                  className="transicao rounded-md border border-controle px-3 py-1.5 text-left text-tinta hover:bg-papel-2 disabled:opacity-60"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </li>
         )}
         {mensagens.map((m) => (
@@ -282,11 +386,17 @@ export function Conversa() {
               <span className="sr-only">{m.papel === "usuario" ? "Você: " : "Léia: "}</span>
               {m.texto && <p className="whitespace-pre-wrap">{m.texto}</p>}
               {!m.texto && m.papel === "assistente" && ocupado && !m.nota && (
-                <p className="text-tinta-suave">{m.ferramenta ?? "Pensando…"}</p>
+                <Andamento rotulo={m.ferramenta ?? "Pensando…"} />
               )}
-              {m.texto && m.ferramenta && <p className="text-tinta-suave">{m.ferramenta}</p>}
+              {m.texto && m.ferramenta && <Andamento rotulo={m.ferramenta} />}
               {m.livros.map((l) => (
-                <CartaoLivroChat key={l.id} livro={l} comAcao={!m.teveProposta} />
+                <CartaoLivroChat
+                  key={l.id}
+                  livro={l}
+                  comAcao={!m.teveProposta}
+                  ocupado={ocupado}
+                  aoAgir={agirNoCartao}
+                />
               ))}
               {m.nota && <p className="mt-1 text-alerta">{m.nota}</p>}
               {m.propostas.map((p) => (
@@ -333,7 +443,10 @@ export function Conversa() {
         </p>
       )}
 
-      <form onSubmit={enviar} className="flex flex-col gap-2">
+      <form
+        onSubmit={enviar}
+        className="sticky bottom-0 flex flex-col gap-2 border-t border-linha bg-papel pb-4 pt-3"
+      >
         <label htmlFor="mensagem" className="font-medium">
           Mensagem para a Léia
         </label>

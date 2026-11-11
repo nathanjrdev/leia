@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
-import { ano, data } from "@/lib/formato";
+import { ano, avisoLocacao } from "@/lib/formato";
 import type { Ficha } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
-import { Capa } from "./CartaoLivro";
+import { Capa } from "./Capa";
 import { useSessao } from "./SessaoProvider";
 
 type ResultadoLocacao = { prevista_em: string };
@@ -49,7 +49,7 @@ export function FichaLivro({ id }: { id: number }) {
       metodo: "POST",
       corpo: { confirmo: true },
     });
-    setAviso(`Locação feita. Devolver até ${data(r.prevista_em)}.`);
+    setAviso(avisoLocacao(r.prevista_em));
     await recarregar();
   }
 
@@ -68,7 +68,13 @@ export function FichaLivro({ id }: { id: number }) {
 
   return (
     <article className="flex flex-col gap-6 sm:flex-row">
-      <Capa url={ficha.capa_url} className="h-72 w-48 shrink-0 rounded-sm" />
+      <Capa
+        url={ficha.capa_url}
+        titulo={ficha.titulo}
+        autores={ficha.autores}
+        semente={ficha.id}
+        className="h-72 w-48 shrink-0 rounded-sm"
+      />
       <div className="flex flex-col gap-4">
         <header className="flex flex-col gap-1">
           <h1 className="text-4xl font-semibold">{ficha.titulo}</h1>

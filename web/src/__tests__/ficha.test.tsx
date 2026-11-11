@@ -49,7 +49,11 @@ describe("FichaLivro", () => {
     responder(ficha());
     render(<FichaLivro id={3} />);
     expect(await screen.findByRole("heading", { name: "Dom Casmurro" })).toBeInTheDocument();
-    expect(screen.getByText("Machado de Assis")).toBeInTheDocument();
+    // A capa gerada repete o autor, mas é decorativa (aria-hidden): vale o texto da ficha.
+    expect(
+      screen.getByText("Machado de Assis", { ignore: "[aria-hidden='true'] *" }),
+    ).toBeInTheDocument();
+    expect(document.querySelector("[data-capa='gerada']")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByText(/dúvida sobre Capitu/)).toBeInTheDocument();
     expect(screen.getByText(/Garnier/)).toBeInTheDocument();
     expect(screen.getByText("2 de 3 exemplares disponíveis")).toBeInTheDocument();
@@ -76,7 +80,9 @@ describe("FichaLivro", () => {
         corpo: { confirmo: true },
       }),
     );
-    expect(await screen.findByRole("status")).toHaveTextContent("Devolver até 23/11/2026");
+    const aviso = await screen.findByRole("status");
+    expect(aviso).toHaveTextContent("Devolver até 23/11/2026");
+    expect(aviso).toHaveTextContent("Boa leitura");
   });
 
   it("sem exemplar livre oferece reservar e mostra a posição", async () => {

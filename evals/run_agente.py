@@ -28,13 +28,14 @@ from leia_api.avaliacao_agente import (
     GravadorLLM,
     ResultadoCaso,
     carregar_casos_agente,
+    casos_instaveis,
     executar_caso,
     resumir,
     resumir_desempenho,
     rodada_valida,
 )
 from leia_api.busca import Reranker
-from leia_api.cli_conversa import carregar_env, exigir_chave
+from leia_api.cli_conversa import exigir_chave
 from leia_api.config import settings
 from leia_api.llm import ClienteLiteLLM
 from leia_api.locacao import RegrasLocacao
@@ -80,6 +81,12 @@ def main() -> None:
     ap.add_argument("--pausa", type=float, default=4.0, help="segundos antes de cada turno")
     ap.add_argument("--sem-reranker", action="store_true", help="busca sem cross-encoder")
     ap.add_argument("--falhas", action="store_true", help="detalha os casos reprovados")
+    ap.add_argument(
+        "--repeticoes",
+        type=int,
+        default=1,
+        help="roda os casos N vezes (o LLM varia entre rodadas)",
+    )
     ap.add_argument("--gate", action="store_true", help="sai com código 1 se alguma meta falhar")
     ap.add_argument("--saida", type=Path, default=RELATORIO, help="onde gravar o relatório JSON")
     args = ap.parse_args()
@@ -88,32 +95,39 @@ def main() -> None:
     if not casos:
         sys.exit("Nenhum caso selecionado.")
 
-    carregar_env(RAIZ / ".env")
-    exigir_chave()
+    chave = exigir_chave()
 
     print(f"Carregando modelos... ({len(casos)} casos, modelo {settings.leia_model})", flush=True)
     from leia_api.modelos import CrossEncoderReranker, EncoderST
 
     encoder = EncoderST()
     reranker: Reranker | None = None if args.sem_reranker else CrossEncoderReranker()
-    gravador = GravadorLLM(ClienteLiteLLM())
+    gravador = GravadorLLM(ClienteLiteLLM(settings.leia_model, chave))
     agente = Agente(gravador, ConfigAgente.da_config())
     regras = RegrasLocacao.da_config()
 
     resultados: list[ResultadoCaso] = []
     with Session(create_engine(settings.database_url)) as session:
-        for i, caso in enumerate(casos, 1):
-            r = executar_caso(
-                caso, agente, gravador, session, encoder, reranker, regras, pausa=args.pausa
-            )
-            resultados.append(r)
-            print(f"[{i}/{len(casos)}] {'ok   ' if r.passou else 'FALHA'} {r.id}", flush=True)
-            if not r.passou and args.falhas:
-                for falha in r.falhas:
-                    print(f"        - {falha}")
+        for rep in range(1, args.repeticoes + 1):
+            marca = f" (rep {rep}/{args.repeticoes})" if args.repeticoes > 1 else ""
+            for i, caso in enumerate(casos, 1):
+                r = executar_caso(
+                    caso, agente, gravador, session, encoder, reranker, regras, pausa=args.pausa
+                )
+                resultados.append(r)
+                status = "ok   " if r.passou else "FALHA"
+                print(f"[{i}/{len(casos)}]{marca} {status} {r.id}", flush=True)
+                if not r.passou and args.falhas:
+                    for falha in r.falhas:
+                        print(f"        - {falha}")
 
     resumo = resumir(resultados)
     imprimir_resumo(resumo)
+    instaveis = casos_instaveis(resultados)
+    if instaveis:
+        lista = ", ".join(f"{i} {t}" for i, t in instaveis.items())
+        print()
+        print(f"instáveis (passou/total): {lista}")
     desempenho = resumir_desempenho(
         resultados,
         settings.custo_referencia_entrada_usd_por_milhao,
@@ -136,6 +150,8 @@ def main() -> None:
         "prompt": settings.prompt_versao,
         "reranker": reranker is not None,
         "valida": rodada_valida(resultados),
+        "repeticoes": args.repeticoes,
+        "instaveis": instaveis,
         "resumo": resumo,
         "desempenho": desempenho,
         "casos": [asdict(r) for r in resultados],

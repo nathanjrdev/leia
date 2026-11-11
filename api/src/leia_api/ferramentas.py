@@ -28,6 +28,7 @@ from leia_api.busca import Reranker, buscar_livros
 from leia_api.config import settings
 from leia_api.embeddings import Encoder
 from leia_api.locacao import ErroLocacao, RegrasLocacao
+from leia_api.models import Livro
 
 Resultado = dict[str, Any]
 
@@ -109,6 +110,9 @@ class ContextoFerramentas:
     pendentes: dict[str, AcaoPendente] = field(default_factory=dict)
     pendente_ttl_segundos: int = settings.pendente_ttl_segundos
     max_pendentes: int = settings.max_pendentes_por_usuario
+    # medição da última ferramenta executada (tempo por etapa, em ms); o agente lê e zera.
+    # Nunca entra no resultado devolvido ao LLM.
+    etapas_ms: dict[str, int] | None = None
 
     def agora_efetivo(self) -> datetime:
         return self.agora if self.agora is not None else datetime.now(UTC)
@@ -146,6 +150,7 @@ def _cartao(
 
 
 def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
+    tempos: dict[str, int] = {}
     achados = buscar_livros(
         ctx.session,
         a.consulta,
@@ -156,7 +161,9 @@ def _buscar(ctx: ContextoFerramentas, a: BuscarLivrosArgs) -> Resultado:
         ano_max=a.ano_max,
         apenas_disponiveis=a.apenas_disponiveis,
         reranker=ctx.reranker,  # decisão: o agente busca com o reranker (modo fundido)
+        tempos=tempos,
     )
+    ctx.etapas_ms = tempos
     ctx.livros_vistos.update(r.livro_id for r in achados)
     for r in achados:
         ctx.cartoes[r.livro_id] = _cartao(r.livro_id, r.titulo, r.autores, r.capa_url, r.livres)
@@ -454,7 +461,13 @@ def confirmar_acao(ctx: ContextoFerramentas, confirmacao_id: str) -> Resultado:
         ctx.pendentes[confirmacao_id] = pendente  # falha inesperada não queima o token
         return _falha_interna(ctx, pendente.ferramenta, erro)
     ctx.livros_vistos.add(corpo["livro_id"])
-    return {"ok": True, "acao": pendente.ferramenta, **corpo}
+    resultado: Resultado = {"ok": True, "acao": pendente.ferramenta, **corpo}
+    if pendente.ferramenta in ("locar", "reservar"):
+        # a Léia comenta o livro na resposta do clique com base só no acervo (grounding)
+        livro = ctx.session.get(Livro, corpo["livro_id"])
+        if livro is not None and (sinopse := _sinopse_segura(livro.sinopse)):
+            resultado["sinopse"] = sinopse
+    return resultado
 
 
 def cancelar_acao(ctx: ContextoFerramentas, confirmacao_id: str) -> Resultado:

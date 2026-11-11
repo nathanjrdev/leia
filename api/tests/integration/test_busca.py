@@ -214,3 +214,90 @@ def test_reranker_promotes_its_favourite_but_is_fused_not_absolute(session: Sess
     com = _titulos(buscar_livros(session, "memória", HashEncoder(), reranker=Prefere()))
     assert com.index(favorito) < sem.index(favorito)  # subiu
     assert com[0] == sem[0]  # mas a fusão com o RRF impede que o reranker sozinho mande no topo
+
+
+def test_tempos_por_etapa_sao_preenchidos_sem_mudar_o_resultado(session: Session) -> None:
+    class Constante:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            return [0.0 for _ in documentos]
+
+    sem_medir = buscar_livros(session, "memória", HashEncoder(), reranker=Constante())
+    tempos: dict[str, int] = {}
+    medindo = buscar_livros(session, "memória", HashEncoder(), reranker=Constante(), tempos=tempos)
+
+    assert medindo == sem_medir
+    assert set(tempos) == {
+        "sql_texto",
+        "sql_texto_estrito",
+        "sql_autor",
+        "encode",
+        "sql_vetor",
+        "carregar_livros",
+        "reranker",
+        "disponibilidade",
+    }
+    assert all(isinstance(v, int) and v >= 0 for v in tempos.values())
+
+
+def test_tempos_sem_reranker_nao_tem_etapa_de_reranker(session: Session) -> None:
+    tempos: dict[str, int] = {}
+    buscar_livros(session, "memória", HashEncoder(), tempos=tempos)
+    assert "reranker" not in tempos and "encode" in tempos
+
+
+def test_reranker_recebe_so_os_candidatos_configurados(
+    session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from leia_api.config import settings
+
+    vistos: list[int] = []
+
+    class Conta:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            vistos.append(len(documentos))
+            return [0.0 for _ in documentos]
+
+    monkeypatch.setattr(settings, "reranker_candidatos", 2)
+    buscar_livros(session, "memória", HashEncoder(), reranker=Conta())
+    buscar_livros(session, "memória", HashEncoder(), reranker=Conta(), candidatos_reranker=3)
+
+    assert vistos == [2, 3]  # o catálogo de teste tem 4 livros que casam com "memória"
+
+
+def test_candidatos_do_reranker_padrao_e_configuracao() -> None:
+    from leia_api.config import Settings
+
+    assert Settings().reranker_candidatos == 50
+    assert Settings(reranker_candidatos=25).reranker_candidatos == 25
+
+
+class _RerankerProibido:
+    def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+        raise AssertionError("consulta com título exato não deveria passar pelo reranker")
+
+
+@pytest.mark.parametrize(
+    "consulta", ["Dom Casmurro", "dom casmurro", "  DOM  CASMURRO! ", "dóm casmurro"]
+)
+def test_titulo_exato_pula_o_reranker_e_vem_primeiro(session: Session, consulta: str) -> None:
+    tempos: dict[str, int] = {}
+    r = buscar_livros(session, consulta, HashEncoder(), reranker=_RerankerProibido(), tempos=tempos)
+    assert _titulos(r)[0] == "Dom Casmurro"
+    assert "reranker" not in tempos and "atalho_titulo" in tempos
+
+
+def test_titulo_exato_ignora_caixa(session: Session) -> None:
+    r = buscar_livros(session, "vidas secas", HashEncoder(), reranker=_RerankerProibido())
+    assert _titulos(r)[0] == "Vidas Secas"
+
+
+def test_consulta_que_nao_e_titulo_passa_pelo_reranker(session: Session) -> None:
+    chamado: list[bool] = []
+
+    class Marca:
+        def score(self, consulta: str, documentos: list[str]) -> Sequence[float]:
+            chamado.append(True)
+            return [0.0 for _ in documentos]
+
+    buscar_livros(session, "um romance sobre ciúme", HashEncoder(), reranker=Marca())
+    assert chamado == [True]

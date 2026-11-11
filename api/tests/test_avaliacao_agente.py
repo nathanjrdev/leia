@@ -17,6 +17,7 @@ from leia_api.avaliacao_agente import (
     Observacao,
     ResultadoCaso,
     carregar_casos_agente,
+    casos_instaveis,
     percentil,
     resumir,
     resumir_desempenho,
@@ -436,3 +437,13 @@ def test_gravador_aceita_resposta_sem_uso() -> None:
     g.completar([], [], 5.0)
 
     assert g.zerar_uso() == Uso(0, 0)
+
+
+def test_casos_instaveis_mostra_so_quem_oscilou_entre_repeticoes() -> None:
+    def r(caso: str, passou: bool) -> ResultadoCaso:
+        return ResultadoCaso(id=caso, categoria="tarefa", passou=passou, falhas=[], transcricao=[])
+
+    rodadas = [r("a", True), r("b", True), r("c", False)] * 2 + [r("a", False)]
+
+    assert casos_instaveis(rodadas) == {"a": "2/3"}
+    assert casos_instaveis([r("a", True)]) == {}

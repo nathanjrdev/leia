@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine, select, text
 from sqlalchemy.orm import Session
 
 from leia_api.agente import (
@@ -16,6 +16,7 @@ from leia_api.agente import (
     ChamadaFerramenta,
     ConfigAgente,
     RespostaLLM,
+    Uso,
 )
 from leia_api.canal import (
     AVISO_IMITACAO,
@@ -438,3 +439,317 @@ def test_turno_sem_ferramenta_tem_auditoria_vazia(session: Session) -> None:
     res = _agente(LLMFalso(_fala("Oi!"))).responder(_ctx(session, _usuario(session)), [], "oi")
 
     assert res.auditoria == []
+
+
+# ---------- métricas de latência por turno (perf/latencia-resposta) ----------
+
+
+def _relogio_de_passos(passo: float = 0.5) -> Any:
+    """Cronômetro falso: cada leitura anda `passo` segundos (latências determinísticas)."""
+    contador = itertools.count()
+    return lambda: next(contador) * passo
+
+
+def _com_uso(resposta: RespostaLLM, entrada: int, saida: int) -> RespostaLLM:
+    return RespostaLLM(resposta.texto, resposta.chamadas, Uso(entrada, saida))
+
+
+def test_metricas_contam_chamadas_ao_llm_tokens_e_regeracoes(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarzeta")
+    llm = LLMFalso(
+        _com_uso(_chama("buscar_livros", consulta="quasarzeta"), 100, 10),
+        _com_uso(_fala("Leia “Livro Inventado”."), 200, 20),  # grounding manda regerar
+        _com_uso(_fala(f"Achei “{titulo}”."), 300, 30),
+    )
+    agente = Agente(
+        llm,
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+        cronometro=_relogio_de_passos(0.5),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "algo sobre quasarzeta")
+
+    m = res.metricas
+    assert [c.ferramentas for c in m.chamadas_llm] == [1, 0, 0]
+    assert [(c.tokens_entrada, c.tokens_saida) for c in m.chamadas_llm] == [
+        (100, 10),
+        (200, 20),
+        (300, 30),
+    ]
+    assert all(c.latencia_ms == 500 for c in m.chamadas_llm)  # uma leitura antes, uma depois
+    assert m.regeracoes == 1
+    assert m.latencia_ms >= m.llm_ms == 1500
+    assert m.tokens_entrada == 600 and m.tokens_saida == 60
+    assert res.texto == f"Achei “{titulo}”."  # comportamento igual ao de antes
+
+
+def test_metricas_registram_a_chamada_ao_llm_que_falhou(session: Session) -> None:
+    agente = Agente(
+        LLMFalso(RuntimeError("cota")),
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+        cronometro=_relogio_de_passos(1.0),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "oi")
+
+    assert res.erro == "erro_llm"
+    assert len(res.metricas.chamadas_llm) == 1
+    c = res.metricas.chamadas_llm[0]
+    assert c.erro == "erro_llm" and c.latencia_ms == 1000 and c.tokens_entrada is None
+    assert c.causa == "RuntimeError"  # o tipo, nunca a mensagem do provedor
+
+
+def test_resposta_com_titulos_demais_e_refeita_com_no_maximo_o_limite(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(5)]
+    longa = "Sugiro: " + ", ".join(f"“{t}”" for t in livros) + "."
+    curta = "Sugiro: " + ", ".join(f"“{t}”" for t in livros[:3]) + ". Posso mostrar outros."
+    llm = LLMFalso(_fala(longa), _fala(curta))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "me recomenda 10 livros")
+
+    assert res.texto == curta and res.erro is None
+    assert res.metricas.regeracoes == 1
+    correcao = llm.chamadas[1]["mensagens"][-1]["content"]
+    assert "5 títulos" in correcao and "no máximo 3" in correcao
+
+
+def test_titulos_demais_de_novo_apos_refazer_seguem_sem_virar_erro(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(4)]
+    longa = " ".join(f"“{t}”" for t in livros)
+    llm = LLMFalso(_fala(longa), _fala(longa))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "quero 4")
+
+    # os títulos são todos do acervo: uma lista longa não vira mensagem de erro
+    assert res.texto == longa and res.erro is None
+
+
+def test_limite_de_titulos_conta_titulos_distintos(session: Session) -> None:
+    livros = [_livro(session)[1] for _ in range(3)]
+    texto = " ".join(f"“{t}”" for t in livros) + f" e de novo “{livros[0]}”."
+    llm = LLMFalso(_fala(texto))
+    ctx = _ctx(session, _usuario(session))
+    ctx.livros_vistos.update(
+        session.scalars(select(Livro.id).where(Livro.titulo.in_(livros))).all()
+    )
+
+    res = _agente(llm, max_titulos=3).responder(ctx, [], "três livros")
+
+    assert res.texto == texto and res.metricas.regeracoes == 0
+
+
+class _ErroDoProvedor(Exception):
+    status_code = 429
+
+
+def test_causa_do_erro_llm_leva_o_status_http_sem_a_mensagem(session: Session) -> None:
+    agente = Agente(
+        LLMFalso(_ErroDoProvedor("RESOURCE_EXHAUSTED sk-secreta")),
+        ConfigAgente("P", 6, 5.0, 60.0, 1),
+    )
+
+    res = agente.responder(_ctx(session, _usuario(session)), [], "oi")
+
+    assert res.metricas.chamadas_llm[0].causa == "_ErroDoProvedor:429"
+
+
+def test_auditoria_leva_os_tokens_da_chamada_que_pediu_a_ferramenta(session: Session) -> None:
+    livro_id, titulo = _livro(session, palavra="quasaromega")
+    duas = RespostaLLM(
+        texto=None,
+        chamadas=[
+            ChamadaFerramenta("d1", "buscar_livros", {"consulta": "quasaromega"}),
+            ChamadaFerramenta("d2", "detalhar_livro", {"livro_id": livro_id}),
+        ],
+        uso=Uso(120, 12),
+    )
+    llm = LLMFalso(duas, _fala(f"Achei “{titulo}”."))
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], "quasaromega")
+
+    primeira, segunda = res.auditoria
+    assert (primeira.tokens_entrada, primeira.tokens_saida) == (120, 12)
+    assert (segunda.tokens_entrada, segunda.tokens_saida) == (None, None)  # sem contar 2 vezes
+
+
+def test_auditoria_da_busca_traz_o_tempo_de_cada_etapa(session: Session) -> None:
+    livro_id, titulo = _livro(session, palavra="quasarkappa")
+    llm = LLMFalso(
+        _chama("buscar_livros", consulta="quasarkappa"),
+        _chama("detalhar_livro", livro_id=livro_id),
+        _fala(f"Achei “{titulo}”."),
+    )
+
+    res = _agente(llm).responder(_ctx(session, _usuario(session)), [], "quasarkappa")
+
+    busca, detalhe = res.auditoria
+    assert busca.etapas_ms is not None
+    assert {"encode", "sql_texto", "sql_texto_estrito", "sql_autor", "sql_vetor"} <= set(
+        busca.etapas_ms
+    )
+    assert "reranker" not in busca.etapas_ms  # este contexto não tem reranker
+    assert detalhe.etapas_ms is None
+    enviado = json.dumps(llm.chamadas[1]["mensagens"][-1], ensure_ascii=False)
+    assert "etapas" not in enviado and "sql_vetor" not in enviado  # o LLM não vê a medição
+
+
+# ---------- progresso do turno para a tela (perf/latencia-resposta, item 4) ----------
+
+
+def test_observador_ve_ferramenta_e_depois_escrevendo(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarsigma")
+    llm = LLMFalso(_chama("buscar_livros", consulta="quasarsigma"), _fala(f"Achei “{titulo}”."))
+    vistos: list[tuple[str, dict[str, Any]]] = []
+
+    _agente(llm).responder(
+        _ctx(session, _usuario(session)),
+        [],
+        "quasarsigma",
+        observador=lambda e, d: vistos.append((e, d)),
+    )
+
+    assert vistos == [
+        ("ferramenta", {"nome": "buscar_livros"}),
+        ("etapa", {"etapa": "escrevendo"}),
+    ]
+
+
+def test_observador_ve_revisando_quando_o_grounding_manda_regerar(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasartau")
+    llm = LLMFalso(
+        _chama("buscar_livros", consulta="quasartau"),
+        _fala("Leia “Livro Que Não Existe”."),
+        _fala(f"Achei “{titulo}”."),
+    )
+    vistos: list[str] = []
+
+    res = _agente(llm).responder(
+        _ctx(session, _usuario(session)),
+        [],
+        "quasartau",
+        observador=lambda e, d: vistos.append(f"{e}:{d.get('etapa') or d.get('nome')}"),
+    )
+
+    assert vistos == ["ferramenta:buscar_livros", "etapa:escrevendo", "etapa:revisando"]
+    assert res.texto == f"Achei “{titulo}”."  # o texto só sai depois de validado
+
+
+def test_turno_sem_ferramenta_nao_emite_etapa(session: Session) -> None:
+    vistos: list[str] = []
+    _agente(LLMFalso(_fala("Oi!"))).responder(
+        _ctx(session, _usuario(session)), [], "oi", observador=lambda e, d: vistos.append(e)
+    )
+    assert vistos == []
+
+
+# ---------- streaming real de tokens (com o grounding preservado) ----------
+
+
+class LLMStreamFalso(LLMFalso):
+    """Como o LLMFalso, mas transmite o texto em pedaços de 4 caracteres pelo `ao_texto`."""
+
+    def completar_stream(
+        self,
+        mensagens: list[dict[str, Any]],
+        ferramentas: list[dict[str, Any]],
+        timeout: float,
+        ao_texto: Any,
+    ) -> RespostaLLM:
+        resposta = self.completar(mensagens, ferramentas, timeout)
+        texto = resposta.texto or ""
+        for i in range(0, len(texto), 4):
+            ao_texto(texto[i : i + 4])
+        return resposta
+
+
+def _eventos(llm: CallLLM, session: Session, fala: str, **config: Any) -> tuple[Any, list[Any]]:
+    vistos: list[tuple[str, dict[str, Any]]] = []
+    res = _agente(llm, **config).responder(
+        _ctx(session, _usuario(session)), [], fala, observador=lambda e, d: vistos.append((e, d))
+    )
+    return res, vistos
+
+
+def _texto_transmitido(vistos: list[tuple[str, dict[str, Any]]]) -> str:
+    atual = ""
+    for evento, dados in vistos:
+        if evento == "resposta":
+            atual += dados["texto"]
+        elif evento == "descartar":
+            atual = ""
+    return atual
+
+
+def test_stream_transmite_a_resposta_enquanto_o_modelo_escreve(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarphi")
+    llm = LLMStreamFalso(
+        _chama("buscar_livros", consulta="quasarphi"), _fala(f"Achei “{titulo}”, ótimo livro.")
+    )
+
+    res, vistos = _eventos(llm, session, "quasarphi")
+
+    nomes = [e for e, _ in vistos]
+    assert nomes[:2] == ["ferramenta", "etapa"]
+    assert nomes.count("resposta") > 3  # em pedaços, antes de o turno acabar
+    assert "descartar" not in nomes
+    assert _texto_transmitido(vistos) == res.texto == f"Achei “{titulo}”, ótimo livro."
+
+
+def test_stream_nunca_mostra_titulo_inventado_e_descarta_antes_de_regerar(
+    session: Session,
+) -> None:
+    _, titulo = _livro(session, palavra="quasarchi")
+    llm = LLMStreamFalso(
+        _chama("buscar_livros", consulta="quasarchi"),
+        _fala("Leia “Livro Que Não Existe”, que é ótimo."),
+        _fala(f"Achei “{titulo}”."),
+    )
+
+    res, vistos = _eventos(llm, session, "quasarchi")
+
+    mostrado = "".join(d["texto"] for e, d in vistos if e == "resposta")
+    assert "Não Existe" not in mostrado  # o título sem origem nunca chega à tela
+    nomes = [e for e, _ in vistos]
+    i = nomes.index("descartar")  # apaga o parcial e só então avisa que está conferindo
+    assert vistos[i + 1] == ("etapa", {"etapa": "revisando"})
+    assert _texto_transmitido(vistos) == res.texto == f"Achei “{titulo}”."
+
+
+def test_stream_descarta_texto_que_veio_antes_de_uma_ferramenta(session: Session) -> None:
+    _, titulo = _livro(session, palavra="quasarpsi")
+    antes = RespostaLLM(
+        texto="Vou procurar…",
+        chamadas=[ChamadaFerramenta("p1", "buscar_livros", {"consulta": "quasarpsi"})],
+    )
+    llm = LLMStreamFalso(antes, _fala(f"Achei “{titulo}”."))
+
+    res, vistos = _eventos(llm, session, "quasarpsi")
+
+    nomes = [e for e, _ in vistos]
+    assert nomes.index("descartar") < nomes.index("ferramenta")
+    assert _texto_transmitido(vistos) == res.texto
+
+
+def test_stream_desligado_na_configuracao_usa_o_caminho_antigo(session: Session) -> None:
+    llm = LLMStreamFalso(_fala("Oi!"))
+    res, vistos = _eventos(llm, session, "oi", transmitir=False)
+    assert vistos == [] and res.texto == "Oi!"
+
+
+def test_llm_sem_stream_segue_o_caminho_antigo(session: Session) -> None:
+    res, vistos = _eventos(LLMFalso(_fala("Oi!")), session, "oi")
+    assert vistos == [] and res.texto == "Oi!"
+
+
+def test_stream_mede_a_chamada_como_antes(session: Session) -> None:
+    llm = LLMStreamFalso(_com_uso(_fala("Oi!"), 50, 5))
+    res, _ = _eventos(llm, session, "oi")
+    assert [(c.tokens_entrada, c.tokens_saida) for c in res.metricas.chamadas_llm] == [(50, 5)]
