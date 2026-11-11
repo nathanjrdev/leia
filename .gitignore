@@ -225,3 +225,4 @@ data/.cache/
 
 # rodadas parciais ou invalidadas da suíte do agente (agente.json é a oficial)
 evals/resultados/agente_parcial.json
+evals/resultados/reteste/

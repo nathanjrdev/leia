@@ -18,6 +18,20 @@ Papel quente, tinta escura, um acento de lombada só para ações. Capas reais s
 | `--lombada-texto` | `#ffffff` | `#10241b` | texto sobre `--lombada` |
 | `--alerta` | `#8a2a1f` | `#f0a090` | erro e atraso |
 
+### Capa gerada (livro sem imagem)
+Quando o livro não tem `capa_url`, a imagem falha ou a Open Library devolve o pixel vazio, a capa vira tipografia sobre um tom de encadernação em tecido: título principal (sem subtítulo) em Fraunces, autoria em versalete, filete claro e sombra de lombada. É decorativa (`aria-hidden`), o título real está ao lado. O tom sai do id do livro (`tomDaCapa`), então é estável entre telas e vizinhos na lista diferem.
+
+| Token | Valor | Contraste com `--capa-letra` (`#f3ead8`) |
+| --- | --- | --- |
+| `--capa-vinho` | `#6b2430` | 9,2:1 |
+| `--capa-marinho` | `#23344f` | 10,5:1 |
+| `--capa-musgo` | `#3f4a2b` | 7,9:1 |
+| `--capa-ocre` | `#7a4a1c` | 6,2:1 |
+| `--capa-ardosia` | `#3a3f47` | 8,9:1 |
+| `--capa-castanho` | `#4f3426` | 9,5:1 |
+
+Os tons são iguais nos dois temas (a capa é um objeto) e nenhum é o verde da lombada, que fica só para ações.
+
 Regras: o acento só aparece em ações (botão primário, link de ação, foco). Erro nunca depende só da cor (ícone/texto). Contraste mínimo 4.5:1 para texto.
 
 ## Tipografia
