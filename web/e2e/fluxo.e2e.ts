@@ -91,7 +91,8 @@ test("cartão do livro no chat: Locar em duas etapas e o livro vai para a estant
   // O primeiro clique só pergunta: nada foi locado ainda.
   await expect(cartao.getByText("Locar “Dom Casmurro”?")).toBeVisible();
   await cartao.getByRole("button", { name: "Confirmar locação" }).click();
-  await expect(cartao.getByRole("status")).toContainText("Locação feita");
+  // A locação passa pelo chat: a resposta da Léia aparece na conversa, não no cartão.
+  await expect(page.getByText("Locação concluída. Boa leitura!")).toBeVisible();
 
   await cartao.getByRole("link", { name: "Ver minha estante" }).click();
   await expect(page.getByRole("region", { name: "Locações ativas" })).toContainText("Dom Casmurro");

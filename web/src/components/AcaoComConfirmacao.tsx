@@ -9,6 +9,8 @@ type Props = {
   rotuloConfirmar: string;
   aoConfirmar: () => Promise<void>;
   primaria?: boolean;
+  // outro trabalho em curso (a Léia respondendo): não deixa começar nem confirmar
+  desabilitado?: boolean;
 };
 
 /** Toda escrita da tela passa por aqui: o 1º clique só pergunta, a ação só roda no 2º. */
@@ -18,6 +20,7 @@ export function AcaoComConfirmacao({
   rotuloConfirmar,
   aoConfirmar,
   primaria = false,
+  desabilitado = false,
 }: Props) {
   const [etapa, setEtapa] = useState<"inicio" | "perguntando" | "enviando">("inicio");
   const [erro, setErro] = useState<string | null>(null);
@@ -44,6 +47,7 @@ export function AcaoComConfirmacao({
       {etapa === "inicio" ? (
         <button
           type="button"
+          disabled={desabilitado}
           onClick={() => {
             setErro(null);
             setEtapa("perguntando");
@@ -58,7 +62,7 @@ export function AcaoComConfirmacao({
           <div className="flex gap-3">
             <button
               type="button"
-              disabled={etapa === "enviando"}
+              disabled={etapa === "enviando" || desabilitado}
               onClick={confirmar}
               className={botaoPrimario}
             >

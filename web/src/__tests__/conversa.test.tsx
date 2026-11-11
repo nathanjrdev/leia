@@ -141,23 +141,117 @@ describe("Conversa", () => {
     expect(within(cartao).getByText("Machado de Assis")).toBeInTheDocument();
     expect(within(cartao).getByText("2 exemplares livres")).toBeInTheDocument();
 
-    apiMock.mockImplementation((caminho: string) =>
-      caminho === "/livros/5/locar"
-        ? Promise.resolve({ prevista_em: "2026-12-01T12:00:00Z" })
-        : Promise.reject(new Error("inesperado " + caminho)),
-    );
     await u.click(within(cartao).getByRole("button", { name: "Locar" }));
-    expect(apiMock).not.toHaveBeenCalledWith("/livros/5/locar", expect.anything());
+    expect(postarMock).toHaveBeenCalledTimes(1); // o 1º clique só pergunta
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: true, erro: null } },
+      {
+        evento: "resposta",
+        dados: { texto: "Prontinho! “Dom Casmurro” é seu até 01/12/2026. Boa leitura!" },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
     await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
-    expect(apiMock).toHaveBeenCalledWith("/livros/5/locar", {
-      metodo: "POST",
-      corpo: { confirmo: true },
-    });
-    const aviso = await within(cartao).findByRole("status");
-    expect(aviso).toHaveTextContent("Locação feita");
-    expect(aviso).toHaveTextContent("Obrigada");
-    expect(aviso).toHaveTextContent("Boa leitura");
+    // a locação passa pelo chat: a Léia responde na conversa, não no cartão
+    expect(postarMock).toHaveBeenLastCalledWith(
+      "/conversas/7/acoes",
+      { acao: "locar", livro_id: 5 },
+      expect.any(Function),
+      expect.anything(),
+    );
+    expect(apiMock).not.toHaveBeenCalledWith("/livros/5/locar", expect.anything());
+    expect(
+      await screen.findByText("Prontinho! “Dom Casmurro” é seu até 01/12/2026. Boa leitura!"),
+    ).toBeInTheDocument();
     expect(within(cartao).queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+    expect(within(cartao).getByRole("link", { name: "Ver minha estante" })).toBeInTheDocument();
+  });
+
+  it("locação pelo cartão que a regra nega volta a oferecer o botão", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Achei “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: false, erro: "limite_locacoes" } },
+      { evento: "resposta", dados: { texto: "Você já está com 3 livros." } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.click(within(cartao).getByRole("button", { name: "Locar" }));
+    await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
+    expect(await screen.findByText("Você já está com 3 livros.")).toBeInTheDocument();
+    expect(within(cartao).getByRole("button", { name: "Locar" })).toBeInTheDocument();
+  });
+
+  it("reservar pelo cartão também passa pelo chat", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "“Sagarana” está emprestado." } },
+      {
+        evento: "livros",
+        dados: {
+          livros: [{ id: 9, titulo: "Sagarana", autores: [], capa_url: null, livres: 0 }],
+        },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("sagarana");
+    const cartao = await screen.findByRole("group", { name: "Livro: Sagarana" });
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: true, erro: null } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.click(within(cartao).getByRole("button", { name: "Reservar" }));
+    await u.click(within(cartao).getByRole("button", { name: "Confirmar reserva" }));
+    await waitFor(() =>
+      expect(postarMock).toHaveBeenLastCalledWith(
+        "/conversas/7/acoes",
+        { acao: "reservar", livro_id: 9 },
+        expect.any(Function),
+        expect.anything(),
+      ),
+    );
+  });
+
+  it("Enter duas vezes antes da resposta envia uma mensagem só", async () => {
+    let liberar: () => void = () => {};
+    postarMock.mockImplementation(
+      () =>
+        new Promise<void>((r) => {
+          liberar = r;
+        }),
+    );
+    render(<Conversa />);
+    const caixa = await screen.findByLabelText("Mensagem para a Léia");
+    const u = userEvent.setup();
+    await u.type(caixa, "oi");
+    // dois envios no mesmo quadro, antes de o React refazer a tela com "ocupado"
+    const form = caixa.closest("form") as HTMLFormElement;
+    form.requestSubmit();
+    form.requestSubmit();
+    await waitFor(() => expect(postarMock).toHaveBeenCalledTimes(1));
+    liberar();
+  });
+
+  it("cria uma conversa só, mesmo com o efeito rodando duas vezes (StrictMode)", async () => {
+    const { StrictMode } = await import("react");
+    render(
+      <StrictMode>
+        <Conversa />
+      </StrictMode>,
+    );
+    await screen.findByRole("group", { name: "Sugestões para começar" });
+    const criacoes = apiMock.mock.calls.filter(
+      ([c, o]) => c === "/conversas" && (o as { metodo?: string })?.metodo === "POST",
+    );
+    expect(criacoes).toHaveLength(1);
   });
 
   it("livro sem exemplar livre oferece Reservar, não Locar", async () => {

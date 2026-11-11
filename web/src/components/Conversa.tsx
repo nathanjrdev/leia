@@ -104,6 +104,12 @@ export function Conversa() {
   const [erro, setErro] = useState<string | null>(null);
   const fim = useRef<HTMLDivElement>(null);
   const controle = useRef<AbortController | null>(null);
+  // Trava síncrona: `ocupado` é estado e só muda no próximo render, então dois envios no mesmo
+  // quadro (Enter duplo, clique duplo) passariam os dois pela checagem.
+  const enviando = useRef(false);
+  // Abertura da conversa em andamento: o efeito pode rodar duas vezes (StrictMode) e não deve
+  // criar duas conversas.
+  const abertura = useRef<Promise<{ id: number; historico: MensagemHistorico[] }> | null>(null);
 
   const comecar = useCallback(async () => {
     const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
@@ -113,36 +119,46 @@ export function Conversa() {
   }, []);
 
   useEffect(() => {
-    if (carregando || !logado) return;
+    if (carregando) return;
+    if (!logado) {
+      abertura.current = null; // outra conta não herda a conversa aberta
+      return;
+    }
     let vivo = true;
-    (async () => {
-      try {
-        const anterior = guardado();
-        if (anterior) {
-          try {
-            const h = await api<MensagemHistorico[]>(`/conversas/${anterior}/mensagens`);
-            if (!vivo) return;
-            setConversaId(anterior);
-            setMensagens(
-              h.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),
-            );
-            return;
-          } catch (e) {
-            if (!(e instanceof ErroApi && e.status === 404)) throw e;
-          }
+    abertura.current ??= (async () => {
+      const anterior = guardado();
+      if (anterior) {
+        try {
+          const historico = await api<MensagemHistorico[]>(`/conversas/${anterior}/mensagens`);
+          return { id: anterior, historico };
+        } catch (e) {
+          if (!(e instanceof ErroApi && e.status === 404)) throw e;
         }
-        await comecar();
-      } catch (e) {
-        if (vivo) setErro(mensagemDoErro(e));
-      } finally {
-        if (vivo) setPronto(true);
       }
+      const { id } = await api<{ id: number }>("/conversas", { metodo: "POST" });
+      guardar(id);
+      return { id, historico: [] };
     })();
+    abertura.current
+      .then(({ id, historico }) => {
+        if (!vivo) return;
+        setConversaId(id);
+        setMensagens(
+          historico.map((m) => nova(m.papel === "usuario" ? "usuario" : "assistente", m.conteudo)),
+        );
+      })
+      .catch((e) => {
+        abertura.current = null; // deixa tentar de novo ao remontar
+        if (vivo) setErro(mensagemDoErro(e));
+      })
+      .finally(() => {
+        if (vivo) setPronto(true);
+      });
     return () => {
       vivo = false;
       controle.current?.abort();
     };
-  }, [carregando, logado, comecar]);
+  }, [carregando, logado]);
 
   useEffect(() => {
     fim.current?.scrollIntoView?.({ block: "end" });
@@ -201,23 +217,47 @@ export function Conversa() {
     }
   }
 
-  async function transmitir(caminho: string, corpo: unknown, aoFalhar?: () => void) {
+  /** Um turno por vez. Devolve se a ação do clique deu certo (evento `acao`), ou false. */
+  async function transmitir(
+    caminho: string,
+    corpo: unknown,
+    aoFalhar?: () => void,
+  ): Promise<boolean> {
     const resposta = nova("assistente");
+    let acaoOk = false;
     setMensagens((ms) => [...ms, resposta]);
     setOcupado(true);
     setErro(null);
     const ctl = new AbortController();
     controle.current = ctl;
     try {
-      await postarSSE(caminho, corpo, (e) => aplicar(resposta.chave, e), ctl.signal);
+      await postarSSE(
+        caminho,
+        corpo,
+        (e) => {
+          if (e.evento === "acao") acaoOk = (e.dados as { ok?: boolean } | undefined)?.ok === true;
+          aplicar(resposta.chave, e);
+        },
+        ctl.signal,
+      );
+      return acaoOk;
     } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (e instanceof DOMException && e.name === "AbortError") return acaoOk;
       setErro(mensagemDoErro(e));
       setMensagens((ms) => ms.filter((m) => m.chave !== resposta.chave || m.texto !== ""));
       aoFalhar?.();
+      return false;
     } finally {
+      enviando.current = false;
       setOcupado(false);
     }
+  }
+
+  /** Reserva a vez do turno de forma síncrona; false se já há um turno saindo. */
+  function reservarVez(): boolean {
+    if (enviando.current || ocupado || conversaId === null) return false;
+    enviando.current = true;
+    return true;
   }
 
   async function enviar(e?: FormEvent) {
@@ -227,7 +267,7 @@ export function Conversa() {
 
   async function enviarTexto(bruto: string) {
     const t = bruto.trim();
-    if (!t || ocupado || conversaId === null) return;
+    if (!t || !reservarVez()) return;
     setTexto("");
     // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
     setMensagens((ms) => [...ms.map((m) => ({ ...m, propostas: [] })), nova("usuario", t)]);
@@ -235,12 +275,18 @@ export function Conversa() {
   }
 
   async function decidir(chaveMsg: string, p: Proposta, decisao: "confirmar" | "cancelar") {
-    if (ocupado || conversaId === null) return;
+    if (!reservarVez()) return;
     alterar(chaveMsg, (m) => ({
       ...m,
       propostas: m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id),
     }));
     await transmitir(`/conversas/${conversaId}/confirmacoes/${p.confirmacao_id}`, { decisao });
+  }
+
+  /** Locar/reservar pelo cartão: a ação passa pelo chat e a Léia responde na conversa. */
+  async function agirNoCartao(acao: "locar" | "reservar", livroId: number): Promise<boolean> {
+    if (!reservarVez()) return false;
+    return transmitir(`/conversas/${conversaId}/acoes`, { acao, livro_id: livroId });
   }
 
   async function reiniciar() {
@@ -344,7 +390,13 @@ export function Conversa() {
               )}
               {m.texto && m.ferramenta && <Andamento rotulo={m.ferramenta} />}
               {m.livros.map((l) => (
-                <CartaoLivroChat key={l.id} livro={l} comAcao={!m.teveProposta} />
+                <CartaoLivroChat
+                  key={l.id}
+                  livro={l}
+                  comAcao={!m.teveProposta}
+                  ocupado={ocupado}
+                  aoAgir={agirNoCartao}
+                />
               ))}
               {m.nota && <p className="mt-1 text-alerta">{m.nota}</p>}
               {m.propostas.map((p) => (
