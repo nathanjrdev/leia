@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     # (~linear: 50 → 1,35 s, 25 → 0,7 s em CPU). Mudar exige o gate de busca (run_busca.py).
     reranker_candidatos: int = Field(default=50, ge=1)
     pendente_ttl_segundos: int = Field(default=300, ge=1)
-    prompt_versao: str = "v4"  # gate de 11/11 no Haiku (docs/avaliacao-e-refino.md 5.7)
+    prompt_versao: str = "v5"  # gate de 11/11 no Haiku (docs/avaliacao-e-refino.md 5.8)
     # Carrega encoder e reranker na subida (a 1ª mensagem não espera o modelo). Desligado por
     # padrão para os testes não carregarem ML; ligar no dev/deploy com AQUECER_MODELOS=true.
     aquecer_modelos: bool = False

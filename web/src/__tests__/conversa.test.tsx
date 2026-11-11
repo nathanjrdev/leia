@@ -188,6 +188,30 @@ describe("Conversa", () => {
     await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
     expect(await screen.findByText("Você já está com 3 livros.")).toBeInTheDocument();
     expect(within(cartao).getByRole("button", { name: "Locar" })).toBeInTheDocument();
+    // a Léia já explicou a falha: o aviso genérico em vermelho só repetiria
+    expect(screen.queryByText("Não foi possível concluir essa ação.")).not.toBeInTheDocument();
+  });
+
+  it("ação negada sem explicação da Léia (LLM falhou) mostra o aviso da falha", async () => {
+    turno([
+      { evento: "resposta", dados: { texto: "Achei “A”." } },
+      {
+        evento: "livros",
+        dados: { livros: [{ id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 }] },
+      },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: false, erro: "limite_locacoes" } },
+      { evento: "resposta", dados: { texto: "Tive um problema para responder agora." } },
+      { evento: "fim", dados: { erro: "erro_llm" } },
+    ]);
+    await u.click(within(cartao).getByRole("button", { name: "Locar" }));
+    await u.click(within(cartao).getByRole("button", { name: "Confirmar locação" }));
+    expect(await screen.findByText("Não foi possível concluir essa ação.")).toBeInTheDocument();
   });
 
   it("reservar pelo cartão também passa pelo chat", async () => {

@@ -390,6 +390,31 @@ Latência p50/p95: v2 3,7/12,1 s; v4 final 3,6/9,8 s. Custo de referência por r
 
 **NÃO medido.** Repetição da rodada final (só 1 rodada completa com o limite no código; a variação acima pede k=3 por decisão); a v4 no Gemini depois das regras para o Haiku; tarefa-011 segue instável na abertura (passou na final); ferramenta-005 (páginas) não estourou nas rodadas do Haiku, mas a causa (busca sem `paginas`) continua; qualidade do texto além dos critérios dos casos.
 
+### 5.8 Falha de ação na conversa e prompt v5 (11/11/2026, branch `fix/falha-de-acao-na-conversa`)
+
+**O que o usuário viu** (conversa 69, sessão de teste manual). Depois de confirmar uma locação que bateu no limite de 3, a Léia respondeu certo, mas: (1) terminou a explicação com "Não vou tentar de novo."; (2) a tela pôs, logo abaixo, o aviso vermelho "Não foi possível concluir essa ação.", que só repetia o texto; (3) a Léia "corrigiu" um título que tinha sugerido no turno anterior ("Comedias para se Ler na Escola… não veio de uma busca nesta conversa, desconsidere"). O livro tinha vindo, sim, de `buscar_livros` (chamada 145; id 88 em `livros_vistos`).
+
+**Causas.** (1) A linha do evento de falha (`canal.py`) mandava "Não tente de novo, nem proponha a ação outra vez", e o modelo repetiu a ordem para o leitor. Essa ordem é a que resolveu tarefa-008 (5.1), então fica, só muda a forma. (2) A tela marcava a nota no evento `acao` com `ok=false`, antes de saber se a Léia ia explicar, e a nota ainda escondia o "Pensando…". (3) O histórico que o modelo recebe só tem os textos (user/assistant), sem os resultados das ferramentas dos turnos anteriores; com a regra "cite só o que as ferramentas devolveram nesta conversa", ele não tem como conferir o que já citou e às vezes se desmente.
+
+**Mudanças.**
+- `canal.py`: a falha pede para explicar o motivo e, se couber, um próximo passo; "não chame a ferramenta da ação de novo nem abra outra confirmação, a menos que o leitor peça"; "não anuncie ao leitor o que você deixou de fazer" (também no cancelamento). Tirado o ponto duplo do motivo ("atingido..").
+- `Conversa.tsx`: o evento `acao` só marca `acaoFalhou`; no `fim`, o aviso "Não foi possível concluir essa ação." aparece só se a Léia não explicou (sem texto, ou turno com erro, como LLM fora).
+- Prompt **v5** = v4 + 1 regra: títulos já citados entre aspas em respostas anteriores foram conferidos pelo sistema (é verdade: todo título citado passa pelo grounding do código); pode voltar a citá-los e não se corrigir por eles.
+- tarefa-008 ganhou `texto_nao_contem`: "não vou tentar", "não vou propor", "desconsidere", "não veio de uma busca".
+
+**Medido (Haiku 5.5, 55 casos, 1 rodada completa e válida com as duas mudanças juntas).**
+
+| Rodada | ferramenta | grounding | segurança | tarefa | geral |
+| --- | --- | --- | --- | --- | --- |
+| v4 oficial (5.7) | 15/15 | 10/10 | 16/16 | 13/14 | 54/55 |
+| **v5 + canal novo** | **14/15** | **10/10** | **16/16** | **14/14** | **54/55** |
+
+A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as locações e perguntou "Quer que eu proponha a renovação?" em vez de chamar `renovar`, o padrão já descrito em 5.7. Caso de um turno, sem histórico nem clique: nenhuma das mudanças age nele. Repetido isolado 3x: v5 2/3, **v4 2/3** (instabilidade anterior, não regressão). Latência p50/p95 3,5/9,3 s; custo de referência da rodada US$ 0,09 (+ US$ 0,01 nos retestes). Na rodada, tarefa-008 respondeu "Não consegui concluir a locação de “Dom Casmurro” porque você já está com 3 locações ativas… Se quiser, posso consultar suas locações atuais…", sem anunciar o que deixou de fazer. Testes: API 443 (cobertura 97%), web 93.
+
+**NÃO medido.** O caso exato da autocorreção: foi espontâneo e não há caso na suíte que o reproduza (busca em um turno, título repetido em outro, clique que falha no terceiro); a v5 só foi verificada por não piorar e por tarefa-008 não conter "desconsidere". Nenhuma repetição da rodada completa (orçamento do mês: o gate usa a mesma conta). As duas mudanças foram medidas juntas, então uma regressão não teria como ser atribuída a uma delas. A v5 no Gemini.
+
+**Decisão.** v5 **adotada** (`prompt_versao="v5"`) e canal novo mantido: nenhuma categoria abaixo da meta, grounding e segurança em 100%, e a única queda é de um caso que oscila igual na v4. `agente.json` = rodada da v5.
+
 ## 6. Limites conhecidos da medida
 
 - **Casos e sinopses vêm do mesmo conhecimento geral de LLM**; os ganhos de busca tendem a ser otimistas.
