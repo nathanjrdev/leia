@@ -139,7 +139,7 @@ function CapaDaEstante({
 }
 
 // Grade de livros em pé; o histórico passa uma lista compacta num painel de vidro.
-const GRADE = "grid gap-x-10 gap-y-12 sm:grid-cols-2 xl:grid-cols-3";
+const GRADE = "grid gap-x-12 gap-y-12 lg:grid-cols-2";
 
 function Secao({
   id,

@@ -45,17 +45,6 @@
   --capa-creme-letra: #1a1a1a;
   --capa-celeste: #9fd3ff;
   --capa-celeste-letra: #0b2340;
-
-  /* Aliases da identidade anterior, só durante a migração (Fase 6 remove).
-     Com eles, as classes que os componentes já usam (bg-papel-2, text-lombada…) recolorem
-     sem tocar markup. */
-  --papel: var(--fundo);
-  --papel-2: var(--vidro-solido);
-  --tinta: var(--texto);
-  --tinta-suave: var(--texto-suave);
-  --linha: var(--vidro-filete);
-  --lombada: var(--rosa);
-  --lombada-texto: var(--rosa-texto);
 }
 
 /* Ameixa: o mesmo mundo à noite. */
@@ -81,17 +70,7 @@
   --color-menta: var(--menta);
   --color-controle: var(--controle);
   --color-alerta: var(--alerta);
-  /* aliases (migração) */
-  --color-papel: var(--papel);
-  --color-papel-2: var(--papel-2);
-  --color-tinta: var(--tinta);
-  --color-tinta-suave: var(--tinta-suave);
-  --color-linha: var(--linha);
-  --color-lombada: var(--lombada);
-  --color-lombada-texto: var(--lombada-texto);
   --font-sans: var(--font-inter), system-ui, sans-serif;
-  /* A Fraunces saiu; `font-serif` ainda aparece nos componentes e aponta para a Inter até a Fase 6. */
-  --font-serif: var(--font-inter), system-ui, sans-serif;
 }
 
 html {
@@ -179,13 +158,6 @@ h3 {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .transicao {
-    transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
-      opacity 150ms ease;
-  }
-
   .andamento-ponto {
     animation: andamento-pulso 1.2s ease-in-out infinite;
   }
@@ -210,7 +182,7 @@ h3 {
   container-type: size;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--linha);
+  border: 1px solid var(--vidro-filete);
   background-color: var(--capa-tom);
   background-image: linear-gradient(to right, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0) 9%);
   color: var(--capa-letra);
@@ -385,7 +357,7 @@ h3 {
   /* Selo de estado: ponto + texto (ou ícone + texto no alerta). */
   .selo {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
     color: var(--texto-suave);
   }
@@ -393,6 +365,7 @@ h3 {
   .selo-ponto {
     width: 0.5rem;
     height: 0.5rem;
+    margin-top: calc(0.5lh - 0.25rem); /* centrado na primeira linha, mesmo quando o texto quebra */
     flex: none;
     border-radius: 9999px;
     background-color: currentColor;
@@ -410,6 +383,10 @@ h3 {
   .selo-alerta {
     color: var(--alerta);
     font-weight: 600;
+  }
+
+  .selo > svg {
+    margin-top: calc(0.5lh - 0.625em);
   }
 
   /* Aviso: faixa de vidro com ícone (substitui a borda lateral colorida). */

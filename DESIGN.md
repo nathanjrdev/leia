@@ -68,8 +68,6 @@ Os tons são iguais nos dois temas (a capa é um objeto).
 
 ## Materiais e componentes
 
-> Chegam nas Fases 2–4 do plano. Até lá, as telas usam os tokens novos pelos aliases (abaixo).
-
 - **Prateleira:** faixa de vidro com `backdrop-filter: blur(10px)`, filete e sombra; as capas ficam
   em pé, com a base sob um degradê de 12% da altura. É o efeito que justifica o vidro.
 - **Vidro:** barra superior, compositor do chat, bolha do leitor, filtros, faixas de confirmação.
@@ -105,9 +103,9 @@ Kicker ou rótulo acima de título; texto em degradê; borda lateral colorida ac
 cartão, item ou alerta; sombra dura deslocada; card dentro de card; grade de ícones; campo só com
 placeholder; vidro como enfeite (só onde é a prateleira ou uma superfície); contraste baixo.
 
-## Migração (aliases)
+## Componentes no código
 
-Enquanto as telas não passam pelos componentes novos, os nomes antigos apontam para os novos:
-`--papel` → `--fundo`, `--papel-2` → `--vidro-solido`, `--tinta` → `--texto`, `--tinta-suave` →
-`--texto-suave`, `--linha` → `--vidro-filete`, `--lombada` → `--rosa`, `--lombada-texto` →
-`--rosa-texto`; `font-serif` aponta para a Inter. A Fase 6 do plano remove os aliases.
+`web/src/components/ui/`: `Botao` (+ `classesBotao` para links), `Selo`, `Aviso`, `Prateleira` e
+`Icones`. Estilos em `globals.css`, `@layer components`: `.botao-*`, `.vidro`, `.vidro-fosco`,
+`.campo`, `.selo-*`, `.aviso-*`, `.prateleira*`, `.livro-em-pe`, `.livro-capa`, `.entra`.
+Os nomes da identidade anterior (`papel`, `tinta`, `lombada`, `font-serif`) não existem mais.

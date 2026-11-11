@@ -2,6 +2,13 @@
 
 > Proposta de 11/11/2026. Escopo: só `web/`. Referência visual: [my-book.site](https://www.my-book.site/).
 > Skills: `impeccable` (pbakaus), `design-taste-frontend` (Leonxlnx/taste-skill) e o pacote `emilkowalski/skill`.
+>
+> **Estado (11/11/2026):** Fases 0 a 4 feitas na branch `redesign/estante-de-vidro`, um commit por fase, e os aliases já foram removidos. Faltam:
+> - o morph da capa (Fase 5);
+> - o asset do chaveiro (seção 11);
+> - a auditoria final (Fase 6).
+>
+> Na Conversa, o restyle foi feito só em markup e classes, sem o PR de extração: o diff já não toca a lógica.
 
 ## Resumo
 
