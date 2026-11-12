@@ -240,3 +240,8 @@ evals/resultados/reteste/
 .claude/skills/design-taste-frontend/**/*.mp4
 .claude/skills/design-taste-frontend/**/*.webm
 .claude/skills/design-taste-frontend/**/*.glb
+
+# Degustação: os PDFs da estante e as páginas geradas deles (data/gerar_degustacao.py) são obras
+# protegidas e ficam só na máquina. O que se versiona é a escolha de páginas (data/degustacao.json).
+data/livros_estante/
+web/public/degustacao/

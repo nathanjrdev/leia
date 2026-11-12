@@ -594,3 +594,291 @@ h3 {
     animation: balanco 1.2s var(--ease-out) both;
   }
 }
+
+
+/* ------------------------------------------------------------------------------------------
+   Degustação (components/Degustacao.tsx): folhear as primeiras páginas de um livro da estante.
+   As páginas são objetos de papel (como as capas): o fim usa o tom creme da capa gerada.
+   A folha vira sobre a lombada só com transform; com movimento reduzido não há folha.
+   ------------------------------------------------------------------------------------------ */
+.degustacao {
+  --dur-virada: 560ms; /* virada de página: momento focal, um pouco acima de --dur-foco */
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background-color: color-mix(in srgb, var(--fundo) 88%, transparent);
+  overscroll-behavior: contain;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .degustacao {
+    background-color: var(--fundo);
+  }
+}
+
+.degustacao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.degustacao-palco {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: center;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.degustacao-livro {
+  position: relative;
+  display: flex;
+  aspect-ratio: var(--razao);
+  /* Cabe na altura que sobra (topo, rodapé e respiro) sem passar da largura do palco. */
+  width: min(100%, calc((100dvh - 10rem) * var(--razao)));
+  max-height: 100%;
+  perspective: 2600px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.degustacao-livro[data-dupla]::before {
+  /* A sombra do livro aberto sobre o fundo; some com a capa sozinha. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 24px 48px var(--sombra);
+  pointer-events: none;
+}
+
+.degustacao-livro[data-so="dir"]::before {
+  left: 50%;
+}
+
+.degustacao-livro[data-so="esq"]::before {
+  right: 50%;
+}
+
+.degustacao-lado {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.degustacao-pagina {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--capa-creme);
+  color: var(--capa-creme-letra);
+}
+
+.degustacao-pagina img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Sombra da lombada: escurece a borda de dentro de cada página (decoração, sobre a imagem). */
+.degustacao-pagina-esq::after,
+.degustacao-pagina-dir::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.degustacao-pagina-esq {
+  border-radius: 0.25rem 0 0 0.25rem;
+}
+.degustacao-pagina-esq::after {
+  background: linear-gradient(to left, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0) 9%);
+}
+
+.degustacao-pagina-dir {
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+.degustacao-pagina-dir::after {
+  background: linear-gradient(to right, rgb(0 0 0 / 0.2), rgb(0 0 0 / 0) 8%);
+}
+
+.degustacao-unica .degustacao-pagina {
+  border-radius: 0.25rem;
+  box-shadow: 0 18px 36px var(--sombra);
+}
+
+.degustacao-vazia {
+  background: transparent;
+}
+.degustacao-vazia::after {
+  display: none;
+}
+
+/* Página de fim: papel creme, tinta escura; a ação é uma pílula violeta (7,6:1). */
+.degustacao-fim {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: clamp(1.25rem, 6%, 2.5rem);
+  font-size: clamp(0.95rem, 1.6vw, 1.0625rem);
+  line-height: 1.5;
+  cursor: auto;
+}
+
+.degustacao-fim-titulo {
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.degustacao-fim .degustacao-fim-acao {
+  background-color: var(--fundo);
+  color: var(--texto);
+}
+
+.degustacao-fim-link {
+  align-self: flex-start;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--capa-creme-letra);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* A folha que vira: frente e verso, girando sobre a lombada. */
+.degustacao-folha {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.degustacao-folha[data-dir="avanca"] {
+  left: 50%;
+  transform-origin: left center;
+}
+
+.degustacao-folha[data-dir="volta"] {
+  left: 0;
+  transform-origin: right center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .degustacao-folha[data-dir="avanca"] {
+    animation: folha-avanca var(--dur-virada) var(--ease-in-out) both;
+  }
+  .degustacao-folha[data-dir="volta"] {
+    animation: folha-volta var(--dur-virada) var(--ease-in-out) both;
+  }
+}
+
+.degustacao-face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.degustacao-verso {
+  transform: rotateY(180deg);
+}
+
+@keyframes folha-avanca {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(-180deg); }
+}
+
+@keyframes folha-volta {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(180deg); }
+}
+
+/* Página simples (tela estreita): a nova entra com um leve deslize; reduzido, sem animação. */
+@media (prefers-reduced-motion: no-preference) {
+  .degustacao-unica {
+    animation: entra var(--dur-estado) var(--ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .degustacao-folha {
+    display: none;
+  }
+}
+
+.degustacao-seta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background-color: var(--vidro);
+  color: var(--texto);
+  box-shadow: inset 0 0 0 1px var(--controle);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: background-color var(--dur-estado) ease, opacity var(--dur-estado) ease;
+}
+
+.degustacao-seta:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .degustacao-seta:hover:not(:disabled) {
+    background-color: rgb(255 255 255 / 0.18);
+  }
+}
+
+.degustacao-rodape {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tela estreita: as setas descem para baixo do livro, lado a lado, ao alcance do polegar. */
+@media (max-width: 767px) {
+  .degustacao-palco {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .degustacao-livro {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: min(100%, calc((100dvh - 12.5rem) * var(--razao)));
+  }
+  .degustacao-seta-voltar {
+    grid-row: 2;
+    justify-self: end;
+  }
+  .degustacao-seta-avancar {
+    grid-row: 2;
+    justify-self: start;
+  }
+}

@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { api } from "@/lib/api";
+import { carregarDegustacoes, chaveTitulo, type Degustacao as DadosDegustacao } from "@/lib/degustacao";
 import type { ItemLivro, Listagem } from "@/lib/tipos";
 import { Capa } from "./Capa";
 import { Chaveiro } from "./Chaveiro";
+import { Degustacao } from "./Degustacao";
 import { Prateleira } from "./ui/Prateleira";
 
 const POR_PRATELEIRA = 4;
@@ -51,25 +53,48 @@ async function carregarVitrine(): Promise<ItemLivro[]> {
     .slice(0, QUANTIDADE);
 }
 
+const ID_DICA = "dica-degustacao";
+
 /**
  * As duas prateleiras de vidro da página inicial, só com capas reais do acervo (livros sem capa
  * verificada nunca aparecem aqui). Enquanto carrega, ou se a API falhar, ficam espaços vazios
  * decorativos: a página inicial não mostra erro.
+ *
+ * Livro com degustação (ver `lib/degustacao.ts`) abre o leitor ao clique, para folhear as
+ * primeiras páginas; o link continua apontando para a ficha (Ctrl+clique, nova aba, sem JS).
  */
 export function EstanteDaHome() {
   const [livros, setLivros] = useState<ItemLivro[] | null>(null);
+  const [degustacoes, setDegustacoes] = useState<Map<string, DadosDegustacao>>(() => new Map());
+  const [aberto, setAberto] = useState<{ livro: ItemLivro; degustacao: DadosDegustacao } | null>(null);
+  const origem = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let vivo = true;
     carregarVitrine()
       .then((itens) => vivo && setLivros(itens))
       .catch(() => vivo && setLivros([]));
+    carregarDegustacoes().then((m) => vivo && setDegustacoes(m));
     return () => {
       vivo = false;
     };
   }, []);
 
+  function abrir(e: MouseEvent<HTMLAnchorElement>, livro: ItemLivro, degustacao: DadosDegustacao) {
+    // Clique com modificador (nova aba, nova janela) segue o link para a ficha.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    origem.current = e.currentTarget;
+    setAberto({ livro, degustacao });
+  }
+
+  function fechar() {
+    setAberto(null);
+    origem.current?.focus();
+  }
+
   const fileiras = [0, 1].map((f) => livros?.slice(f * POR_PRATELEIRA, (f + 1) * POR_PRATELEIRA) ?? []);
+  const temDegustacao = (livros ?? []).some((l) => degustacoes.has(chaveTitulo(l.titulo)));
 
   return (
     <div className="relative flex flex-col gap-10 sm:gap-14">
@@ -78,12 +103,16 @@ export function EstanteDaHome() {
           <Prateleira className="pt-2">
             {Array.from({ length: POR_PRATELEIRA }, (_, i) => {
               const l = fileira[i];
+              const degustacao = l ? degustacoes.get(chaveTitulo(l.titulo)) : undefined;
               return l ? (
                 <Link
                   key={l.id}
                   href={`/livro/${l.id}`}
                   className="inicio-capa entra w-[22%] min-w-0 shrink-0 rounded-sm"
                   style={{ animationDelay: `${ATRASOS_MS[i]}ms` }}
+                  aria-haspopup={degustacao ? "dialog" : undefined}
+                  aria-describedby={degustacao ? ID_DICA : undefined}
+                  onClick={degustacao ? (e) => abrir(e, l, degustacao) : undefined}
                 >
                   <span className="sr-only">{l.titulo}</span>
                   <Capa
@@ -106,6 +135,12 @@ export function EstanteDaHome() {
           {f === 0 && <Chaveiro />}
         </div>
       ))}
+      {temDegustacao && (
+        <p id={ID_DICA} className="-mt-4 text-sm text-texto-suave sm:-mt-8">
+          Abra uma capa para folhear as primeiras páginas.
+        </p>
+      )}
+      {aberto && <Degustacao livro={aberto.livro} degustacao={aberto.degustacao} onFechar={fechar} />}
     </div>
   );
 }
