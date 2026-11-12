@@ -3,9 +3,8 @@
 > Proposta de 11/11/2026. Escopo: só `web/`. Referência visual: [my-book.site](https://www.my-book.site/).
 > Skills: `impeccable` (pbakaus), `design-taste-frontend` (Leonxlnx/taste-skill) e o pacote `emilkowalski/skill`.
 >
-> **Estado (11/11/2026):** Fases 0 a 4 feitas na branch `redesign/estante-de-vidro`, um commit por fase, e os aliases já foram removidos. A `EstanteDaHome` passou a filtrar por capa real (decisão 8). Faltam:
+> **Estado (12/11/2026):** Fases 0 a 4 feitas na branch `redesign/estante-de-vidro`, um commit por fase, e os aliases já foram removidos. A `EstanteDaHome` passou a filtrar por capa real (decisão 8) e o chaveiro já está no ar, como SVG original (seção 11). Faltam:
 > - o morph da capa (Fase 5);
-> - o asset do chaveiro (seção 11);
 > - a auditoria final (Fase 6);
 > - decidir a fonte de capas para crescer o acervo (seção 12).
 >
@@ -331,6 +330,8 @@ Tudo vai para `.claude/skills/` + `skills-lock.json`. No repositório, a mídia 
 **O que é:** um chaveiro de metal com uma pequena pilha de livros, pendurado numa corrente, como objeto 3D pontual sobre o violeta. É desenho nosso, inspirado no tipo de objeto, sem copiar o render do my-book.site.
 
 **Ferramenta:** gerador de imagem, por exemplo o Higgsfield (o mesmo do workflow da referência). O MCP dele se conecta como conector personalizado no Claude, pelo endereço `https://mcp.higgsfield.ai/mcp`; ele não aparece no diretório de conectores. Outra opção é gerar fora e subir o PNG.
+
+> **Resolvido em 12/11/2026, com outro caminho:** sem o conector do Higgsfield disponível na sessão, optei por um SVG original embutido no próprio `Chaveiro.tsx` (anelzinho + correntinha pontilhada + três lombadas em leque, nas cores que já existem para a capa gerada) em vez do PNG/WebP fotorrealista. Vantagens: zero asset externo para gerar, conferir ou versionar, e visualmente consistente com o resto do app, que já é flat (capa gerada, vidro, sem fotorrealismo). Se no futuro quiserem a versão fotorrealista da referência, o prompt abaixo continua valendo — é só trocar o conteúdo de `Chaveiro.tsx` por uma tag `<img>` apontando para o arquivo gerado.
 
 **Requisitos** (os mesmos que o workflow pede para os sprites):
 
