@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { LivroDoChat } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
 import { Capa } from "./Capa";
+import { Selo } from "./ui/Selo";
 
 export type AcaoDoCartao = "locar" | "reservar";
 
@@ -16,11 +17,14 @@ export type AcaoDoCartao = "locar" | "reservar";
 export function CartaoLivroChat({
   livro,
   comAcao = true,
+  antigo = false,
   ocupado = false,
   aoAgir,
 }: {
   livro: LivroDoChat;
   comAcao?: boolean;
+  /** Cartão de uma resposta anterior à fala ou à decisão mais recente do leitor: só leitura. */
+  antigo?: boolean;
   ocupado?: boolean;
   aoAgir: (acao: AcaoDoCartao, livroId: number) => Promise<boolean>;
 }) {
@@ -35,34 +39,41 @@ export function CartaoLivroChat({
     <div
       role="group"
       aria-label={`Livro: ${livro.titulo}`}
-      className="mt-3 flex gap-4 rounded-md border border-linha bg-papel-2 p-3"
+      className="vidro mt-3 flex gap-4 p-3"
     >
       <Capa
         url={livro.capa_url}
         titulo={livro.titulo}
         autores={livro.autores}
         semente={livro.id}
-        className="h-28 w-20 shrink-0 rounded-sm"
+        className="livro-capa h-28 w-20 shrink-0 rounded-sm"
       />
       <div className="flex min-w-0 flex-col gap-1">
-        <Link href={`/livro/${livro.id}`} className="font-serif text-lg font-semibold underline">
+        <Link
+          href={`/livro/${livro.id}`}
+          className="text-lg leading-snug font-semibold underline decoration-white/40 underline-offset-[0.2em] hover:decoration-current"
+        >
           {livro.titulo}
         </Link>
         {livro.autores.length > 0 && (
-          <p className="text-tinta-suave">{livro.autores.join(", ")}</p>
+          <p className="text-texto-suave">{livro.autores.join(", ")}</p>
         )}
-        <p className={livre ? "text-lombada" : "text-tinta-suave"}>
+        <Selo tom={livre ? "disponivel" : "indisponivel"}>
           {livre
             ? livro.livres === 1
               ? "1 exemplar livre"
               : `${livro.livres} exemplares livres`
             : "Sem exemplar livre agora"}
-        </p>
+        </Selo>
         {feito ? (
-          <Link href="/estante" className="text-lombada underline">
+          <Link href="/estante" className="font-semibold text-rosa underline">
             Ver minha estante
           </Link>
-        ) : !comAcao ? null : livre ? (
+        ) : !comAcao ? (
+          antigo ? (
+            <p className="text-sm text-texto-suave">Para locar ou reservar, peça de novo à Léia.</p>
+          ) : null
+        ) : livre ? (
           <AcaoComConfirmacao
             primaria
             rotulo="Locar"

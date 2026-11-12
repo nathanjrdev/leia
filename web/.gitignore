@@ -43,3 +43,6 @@ next-env.d.ts
 # Playwright
 /test-results/
 /playwright-report/
+
+# capturas de revisão visual (scripts/capturas.mjs)
+/capturas/

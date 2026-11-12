@@ -388,6 +388,85 @@ describe("Conversa", () => {
     expect(screen.getByRole("group", { name: "Livro: A" })).toBeInTheDocument();
   });
 
+  const DOIS_LIVROS: EventoSSE[] = [
+    { evento: "resposta", dados: { texto: "Achei “A” e “B”." } },
+    {
+      evento: "livros",
+      dados: {
+        livros: [
+          { id: 1, titulo: "A", autores: [], capa_url: null, livres: 1 },
+          { id: 2, titulo: "B", autores: [], capa_url: null, livres: 1 },
+        ],
+      },
+    },
+    { evento: "fim", dados: { erro: null } },
+  ];
+
+  it("depois que o leitor fala outra coisa, o cartão antigo não oferece mais Locar nem Reservar", async () => {
+    turno(DOIS_LIVROS);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    const cartao = await screen.findByRole("group", { name: "Livro: A" });
+    expect(within(cartao).getByRole("button", { name: "Locar" })).toBeInTheDocument();
+    turno([
+      { evento: "resposta", dados: { texto: "Você tem 3 locações." } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.type(screen.getByLabelText("Mensagem para a Léia"), "quais são minhas locações?");
+    await u.click(screen.getByRole("button", { name: "Enviar" }));
+    await screen.findByText("Você tem 3 locações.");
+    // o cartão continua na tela (título, link, exemplares), só perde a ação
+    expect(screen.getByRole("group", { name: "Livro: A" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reservar" })).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("group", { name: "Livro: A" })).getByText(/peça de novo à Léia/i),
+    ).toBeInTheDocument();
+  });
+
+  it("confirmar uma proposta (ex.: devolução) também tira a ação dos cartões antigos", async () => {
+    turno(DOIS_LIVROS);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "resposta", dados: { texto: "Preparei a devolução." } },
+      { evento: "propostas", dados: { propostas: [{ confirmacao_id: "d1", resumo: "Devolver “N”" }] } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.type(screen.getByLabelText("Mensagem para a Léia"), "quero devolver");
+    await u.click(screen.getByRole("button", { name: "Enviar" }));
+    turno([{ evento: "fim", dados: { erro: null } }]);
+    await u.click(await screen.findByRole("button", { name: "Confirmar" }));
+    await waitFor(() =>
+      expect(postarMock).toHaveBeenLastCalledWith(
+        "/conversas/7/confirmacoes/d1",
+        { decisao: "confirmar" },
+        expect.any(Function),
+        expect.anything(),
+      ),
+    );
+    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).toBeEnabled());
+    expect(screen.queryByRole("button", { name: "Locar" })).not.toBeInTheDocument();
+  });
+
+  it("locar pelo cartão não desativa os outros cartões da mesma busca", async () => {
+    turno(DOIS_LIVROS);
+    render(<Conversa />);
+    const u = await enviar("algo");
+    const a = await screen.findByRole("group", { name: "Livro: A" });
+    turno([
+      { evento: "acao", dados: { decisao: "confirmar", ok: true, erro: null } },
+      { evento: "resposta", dados: { texto: "Locação de “A” concluída." } },
+      { evento: "fim", dados: { erro: null } },
+    ]);
+    await u.click(within(a).getByRole("button", { name: "Locar" }));
+    await u.click(within(a).getByRole("button", { name: "Confirmar locação" }));
+    await screen.findByText("Locação de “A” concluída.");
+    const b = screen.getByRole("group", { name: "Livro: B" });
+    expect(within(b).getByRole("button", { name: "Locar" })).toBeInTheDocument();
+  });
+
   it("proposta: mostra o resumo e Confirmar envia a decisão ao endpoint do clique", async () => {
     turno([
       { evento: "resposta", dados: { texto: "Preparei a locação." } },

@@ -5,6 +5,9 @@ import type { FormEvent } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
 import type { Categoria, Listagem } from "@/lib/tipos";
 import { CartaoLivro } from "./CartaoLivro";
+import { Aviso } from "./ui/Aviso";
+import { Botao } from "./ui/Botao";
+import { IconeBusca } from "./ui/Icones";
 
 const POR_PAGINA = 20;
 
@@ -56,32 +59,33 @@ export function Catalogo() {
   const paginas = dados ? Math.max(1, Math.ceil(dados.total / POR_PAGINA)) : 1;
 
   return (
-    <div className="flex flex-col gap-6">
-      <form onSubmit={buscar} className="flex flex-wrap items-end gap-x-4 gap-y-3">
+    <div className="flex flex-col gap-8">
+      <div className="vidro vidro-fosco flex flex-col gap-5 p-4 sm:p-6">
+      <form onSubmit={buscar} className="flex flex-wrap items-end gap-x-3 gap-y-3">
         <div className="flex min-w-60 flex-1 flex-col gap-1.5">
-          <label htmlFor="busca" className="font-medium">
+          <label htmlFor="busca" className="font-semibold">
             Buscar no acervo
           </label>
-          <input
-            id="busca"
-            type="search"
-            value={rascunho}
-            onChange={(e) => setRascunho(e.target.value)}
-            maxLength={300}
-            className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
-          />
+          <div className="relative">
+            <IconeBusca className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-texto-suave" />
+            <input
+              id="busca"
+              type="search"
+              value={rascunho}
+              onChange={(e) => setRascunho(e.target.value)}
+              maxLength={300}
+              className="campo min-h-14 pl-12 text-lg"
+            />
+          </div>
         </div>
-        <button
-          type="submit"
-          className="transicao rounded-md bg-lombada px-5 py-2.5 font-medium text-lombada-texto hover:opacity-90"
-        >
+        <Botao type="submit" variante="primaria" className="min-h-14 px-7">
           Buscar
-        </button>
+        </Botao>
       </form>
 
       <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="categoria" className="font-medium">
+          <label htmlFor="categoria" className="font-semibold">
             Categoria
           </label>
           <select
@@ -92,7 +96,7 @@ export function Catalogo() {
               setPagina(1);
               setCategoria(e.target.value);
             }}
-            className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
+            className="campo w-auto min-w-44"
           >
             <option value="">Todas</option>
             {categorias.map((c) => (
@@ -102,7 +106,7 @@ export function Catalogo() {
             ))}
           </select>
         </div>
-        <label className="flex items-center gap-2 py-2.5">
+        <label className="flex min-h-12 items-center gap-2.5">
           <input
             type="checkbox"
             checked={soDisponiveis}
@@ -111,29 +115,31 @@ export function Catalogo() {
               setPagina(1);
               setSoDisponiveis(e.target.checked);
             }}
-            className="size-5 accent-lombada"
+            className="size-5 accent-rosa"
           />
           Só disponíveis
         </label>
       </div>
+      </div>
 
-      {erro && (
-        <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
-          {erro}
-        </p>
-      )}
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
       {carregando && !dados ? (
-        <p className="text-tinta-suave">Carregando…</p>
+        <p className="text-texto-suave">Carregando…</p>
       ) : dados && dados.itens.length === 0 && !erro ? (
-        <p className="text-tinta-suave">Nenhum livro encontrado.</p>
+        <div className="vidro flex flex-col gap-1 p-6">
+          <p className="text-lg font-semibold">Nenhum livro encontrado.</p>
+          <p className="text-texto-suave">Tente outra palavra, outra categoria ou tire o filtro de disponíveis.</p>
+        </div>
       ) : (
         dados && (
           <>
-            <p className="text-tinta-suave" aria-live="polite">
+            <p className="text-texto-suave" aria-live="polite">
               {carregando ? "Buscando…" : busca ? `Resultados para “${busca}”` : `${dados.total} livros`}
             </p>
-            <ul>
+            <ul
+              className={`grid grid-cols-2 gap-x-6 gap-y-10 px-3 transition-opacity duration-150 sm:grid-cols-3 lg:grid-cols-5 ${carregando ? "opacity-60" : ""}`}
+            >
               {dados.itens.map((l) => (
                 <CartaoLivro key={l.id} livro={l} />
               ))}
@@ -143,26 +149,16 @@ export function Catalogo() {
       )}
 
       {!busca && dados && paginas > 1 && (
-        <nav aria-label="Páginas" className="flex items-center gap-4">
-          <button
-            type="button"
-            disabled={pagina <= 1}
-            onClick={() => setPagina((p) => p - 1)}
-            className="rounded-md border border-controle px-4 py-2 disabled:opacity-50"
-          >
+        <nav aria-label="Páginas" className="flex items-center justify-center gap-4">
+          <Botao disabled={pagina <= 1} onClick={() => setPagina((p) => p - 1)}>
             Anterior
-          </button>
-          <span>
+          </Botao>
+          <span className="text-texto-suave tabular-nums">
             Página {pagina} de {paginas}
           </span>
-          <button
-            type="button"
-            disabled={pagina >= paginas}
-            onClick={() => setPagina((p) => p + 1)}
-            className="rounded-md border border-controle px-4 py-2 disabled:opacity-50"
-          >
+          <Botao disabled={pagina >= paginas} onClick={() => setPagina((p) => p + 1)}>
             Próxima
-          </button>
+          </Botao>
         </nav>
       )}
     </div>

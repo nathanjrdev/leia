@@ -1,59 +1,87 @@
 @import "tailwindcss";
 
-/* Tokens da identidade "sala de leitura" (ver DESIGN.md). Componente nenhum usa hex solto. */
+/* Tokens da identidade "Estante de vidro" (ver DESIGN.md e docs/redesign/plano-estante-de-vidro.md).
+   Componente nenhum usa hex solto. Contrastes (WCAG 2.x) anotados ao lado de cada cor de texto. */
 :root {
-  --papel: #f7f1e6;
-  --papel-2: #efe6d4;
-  --tinta: #1d1a16;
-  --tinta-suave: #5a5147;
-  --linha: #d9ccb3;
-  --controle: #857862; /* borda de campos e botões: 3,5:1 ou mais (WCAG 1.4.11) */
-  --lombada: #1f4d3a;
-  --lombada-texto: #ffffff;
-  --alerta: #8a2a1f;
+  color-scheme: dark; /* os dois fundos são escuros: controles nativos, barras e seleção no escuro */
+
+  /* Violeta (padrão) */
+  --fundo: #7a0ccf;
+  --vidro: rgb(255 255 255 / 0.1);
+  --vidro-solido: #8724d4; /* o mesmo vidro já composto sobre o violeta, para o que fica fixo */
+  --vidro-filete: rgb(255 255 255 / 0.3);
+  --texto: #ffffff; /* 7,6:1 no fundo; 6,5:1 no vidro */
+  --texto-suave: #ecddf8; /* branco 86%: 5,9:1 no fundo; 5,0:1 no vidro */
+  --controle: #ca9eec; /* borda de campo e botão: 3,5:1 no fundo (WCAG 1.4.11) */
+  --rosa: #f7ced7; /* ação principal; como texto: 5,3:1 no fundo, 4,6:1 no vidro */
+  --rosa-texto: #3a0566; /* texto sobre o rosa: 10,6:1 */
+  --menta: #7dffb0; /* disponível e sucesso: 6,0:1 no fundo; 5,2:1 no vidro */
+  --alerta: #ffd6cf; /* erro e atraso, sempre com texto: 5,7:1 no fundo; 4,9:1 no vidro */
+  --sombra: rgb(40 0 70 / 0.35);
+  --foco: var(--rosa);
   --medida: 68ch;
-  /* Capa gerada: tons de encadernação em tecido (objetos, iguais nos dois temas).
-     Letra sobre cada tom: 6,2:1 a 10,5:1. Nenhum é o verde da lombada (acento de ação). */
-  --capa-letra: #f3ead8;
-  --capa-vinho: #6b2430;
-  --capa-marinho: #23344f;
-  --capa-musgo: #3f4a2b;
-  --capa-ocre: #7a4a1c;
-  --capa-ardosia: #3a3f47;
-  --capa-castanho: #4f3426;
+
+  /* Movimento (valores das skills de animação; ver DESIGN.md, Movimento) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-pilula: cubic-bezier(0.2, 1.4, 0.4, 1); /* só a entrada da página inicial */
+  --dur-toque: 120ms;
+  --dur-estado: 200ms;
+  --dur-camada: 300ms;
+  --dur-foco: 450ms;
+
+  /* Capa gerada: tons de cartaz (objetos, iguais nos dois temas), cada um com a sua letra.
+     Letra sobre o tom: 5,2:1 a 14,8:1. */
+  --capa-rosa: #f7ced7;
+  --capa-rosa-letra: #3a0566;
+  --capa-verde: #1e7a3c;
+  --capa-verde-letra: #f2ffe8;
+  --capa-amarelo: #ffd84d;
+  --capa-amarelo-letra: #2b1400;
+  --capa-vermelho: #c81e28;
+  --capa-vermelho-letra: #fff1ee;
+  --capa-creme: #f1ece2;
+  --capa-creme-letra: #1a1a1a;
+  --capa-celeste: #9fd3ff;
+  --capa-celeste-letra: #0b2340;
 }
 
+/* Ameixa: o mesmo mundo à noite. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --papel: #1f1a14;
-    --papel-2: #2a231b;
-    --tinta: #efe6d4;
-    --tinta-suave: #bfb29c;
-    --linha: #43392c;
-    --controle: #968a72;
-    --lombada: #7fc4a1;
-    --lombada-texto: #10241b;
-    --alerta: #f0a090;
+    --fundo: #1b0b2a;
+    --vidro-solido: #32233f;
+    --texto-suave: #d6d3d9; /* branco 82%: 12,6:1 no fundo; 9,8:1 no vidro */
+    --controle: #8d8594; /* 5,2:1 no fundo */
+    --sombra: rgb(0 0 0 / 0.45);
   }
 }
 
 @theme inline {
-  --color-papel: var(--papel);
-  --color-papel-2: var(--papel-2);
-  --color-tinta: var(--tinta);
-  --color-tinta-suave: var(--tinta-suave);
-  --color-linha: var(--linha);
+  --color-fundo: var(--fundo);
+  --color-vidro: var(--vidro);
+  --color-vidro-solido: var(--vidro-solido);
+  --color-vidro-filete: var(--vidro-filete);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-rosa: var(--rosa);
+  --color-rosa-texto: var(--rosa-texto);
+  --color-menta: var(--menta);
   --color-controle: var(--controle);
-  --color-lombada: var(--lombada);
-  --color-lombada-texto: var(--lombada-texto);
   --color-alerta: var(--alerta);
   --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), Georgia, serif;
 }
 
 html {
-  background: var(--papel);
-  color: var(--tinta);
+  background: var(--fundo);
+  color: var(--texto);
+  caret-color: var(--rosa);
+  accent-color: var(--rosa);
+  scrollbar-color: rgb(255 255 255 / 0.4) transparent;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -65,13 +93,47 @@ body {
 h1,
 h2,
 h3 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  line-height: 1.2;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  line-height: 1.1;
+  letter-spacing: -0.03em; /* piso do impeccable: -0,04em */
+  text-wrap: balance;
+}
+
+::selection {
+  background-color: var(--rosa);
+  color: var(--rosa-texto);
 }
 
 :focus-visible {
-  outline: 3px solid var(--lombada);
+  outline: 3px solid var(--foco);
   outline-offset: 2px;
+}
+
+@layer base {
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  /* Toque: sem atraso de duplo toque; botão não seleciona texto num toque longo. */
+  a,
+  button,
+  [role="button"],
+  summary {
+    touch-action: manipulation;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 16 px ou mais: o iOS não dá zoom ao focar o campo. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }
 
 /* Aviso de andamento do chat: três pontos; só pulsam (opacidade) sem movimento reduzido. */
@@ -96,13 +158,6 @@ h3 {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .transicao {
-    transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
-      opacity 150ms ease;
-  }
-
   .andamento-ponto {
     animation: andamento-pulso 1.2s ease-in-out infinite;
   }
@@ -120,14 +175,14 @@ h3 {
   max-width: var(--medida);
 }
 
-/* Capa gerada (livro sem imagem): título e autoria sobre o tom, com filete e sombra de lombada.
-   Medidas em cqw: a mesma capa serve do cartão do chat (80px) à ficha (192px). A caixa de fora
-   é o contêiner (cqw não vale para o próprio padding dela); o miolo é que usa as medidas. */
+/* Capa gerada (livro sem imagem): título e autoria sobre um tom de cartaz, com filete e sombra de
+   lombada. Medidas em cqw: a mesma capa serve do cartão do chat (80px) à ficha (192px). A caixa de
+   fora é o contêiner (cqw não vale para o próprio padding dela); o miolo é que usa as medidas. */
 .capa-gerada {
   container-type: size;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--linha);
+  border: 1px solid var(--vidro-filete);
   background-color: var(--capa-tom);
   background-image: linear-gradient(to right, rgb(0 0 0 / 0.22), rgb(0 0 0 / 0) 9%);
   color: var(--capa-letra);
@@ -137,7 +192,7 @@ h3 {
   content: "";
   position: absolute;
   inset: 6cqw 6cqw 6cqw 9cqw;
-  border: 1px solid color-mix(in srgb, var(--capa-letra) 45%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
   pointer-events: none;
 }
 
@@ -156,10 +211,11 @@ h3 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
   overflow: hidden;
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: max(0.625rem, 12.5cqw);
-  font-weight: 600;
-  line-height: 1.15;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: max(0.625rem, 13cqw);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
   overflow-wrap: anywhere;
   hyphens: auto;
 }
@@ -170,15 +226,371 @@ h3 {
   -webkit-line-clamp: 2;
   overflow: hidden;
   font-size: max(0.5rem, 7.5cqw);
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.9;
 }
 
-.capa-tom-1 { --capa-tom: var(--capa-vinho); }
-.capa-tom-2 { --capa-tom: var(--capa-marinho); }
-.capa-tom-3 { --capa-tom: var(--capa-musgo); }
-.capa-tom-4 { --capa-tom: var(--capa-ocre); }
-.capa-tom-5 { --capa-tom: var(--capa-ardosia); }
-.capa-tom-6 { --capa-tom: var(--capa-castanho); }
+.capa-tom-1 { --capa-tom: var(--capa-rosa); --capa-letra: var(--capa-rosa-letra); }
+.capa-tom-2 { --capa-tom: var(--capa-verde); --capa-letra: var(--capa-verde-letra); }
+.capa-tom-3 { --capa-tom: var(--capa-amarelo); --capa-letra: var(--capa-amarelo-letra); }
+.capa-tom-4 { --capa-tom: var(--capa-vermelho); --capa-letra: var(--capa-vermelho-letra); }
+.capa-tom-5 { --capa-tom: var(--capa-creme); --capa-letra: var(--capa-creme-letra); }
+.capa-tom-6 { --capa-tom: var(--capa-celeste); --capa-letra: var(--capa-celeste-letra); }
+
+/* ------------------------------------------------------------------------------------------
+   Componentes da casa (components/ui). Em @layer components: utilitários do Tailwind ainda
+   podem ajustar um caso. Hover só com ponteiro fino; toque e movimento reduzido previstos.
+   ------------------------------------------------------------------------------------------ */
+@layer components {
+  .minusculas {
+    text-transform: lowercase;
+  }
+
+  /* Botões: pílula rosa, pílula de vidro e texto. */
+  .botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-estado) ease,
+      box-shadow var(--dur-estado) ease,
+      color var(--dur-estado) ease,
+      transform var(--dur-toque) var(--ease-out);
+  }
+
+  .botao:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .botao-primaria {
+    background-color: var(--rosa);
+    color: var(--rosa-texto);
+  }
+
+  .botao-secundaria {
+    background-color: var(--vidro);
+    color: var(--texto);
+    box-shadow: inset 0 0 0 1px var(--controle);
+  }
+
+  .botao-texto {
+    min-height: 2.75rem;
+    padding: 0 0.25rem;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: var(--rosa);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .botao-primaria:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--rosa), #fff 40%);
+    }
+    .botao-secundaria:hover:not(:disabled) {
+      background-color: rgb(255 255 255 / 0.18);
+    }
+    .botao-texto:hover:not(:disabled) {
+      color: var(--texto);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .botao:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+  }
+
+  /* Vidro: superfície sobre o fundo. Fosco (blur) só em superfícies grandes e poucas. */
+  .vidro {
+    border-radius: 1.25rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .vidro-fosco {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vidro-fosco {
+      background-color: var(--vidro-solido);
+    }
+  }
+
+  /* Campos: vidro com borda de controle (3,5:1). */
+  .campo {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.875rem;
+    background-color: var(--vidro);
+    color: var(--texto);
+    box-shadow: inset 0 0 0 1px var(--controle);
+    transition: box-shadow var(--dur-estado) ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .campo:hover {
+      box-shadow: inset 0 0 0 1px var(--texto-suave);
+    }
+  }
+
+  .campo::placeholder {
+    color: var(--texto-suave);
+  }
+
+  /* Selo de estado: ponto + texto (ou ícone + texto no alerta). */
+  .selo {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: var(--texto-suave);
+  }
+
+  .selo-ponto {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: calc(0.5lh - 0.25rem); /* centrado na primeira linha, mesmo quando o texto quebra */
+    flex: none;
+    border-radius: 9999px;
+    background-color: currentColor;
+  }
+
+  .selo-disponivel {
+    color: var(--menta);
+  }
+
+  .selo-indisponivel .selo-ponto {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+
+  .selo-alerta {
+    color: var(--alerta);
+    font-weight: 600;
+  }
+
+  .selo > svg {
+    margin-top: calc(0.5lh - 0.625em);
+  }
+
+  /* Aviso: faixa de vidro com ícone (substitui a borda lateral colorida). */
+  .aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 1rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .aviso-icone {
+    flex: none;
+    margin-top: 0.2em;
+  }
+
+  .aviso-erro {
+    color: var(--alerta);
+  }
+
+  .aviso-sucesso .aviso-icone {
+    color: var(--menta);
+  }
+
+  .aviso-info .aviso-icone {
+    color: var(--rosa);
+  }
+
+  /* Prateleira: painel de vidro atrás da metade de baixo dos livros e tábua fosca na frente,
+     cobrindo a base deles. Poucas por página (o blur custa). */
+  .prateleira {
+    position: relative;
+    padding: 0 1rem;
+  }
+
+  .prateleira::before {
+    content: "";
+    position: absolute;
+    inset: 42% 0 0 0;
+    border-radius: 1.25rem;
+    background-color: var(--vidro);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+  }
+
+  .prateleira-livros {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.875rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .prateleira-tabua {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2.25rem;
+    border-radius: 0 0 1.25rem 1.25rem;
+    background-color: rgb(255 255 255 / 0.12);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      0 18px 28px -16px var(--sombra);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+
+  /* Livro em pé numa grade (catálogo, estante): cada item tem o seu trecho de tábua, sem blur
+     (listas longas), com a base da capa sob um degradê leitoso. */
+  .livro-em-pe {
+    position: relative;
+    display: block;
+    padding-bottom: 0.875rem;
+  }
+
+  .livro-em-pe::after {
+    content: "";
+    position: absolute;
+    right: -0.75rem;
+    bottom: 0;
+    left: -0.75rem;
+    height: 1.75rem;
+    background: linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.1));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      0 14px 22px -14px var(--sombra);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .livro-em-pe > .livro-capa {
+      transition: transform var(--dur-estado) var(--ease-out);
+    }
+    .livro-em-pe:hover > .livro-capa {
+      transform: translateY(-3px);
+    }
+  }
+
+  .livro-capa {
+    display: block;
+    box-shadow: 0 10px 24px -12px var(--sombra);
+  }
+}
+
+/* Entradas: uma por contêiner, curtas, a partir de um estado já quase visível. Com movimento
+   reduzido não há animação nenhuma (regra do projeto, coberta por conversa-etapas.test). */
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .entra {
+    animation: entra var(--dur-estado) var(--ease-out) both;
+  }
+}
+
+
+/* ------------------------------------------------------------------------------------------
+   Página inicial: a marca em pé na prateleira e a única coreografia de entrada do app
+   (rara: primeira tela). Tudo clicável desde o primeiro quadro; atrasos variados, ~650 ms.
+   ------------------------------------------------------------------------------------------ */
+.marca-grande {
+  display: block;
+  padding: 0 0.25rem;
+  color: var(--rosa);
+  font-size: clamp(5rem, 15vw, 10.5rem);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+}
+
+.inicio-marca .prateleira-livros {
+  padding-bottom: 1.6rem;
+}
+
+.inicio-capa {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .inicio-capa > .livro-capa {
+    transition: transform var(--dur-estado) var(--ease-out);
+  }
+  .inicio-capa:hover > .livro-capa {
+    transform: translateY(-4px);
+  }
+}
+
+/* Chaveiro: pendurado na tábua da primeira prateleira, balanço amortecido (sem loop). */
+.chaveiro {
+  position: absolute;
+  top: calc(50% - 1.4rem);
+  left: 18%;
+  z-index: 1;
+  width: 4.5rem;
+  height: auto;
+  transform-origin: 50% 0;
+  filter: drop-shadow(0 10px 12px var(--sombra));
+}
+
+@keyframes balanco {
+  0% { transform: rotate(8deg); }
+  22% { transform: rotate(-5deg); }
+  44% { transform: rotate(3deg); }
+  66% { transform: rotate(-1.5deg); }
+  84% { transform: rotate(0.6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes sobe {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes pilula {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .inicio-marca {
+    animation: sobe var(--dur-foco) var(--ease-out) both;
+  }
+  .inicio-titulo {
+    animation: sobe var(--dur-camada) var(--ease-out) 80ms both;
+  }
+  .inicio-texto {
+    animation: sobe var(--dur-camada) var(--ease-out) 140ms both;
+  }
+  .inicio-acoes {
+    transform-origin: 0 50%;
+    animation: pilula var(--dur-foco) var(--ease-pilula) 200ms both;
+  }
+  .chaveiro {
+    animation: balanco 1.2s var(--ease-out) both;
+  }
+}
