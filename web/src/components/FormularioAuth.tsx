@@ -7,6 +7,8 @@ import type { FormEvent } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
 import type { Conta } from "@/lib/tipos";
 import { useSessao } from "./SessaoProvider";
+import { Aviso } from "./ui/Aviso";
+import { Botao } from "./ui/Botao";
 
 const SENHA_MIN = 8;
 
@@ -44,7 +46,7 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
     <form
       method="post"
       onSubmit={enviar}
-      className="flex w-full max-w-sm flex-col gap-5"
+      className="flex w-full flex-col gap-5"
       noValidate={false}
     >
       {cadastro && (
@@ -68,21 +70,13 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
         minLength={cadastro ? SENHA_MIN : undefined}
         ajuda={cadastro ? `Pelo menos ${SENHA_MIN} caracteres.` : undefined}
       />
-      {erro && (
-        <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
-          {erro}
-        </p>
-      )}
-      <button
-        type="submit"
-        disabled={enviando}
-        className="transicao rounded-md bg-lombada px-5 py-3 font-medium text-lombada-texto hover:opacity-90 disabled:opacity-60"
-      >
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
+      <Botao type="submit" variante="primaria" disabled={enviando} className="w-full">
         {enviando ? (cadastro ? "Criando…" : "Entrando…") : rotuloBotao}
-      </button>
-      <p className="text-tinta-suave">
+      </Botao>
+      <p className="text-texto-suave">
         {cadastro ? "Já tem conta? " : "Ainda não tem conta? "}
-        <Link href={cadastro ? "/entrar" : "/cadastrar"} className="text-lombada underline">
+        <Link href={cadastro ? "/entrar" : "/cadastrar"} className="font-semibold text-rosa underline">
           {cadastro ? "Entrar" : "Criar conta"}
         </Link>
       </p>
@@ -102,7 +96,7 @@ function Campo(p: {
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={p.id} className="font-medium">
+      <label htmlFor={p.id} className="font-semibold">
         {p.rotulo}
       </label>
       <input
@@ -115,10 +109,10 @@ function Campo(p: {
         autoComplete={p.autoComplete}
         minLength={p.minLength}
         aria-describedby={p.ajuda ? `${p.id}-ajuda` : undefined}
-        className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
+        className="campo"
       />
       {p.ajuda && (
-        <span id={`${p.id}-ajuda`} className="text-sm text-tinta-suave">
+        <span id={`${p.id}-ajuda`} className="text-sm text-texto-suave">
           {p.ajuda}
         </span>
       )}

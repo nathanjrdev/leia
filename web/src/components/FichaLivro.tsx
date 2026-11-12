@@ -8,6 +8,10 @@ import type { Ficha } from "@/lib/tipos";
 import { AcaoComConfirmacao } from "./AcaoComConfirmacao";
 import { Capa } from "./Capa";
 import { useSessao } from "./SessaoProvider";
+import { Aviso } from "./ui/Aviso";
+import { classesBotao } from "./ui/Botao";
+import { Prateleira } from "./ui/Prateleira";
+import { Selo } from "./ui/Selo";
 
 type ResultadoLocacao = { prevista_em: string };
 type ResultadoReserva = { posicao: number };
@@ -33,14 +37,8 @@ export function FichaLivro({ id }: { id: number }) {
     };
   }, [id]);
 
-  if (erro) {
-    return (
-      <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
-        {erro}
-      </p>
-    );
-  }
-  if (!ficha) return <p className="text-tinta-suave">Carregando…</p>;
+  if (erro) return <Aviso tipo="erro">{erro}</Aviso>;
+  if (!ficha) return <p className="text-texto-suave">Carregando…</p>;
 
   const livre = ficha.livres > 0;
 
@@ -67,35 +65,35 @@ export function FichaLivro({ id }: { id: number }) {
     .join(" · ");
 
   return (
-    <article className="flex flex-col gap-6 sm:flex-row">
-      <Capa
-        url={ficha.capa_url}
-        titulo={ficha.titulo}
-        autores={ficha.autores}
-        semente={ficha.id}
-        className="h-72 w-48 shrink-0 rounded-sm"
-      />
-      <div className="flex flex-col gap-4">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-4xl font-semibold">{ficha.titulo}</h1>
-          <p className="text-lg">{ficha.autores.join(", ")}</p>
-          {meta && <p className="text-tinta-suave">{meta}</p>}
+    <article className="entra grid gap-8 md:grid-cols-[minmax(0,17rem)_1fr] md:items-start md:gap-14">
+      <Prateleira className="mx-auto w-56 md:w-full">
+        <Capa
+          url={ficha.capa_url}
+          titulo={ficha.titulo}
+          autores={ficha.autores}
+          semente={ficha.id}
+          className="livro-capa aspect-[2/3] w-full rounded-sm"
+        />
+      </Prateleira>
+      <div className="flex min-w-0 flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-4xl font-bold sm:text-5xl">{ficha.titulo}</h1>
+          <p className="text-xl">{ficha.autores.join(", ")}</p>
+          {meta && <p className="text-texto-suave">{meta}</p>}
           {ficha.categorias.length > 0 && (
-            <p className="text-tinta-suave">{ficha.categorias.join(", ")}</p>
+            <p className="text-texto-suave">{ficha.categorias.join(", ")}</p>
           )}
         </header>
 
-        {ficha.sinopse && (
-          <p className="medida font-serif text-lg leading-relaxed">{ficha.sinopse}</p>
-        )}
+        {ficha.sinopse && <p className="medida text-lg leading-relaxed">{ficha.sinopse}</p>}
 
-        <p className={livre ? "font-medium text-lombada" : "font-medium text-tinta-suave"}>
+        <Selo tom={livre ? "disponivel" : "indisponivel"} className="font-semibold">
           {livre
             ? `${ficha.livres} de ${ficha.exemplares} exemplares disponíveis`
             : ficha.fila > 0
               ? `Indisponível, fila de ${ficha.fila}`
               : "Indisponível"}
-        </p>
+        </Selo>
 
         {conta ? (
           livre ? (
@@ -116,18 +114,18 @@ export function FichaLivro({ id }: { id: number }) {
             />
           )
         ) : (
-          <Link href="/entrar" className="text-lombada underline">
+          <Link href="/entrar" className={classesBotao("primaria", "self-start")}>
             {livre ? "Entre para locar" : "Entre para reservar"}
           </Link>
         )}
 
         {aviso && (
-          <p role="status" className="border-l-4 border-lombada pl-3">
+          <Aviso tipo="sucesso" className="medida">
             {aviso}{" "}
-            <Link href="/estante" className="text-lombada underline">
+            <Link href="/estante" className="font-semibold text-rosa underline">
               Ver minha estante
             </Link>
-          </p>
+          </Aviso>
         )}
       </div>
     </article>

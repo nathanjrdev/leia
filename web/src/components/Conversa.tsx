@@ -8,6 +8,9 @@ import type { EventoSSE } from "@/lib/api";
 import type { LivroDoChat, MensagemHistorico, Proposta } from "@/lib/tipos";
 import { CartaoLivroChat } from "./CartaoLivroChat";
 import { useSessao } from "./SessaoProvider";
+import { Aviso } from "./ui/Aviso";
+import { Botao, classesBotao } from "./ui/Botao";
+import { Selo } from "./ui/Selo";
 
 const CHAVE = "leia:conversa";
 const MAX_CARACTERES = 2000;
@@ -29,6 +32,9 @@ type Msg = {
   livros: LivroDoChat[];
   // a Léia já propôs uma ação nesta mensagem: o cartão não oferece outro caminho de locação
   teveProposta: boolean;
+  // o leitor falou ou decidiu algo depois desta mensagem: os cartões dela ficam só para leitura
+  // (clicar num cartão de antes de outro assunto agia sobre um contexto que já mudou)
+  cartoesAntigos: boolean;
   // a ação do clique foi negada; o aviso só aparece no fim, se a Léia não a explicou
   acaoFalhou: boolean;
   nota: string | null;
@@ -58,7 +64,7 @@ const ROTULO_ETAPA: Record<string, string> = {
 /** Aviso de andamento: os pontos são decorativos; quem anuncia é o `role="status"` da conversa. */
 function Andamento({ rotulo }: { rotulo: string }) {
   return (
-    <p className="flex items-center gap-2 text-tinta-suave">
+    <p className="flex items-center gap-2 text-texto-suave">
       <span aria-hidden="true" className="inline-flex gap-1">
         <span className="andamento-ponto" />
         <span className="andamento-ponto" />
@@ -95,6 +101,7 @@ const nova = (papel: Msg["papel"], texto = ""): Msg => ({
   propostas: [],
   livros: [],
   teveProposta: false,
+  cartoesAntigos: false,
   acaoFalhou: false,
   nota: null,
 });
@@ -280,17 +287,29 @@ export function Conversa() {
     const t = bruto.trim();
     if (!t || !reservarVez()) return;
     setTexto("");
-    // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
-    setMensagens((ms) => [...ms.map((m) => ({ ...m, propostas: [] })), nova("usuario", t)]);
+    // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões. Os
+    // cartões de antes também deixam de agir (ficam visíveis, só leitura).
+    setMensagens((ms) => [
+      ...ms.map((m) => ({ ...m, propostas: [], cartoesAntigos: true })),
+      nova("usuario", t),
+    ]);
     await transmitir(`/conversas/${conversaId}/mensagens`, { texto: t }, () => setTexto(t));
   }
 
   async function decidir(chaveMsg: string, p: Proposta, decisao: "confirmar" | "cancelar") {
     if (!reservarVez()) return;
-    alterar(chaveMsg, (m) => ({
-      ...m,
-      propostas: m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id),
-    }));
+    // decidir uma proposta (devolver, renovar...) muda o estado da conta: os cartões de antes
+    // deixam de agir, como quando o leitor fala outra coisa
+    setMensagens((ms) =>
+      ms.map((m) => ({
+        ...m,
+        cartoesAntigos: true,
+        propostas:
+          m.chave === chaveMsg
+            ? m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id)
+            : m.propostas,
+      })),
+    );
     await transmitir(`/conversas/${conversaId}/confirmacoes/${p.confirmacao_id}`, { decisao });
   }
 
@@ -319,14 +338,14 @@ export function Conversa() {
 
   if (!carregando && !logado) {
     return (
-      <section className="medida flex flex-col gap-4">
-        <h1 className="text-3xl font-semibold">Converse com a Léia</h1>
-        <p className="text-tinta-suave">Entre na sua conta para conversar e fazer locações.</p>
-        <div className="flex gap-4">
-          <Link href="/entrar" className="text-lombada underline">
+      <section className="medida flex flex-col gap-5">
+        <h1 className="text-4xl font-bold sm:text-5xl">Converse com a Léia</h1>
+        <p className="text-lg text-texto-suave">Entre na sua conta para conversar e fazer locações.</p>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/entrar" className={classesBotao("primaria")}>
             Entrar
           </Link>
-          <Link href="/cadastrar" className="text-lombada underline">
+          <Link href="/cadastrar" className={classesBotao("secundaria")}>
             Criar conta
           </Link>
         </div>
@@ -337,15 +356,10 @@ export function Conversa() {
   return (
     <section className="medida mx-auto flex w-full flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="text-3xl font-semibold">Converse com a Léia</h1>
-        <button
-          type="button"
-          onClick={reiniciar}
-          disabled={ocupado}
-          className="text-lombada underline disabled:opacity-60"
-        >
+        <h1 className="text-3xl font-bold sm:text-4xl">Converse com a Léia</h1>
+        <Botao variante="texto" onClick={reiniciar} disabled={ocupado} className="shrink-0">
           Nova conversa
-        </button>
+        </Botao>
       </div>
 
       <p role="status" className="sr-only">
@@ -358,10 +372,10 @@ export function Conversa() {
 
       <ol
         aria-label="Conversa"
-        className="flex min-h-[40vh] flex-col gap-4 border-y border-linha py-4"
+        className="flex min-h-[40vh] flex-col gap-6 py-4"
       >
         {pronto && mensagens.length === 0 && (
-          <li className="flex flex-col gap-3 text-tinta-suave">
+          <li className="entra flex flex-col gap-3 text-texto-suave">
             <p>Conte o que você quer ler, ou comece por uma destas perguntas:</p>
             <div
               role="group"
@@ -369,15 +383,14 @@ export function Conversa() {
               className="flex flex-col items-start gap-2"
             >
               {SUGESTOES.map((s) => (
-                <button
+                <Botao
                   key={s}
-                  type="button"
                   disabled={ocupado || conversaId === null}
                   onClick={() => void enviarTexto(s)}
-                  className="transicao rounded-md border border-controle px-3 py-1.5 text-left text-tinta hover:bg-papel-2 disabled:opacity-60"
+                  className="justify-start rounded-2xl text-left font-medium"
                 >
                   {s}
-                </button>
+                </Botao>
               ))}
             </div>
           </li>
@@ -385,12 +398,12 @@ export function Conversa() {
         {mensagens.map((m) => (
           <li
             key={m.chave}
-            className={m.papel === "usuario" ? "flex justify-end" : "flex justify-start"}
+            className={m.papel === "usuario" ? "entra flex justify-end" : "entra flex justify-start"}
           >
             <div
               className={
                 m.papel === "usuario"
-                  ? "max-w-[85%] rounded-lg bg-papel-2 px-4 py-2"
+                  ? "vidro max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5"
                   : "w-full max-w-[95%]"
               }
             >
@@ -404,41 +417,43 @@ export function Conversa() {
                 <CartaoLivroChat
                   key={l.id}
                   livro={l}
-                  comAcao={!m.teveProposta}
+                  comAcao={!m.teveProposta && !m.cartoesAntigos}
+                  antigo={m.cartoesAntigos}
                   ocupado={ocupado}
                   aoAgir={agirNoCartao}
                 />
               ))}
-              {m.nota && <p className="mt-1 text-alerta">{m.nota}</p>}
+              {m.nota && (
+                <p className="mt-2">
+                  <Selo tom="alerta">{m.nota}</Selo>
+                </p>
+              )}
               {m.propostas.map((p) => (
                 <div
                   key={p.confirmacao_id}
                   role="group"
                   aria-label="Confirmação"
-                  className="mt-3 flex flex-col gap-3 border-l-4 border-lombada pl-4"
+                  className="vidro entra mt-3 flex flex-col gap-3 p-4"
                 >
                   <p id={`prop-${p.confirmacao_id}`} className="font-medium">
                     {p.resumo}
                   </p>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
+                  <div className="flex flex-wrap gap-2">
+                    <Botao
+                      variante="primaria"
                       disabled={ocupado}
                       aria-describedby={`prop-${p.confirmacao_id}`}
                       onClick={() => decidir(m.chave, p, "confirmar")}
-                      className="transicao rounded-md bg-lombada px-4 py-2 font-medium text-lombada-texto hover:opacity-90 disabled:opacity-60"
                     >
                       Confirmar
-                    </button>
-                    <button
-                      type="button"
+                    </Botao>
+                    <Botao
                       disabled={ocupado}
                       aria-describedby={`prop-${p.confirmacao_id}`}
                       onClick={() => decidir(m.chave, p, "cancelar")}
-                      className="transicao rounded-md border border-controle px-4 py-2 hover:bg-papel-2 disabled:opacity-60"
                     >
                       Cancelar
-                    </button>
+                    </Botao>
                   </div>
                 </div>
               ))}
@@ -446,19 +461,16 @@ export function Conversa() {
           </li>
         ))}
       </ol>
-      <div ref={fim} />
+      {/* margem de rolagem: o fim da conversa para acima do compositor fixo, não embaixo dele */}
+      <div ref={fim} className="scroll-mb-56" />
 
-      {erro && (
-        <p role="alert" className="border-l-4 border-alerta pl-3 text-alerta">
-          {erro}
-        </p>
-      )}
+      {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
       <form
         onSubmit={enviar}
-        className="sticky bottom-0 flex flex-col gap-2 border-t border-linha bg-papel pb-4 pt-3"
+        className="vidro vidro-fosco sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] flex flex-col gap-2 p-4"
       >
-        <label htmlFor="mensagem" className="font-medium">
+        <label htmlFor="mensagem" className="font-semibold">
           Mensagem para a Léia
         </label>
         <textarea
@@ -468,17 +480,13 @@ export function Conversa() {
           onKeyDown={aoTeclar}
           rows={2}
           maxLength={MAX_CARACTERES}
-          className="rounded-md border border-controle bg-papel-2 px-3 py-2.5"
+          className="campo resize-none"
         />
         <div className="flex items-center justify-between gap-4">
-          <span className="text-sm text-tinta-suave">Enter envia; Shift+Enter quebra a linha.</span>
-          <button
-            type="submit"
-            disabled={ocupado || conversaId === null}
-            className="transicao rounded-md bg-lombada px-5 py-2.5 font-medium text-lombada-texto hover:opacity-90 disabled:opacity-60"
-          >
+          <span className="text-sm text-texto-suave">Enter envia; Shift+Enter quebra a linha.</span>
+          <Botao type="submit" variante="primaria" disabled={ocupado || conversaId === null} className="shrink-0">
             Enviar
-          </button>
+          </Botao>
         </div>
       </form>
     </section>

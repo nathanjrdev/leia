@@ -226,3 +226,17 @@ data/.cache/
 # rodadas parciais ou invalidadas da suíte do agente (agente.json é a oficial)
 evals/resultados/agente_parcial.json
 evals/resultados/reteste/
+
+# taste-skill (design-taste-frontend): mídia de demonstração para sites de marketing, que o Léia
+# não usa. As instruções, referências e scripts ficam versionados; para ter a mídia de volta:
+# npx skills add Leonxlnx/taste-skill -a claude-code -y
+.claude/skills/design-taste-frontend/**/_demo/
+.claude/skills/design-taste-frontend/assets/icons/demo/
+.claude/skills/design-taste-frontend/**/*.png
+.claude/skills/design-taste-frontend/**/*.jpg
+.claude/skills/design-taste-frontend/**/*.jpeg
+.claude/skills/design-taste-frontend/**/*.webp
+.claude/skills/design-taste-frontend/**/*.gif
+.claude/skills/design-taste-frontend/**/*.mp4
+.claude/skills/design-taste-frontend/**/*.webm
+.claude/skills/design-taste-frontend/**/*.glb

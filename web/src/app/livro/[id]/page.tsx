@@ -4,7 +4,7 @@ import { FichaLivro } from "@/components/FichaLivro";
 
 export default function PaginaLivro({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<p className="text-tinta-suave">Carregando…</p>}>
+    <Suspense fallback={<p className="text-texto-suave">Carregando…</p>}>
       <Conteudo params={params} />
     </Suspense>
   );
