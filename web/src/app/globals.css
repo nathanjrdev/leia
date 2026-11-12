@@ -547,19 +547,16 @@ h3 {
   top: calc(50% - 1.4rem);
   left: 18%;
   z-index: 1;
-  width: 4.5rem;
-  height: auto;
-  transform-origin: 50% 0;
+  width: 5.5rem;
+  pointer-events: none; /* decorativo: o cursor empurra pela física em Chaveiro.tsx, sem tapar as capas */
   filter: drop-shadow(0 10px 12px var(--sombra));
 }
 
-@keyframes balanco {
-  0% { transform: rotate(8deg); }
-  22% { transform: rotate(-5deg); }
-  44% { transform: rotate(3deg); }
-  66% { transform: rotate(-1.5deg); }
-  84% { transform: rotate(0.6deg); }
-  100% { transform: rotate(0deg); }
+.chaveiro svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
 @keyframes sobe {
@@ -589,9 +586,6 @@ h3 {
   .inicio-acoes {
     transform-origin: 0 50%;
     animation: pilula var(--dur-foco) var(--ease-pilula) 200ms both;
-  }
-  .chaveiro {
-    animation: balanco 1.2s var(--ease-out) both;
   }
 }
 
