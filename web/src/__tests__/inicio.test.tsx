@@ -44,6 +44,21 @@ describe("EstanteDaHome", () => {
     expect(screen.queryByRole("link", { name: "Sem Capa Nenhuma" })).toBeNull();
   });
 
+  it("põe os destaques à frente, na ordem definida, mesmo vindo em outra página da API", async () => {
+    apiMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        url.includes("pagina=2")
+          ? { itens: [livro(9, "O Pequeno Príncipe"), livro(10, "Zélia")], total: 50, pagina: 2 }
+          : { itens: [livro(1, "Aaa Qualquer"), livro(2, "Dom Casmurro")], total: 50, pagina: 1 },
+      ),
+    );
+    render(<EstanteDaHome />);
+    await screen.findByRole("link", { name: "O Pequeno Príncipe" });
+    const nomes = screen.getAllByRole("link").map((l) => l.textContent);
+    expect(nomes.slice(0, 2)).toEqual(["Dom Casmurro", "O Pequeno Príncipe"]);
+    expect(nomes).toContain("Aaa Qualquer");
+  });
+
   it("se a API falha, a prateleira fica só com espaços vazios: nada de erro na página inicial", async () => {
     apiMock.mockImplementation(() =>
       Promise.reject(new ErroApi(0, "sem_conexao", "Não consegui falar com o servidor.")),

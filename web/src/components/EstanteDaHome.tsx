@@ -15,6 +15,41 @@ const QUANTIDADE = POR_PRATELEIRA * 2;
 const CANDIDATOS = 48;
 // Atrasos variados (não uniformes) e curtos: a fileira assenta em ~300 ms, sem segurar clique.
 const ATRASOS_MS = [0, 70, 110, 190];
+// Livros que abrem a vitrine, nesta ordem (por título, como está no catálogo). Os que faltarem
+// no acervo ou sem capa real são pulados; o resto da vitrine segue a ordem da API.
+const DESTAQUES = [
+  "Dom Casmurro",
+  "Harry Potter e as Relíquias da Morte",
+  "O Pequeno Príncipe",
+  "Memórias póstumas de Brás Cubas",
+  "O menino do pijama listrado",
+  "Hábitos Atômicos",
+  "O Alquimista",
+  "O Hobbit",
+  "O Diário de Anne Frank",
+].map((t) => t.toLocaleLowerCase("pt-BR"));
+
+function posDestaque(l: ItemLivro): number {
+  const i = DESTAQUES.indexOf(l.titulo.toLocaleLowerCase("pt-BR"));
+  return i === -1 ? DESTAQUES.length : i;
+}
+
+/** Busca o acervo todo (a API pagina em ordem alfabética) para achar os destaques onde estiverem. */
+async function carregarVitrine(): Promise<ItemLivro[]> {
+  const url = (p: number) => `/livros?pagina=${p}&limite=${CANDIDATOS}`;
+  const primeira = await api<Listagem>(url(1));
+  const paginas = Math.ceil(primeira.total / CANDIDATOS);
+  const resto = await Promise.all(
+    Array.from({ length: Math.max(0, paginas - 1) }, (_, i) => api<Listagem>(url(i + 2))),
+  );
+  return [primeira, ...resto]
+    .flatMap((d) => d.itens)
+    .filter((l) => l.capa_url)
+    .map((l, i) => ({ l, i }))
+    .sort((a, b) => posDestaque(a.l) - posDestaque(b.l) || a.i - b.i)
+    .map(({ l }) => l)
+    .slice(0, QUANTIDADE);
+}
 
 /**
  * As duas prateleiras de vidro da página inicial, só com capas reais do acervo (livros sem capa
@@ -26,8 +61,8 @@ export function EstanteDaHome() {
 
   useEffect(() => {
     let vivo = true;
-    api<Listagem>(`/livros?pagina=1&limite=${CANDIDATOS}`)
-      .then((d) => vivo && setLivros(d.itens.filter((l) => l.capa_url).slice(0, QUANTIDADE)))
+    carregarVitrine()
+      .then((itens) => vivo && setLivros(itens))
       .catch(() => vivo && setLivros([]));
     return () => {
       vivo = false;
@@ -39,7 +74,7 @@ export function EstanteDaHome() {
   return (
     <div className="relative flex flex-col gap-10 sm:gap-14">
       {fileiras.map((fileira, f) => (
-        <div key={f} className={f === 1 ? "lg:ml-14" : "lg:mr-14"}>
+        <div key={f} className={f === 1 ? "lg:ml-14" : "relative lg:mr-14"}>
           <Prateleira className="pt-2">
             {Array.from({ length: POR_PRATELEIRA }, (_, i) => {
               const l = fileira[i];
