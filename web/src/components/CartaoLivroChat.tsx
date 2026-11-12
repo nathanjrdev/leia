@@ -17,11 +17,14 @@ export type AcaoDoCartao = "locar" | "reservar";
 export function CartaoLivroChat({
   livro,
   comAcao = true,
+  antigo = false,
   ocupado = false,
   aoAgir,
 }: {
   livro: LivroDoChat;
   comAcao?: boolean;
+  /** Cartão de uma resposta anterior à fala ou à decisão mais recente do leitor: só leitura. */
+  antigo?: boolean;
   ocupado?: boolean;
   aoAgir: (acao: AcaoDoCartao, livroId: number) => Promise<boolean>;
 }) {
@@ -66,7 +69,11 @@ export function CartaoLivroChat({
           <Link href="/estante" className="font-semibold text-rosa underline">
             Ver minha estante
           </Link>
-        ) : !comAcao ? null : livre ? (
+        ) : !comAcao ? (
+          antigo ? (
+            <p className="text-sm text-texto-suave">Para locar ou reservar, peça de novo à Léia.</p>
+          ) : null
+        ) : livre ? (
           <AcaoComConfirmacao
             primaria
             rotulo="Locar"

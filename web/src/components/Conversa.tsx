@@ -32,6 +32,9 @@ type Msg = {
   livros: LivroDoChat[];
   // a Léia já propôs uma ação nesta mensagem: o cartão não oferece outro caminho de locação
   teveProposta: boolean;
+  // o leitor falou ou decidiu algo depois desta mensagem: os cartões dela ficam só para leitura
+  // (clicar num cartão de antes de outro assunto agia sobre um contexto que já mudou)
+  cartoesAntigos: boolean;
   // a ação do clique foi negada; o aviso só aparece no fim, se a Léia não a explicou
   acaoFalhou: boolean;
   nota: string | null;
@@ -98,6 +101,7 @@ const nova = (papel: Msg["papel"], texto = ""): Msg => ({
   propostas: [],
   livros: [],
   teveProposta: false,
+  cartoesAntigos: false,
   acaoFalhou: false,
   nota: null,
 });
@@ -283,17 +287,29 @@ export function Conversa() {
     const t = bruto.trim();
     if (!t || !reservarVez()) return;
     setTexto("");
-    // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões
-    setMensagens((ms) => [...ms.map((m) => ({ ...m, propostas: [] })), nova("usuario", t)]);
+    // uma nova fala do leitor invalida as propostas abertas no servidor: tira os botões. Os
+    // cartões de antes também deixam de agir (ficam visíveis, só leitura).
+    setMensagens((ms) => [
+      ...ms.map((m) => ({ ...m, propostas: [], cartoesAntigos: true })),
+      nova("usuario", t),
+    ]);
     await transmitir(`/conversas/${conversaId}/mensagens`, { texto: t }, () => setTexto(t));
   }
 
   async function decidir(chaveMsg: string, p: Proposta, decisao: "confirmar" | "cancelar") {
     if (!reservarVez()) return;
-    alterar(chaveMsg, (m) => ({
-      ...m,
-      propostas: m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id),
-    }));
+    // decidir uma proposta (devolver, renovar...) muda o estado da conta: os cartões de antes
+    // deixam de agir, como quando o leitor fala outra coisa
+    setMensagens((ms) =>
+      ms.map((m) => ({
+        ...m,
+        cartoesAntigos: true,
+        propostas:
+          m.chave === chaveMsg
+            ? m.propostas.filter((x) => x.confirmacao_id !== p.confirmacao_id)
+            : m.propostas,
+      })),
+    );
     await transmitir(`/conversas/${conversaId}/confirmacoes/${p.confirmacao_id}`, { decisao });
   }
 
@@ -401,7 +417,8 @@ export function Conversa() {
                 <CartaoLivroChat
                   key={l.id}
                   livro={l}
-                  comAcao={!m.teveProposta}
+                  comAcao={!m.teveProposta && !m.cartoesAntigos}
+                  antigo={m.cartoesAntigos}
                   ocupado={ocupado}
                   aoAgir={agirNoCartao}
                 />
