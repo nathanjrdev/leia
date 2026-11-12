@@ -3,10 +3,11 @@
 > Proposta de 11/11/2026. Escopo: só `web/`. Referência visual: [my-book.site](https://www.my-book.site/).
 > Skills: `impeccable` (pbakaus), `design-taste-frontend` (Leonxlnx/taste-skill) e o pacote `emilkowalski/skill`.
 >
-> **Estado (11/11/2026):** Fases 0 a 4 feitas na branch `redesign/estante-de-vidro`, um commit por fase, e os aliases já foram removidos. Faltam:
+> **Estado (11/11/2026):** Fases 0 a 4 feitas na branch `redesign/estante-de-vidro`, um commit por fase, e os aliases já foram removidos. A `EstanteDaHome` passou a filtrar por capa real (decisão 8). Faltam:
 > - o morph da capa (Fase 5);
 > - o asset do chaveiro (seção 11);
-> - a auditoria final (Fase 6).
+> - a auditoria final (Fase 6);
+> - decidir a fonte de capas para crescer o acervo (seção 12).
 >
 > Na Conversa, o restyle foi feito só em markup e classes, sem o PR de extração: o diff já não toca a lógica.
 
@@ -297,10 +298,12 @@ O redesign não muda o comportamento do agente nem da busca, então não precisa
 1. **Tema escuro "ameixa":** mantido em `prefers-color-scheme: dark`.
 2. **Fraunces:** sai de vez, inclusive da capa gerada (Inter pesada, estilo cartaz).
 3. **Home:** capas reais do acervo, com capas geradas enquanto carrega ou se a API falhar.
+   - *Refinado em 11/11/2026:* a vitrine da home nunca mostra a capa gerada por CSS como resultado final — ela pede 48 candidatos (`GET /livros?limite=48`, o máximo da rota) e filtra no cliente para só as 8 com `capa_url` real (169 dos 282 livros já têm; a primeira página alfabética já basta). Decisão só de apresentação: o catálogo e a busca do agente continuam com os 282 livros, sem perder cobertura dos casos de avaliação (ex.: `tarefa-014` espera "Padrões de Projeto", "Refatoração" ou "Programador Pragmático" — nenhum tem capa hoje, e removê-los do acervo quebraria esse caso). A página de catálogo continua mostrando todos os livros, com a capa gerada como reserva visível — não é "capa falsa", é um cartão tipográfico assumido.
 4. **Skills versionadas:** todas, menos as de app nativo (`write-swift`, `animate-expo`, `apple-design`).
 5. **Marca:** "Léia" com L maiúsculo, também no logotipo. Só os links de navegação ficam em minúsculas (por CSS).
 6. **Bicho animado** (lagarta, casulo, borboleta, cursor-folha): fora.
 7. **Chaveiro de livros:** entra, só na página inicial, como objeto nosso (seção 11).
+8. **Capas na vitrine da home (11/11/2026):** só capa real, nunca a gerada por CSS; ver nota na decisão 3 e a seção 12 para como crescer a lista de livros com capa.
 
 ---
 
@@ -345,4 +348,36 @@ Tudo vai para `.claude/skills/` + `skills-lock.json`. No repositório, a mídia 
 1. Abrir sobre fundo xadrez: nada de branco ou xadrez em volta da corrente.
 2. Abrir sobre `#7a0ccf` e sobre `#1b0b2a`: a borda continua limpa.
 3. A corrente sai do centro do topo.
+
+---
+
+## 12. Crescer o acervo com capa real (ainda sem decisão do time)
+
+A vitrine da home (decisão 8) só precisa de ~8 capas por carregamento, e o acervo já tem 169 livros com capa real — dá folga. O problema é o catálogo completo e a busca do agente: 113 dos 282 livros (quase 40%) ainda não têm `capa_url`, porque foram incluídos à mão (sinopse redigida por IA, `sinopse_fonte: "Léia: resumo do enredo redigido com IA..."`) sem passar pelo `fetch_catalog.py`, que já exige `cover_i` da Open Library antes de aceitar um livro (`data/fetch_catalog.py:177`).
+
+**Caminho mais rápido, sem custo — ampliar `data/autores.txt`:**
+
+1. Abra `data/autores.txt` e acrescente autores de interesse, um por linha. O pipeline já descarta qualquer livro sem capa (`cover_i`) e sem sinopse validada (Open Library ou Wikipedia pt-BR) — nada entra sem verificação.
+2. Rode de novo: `uv run python -m leia_api.fetch_catalog` não existe como módulo; o comando é direto, na raiz do repo: `python data/fetch_catalog.py --por-autor 8 --max-tentativas 30`. As respostas HTTP ficam em cache (`data/.cache/`), então rodar de novo só busca o que é novo.
+3. Rode `python data/validar_catalogo.py` para confirmar que nada ficou incoerente, e a suíte de busca (`uv run --group ml python evals/run_busca.py --falhas`) para medir se o Recall@5/nDCG@10 não caiu — registre o antes/depois em `docs/avaliacao-e-refino.md`, como qualquer mudança que afeta a busca.
+4. Revise manualmente os livros novos antes de aceitar (ou marque algum em `data/excluidos.txt`): o filtro de capa e sinopse reduz erro, mas não garante que a sinopse captou o livro certo quando há homônimos.
+
+**Dica para o contexto do recrutador (vaga de Gen AI no iFood):** quem for olhar o repositório tende a reconhecer rápido um acervo com livros de IA/engenharia de software — mostra que o catálogo não é só ficção de demonstração. Alguns autores com boa chance de ter capa na Open Library para acrescentar em `autores.txt`:
+
+- Engenharia e arquitetura: Robert C. Martin, Martin Fowler, Kent Beck, Gayle Laakmann McDowell.
+- Dados, IA e aprendizado de máquina: Andrew Ng, Ian Goodfellow, Christopher Bishop, Yuval Noah Harari (para o lado mais acessível/best-seller).
+- Produto e negócios (para variar o tom): Marty Cagan, Clayton Christensen.
+
+Vale testar um a um com `--por-autor 2` antes de rodar a lista inteira — alguns desses títulos técnicos têm poucas edições com capa escaneada na Open Library, então nem todos vão entrar.
+
+**Se quiser ir além da Open Library** (acervo maior, mais consistente, inclusive para os 113 livros já escolhidos que faltam capa), as alternativas levantadas e já custeadas:
+
+| Fonte | Custo | Observação |
+| --- | --- | --- |
+| Open Library (atual) | Grátis | ~60% de cobertura no acervo atual; é a única já integrada. |
+| Metabooks / MVB Brasil | Varia por parceria | Metadados de editoras brasileiras; melhor cobertura de título nacional, mas sem preço público — precisa contato comercial. |
+| ISBNdb | US$ 14,99–299,99/mês (plano Basic já cobre o volume do acervo) | Teste grátis de 7 dias cobriria a busca inicial dos 282 ISBNs; ver conversa de 11/11/2026 para o detalhamento dos planos. |
+| Google Books API | Grátis, com exigências de atribuição e proibição de reordenar/alterar resultados | Mais simples de testar, mas as regras de uso pesam para um app de produção. |
+
+Nenhuma dessas foi decidida ainda — fica para quando o time tiver prioridade de crescer o catálogo "de verdade" (hoje o foco é o redesign visual).
 

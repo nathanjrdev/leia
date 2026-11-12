@@ -9,20 +9,25 @@ import { Chaveiro } from "./Chaveiro";
 import { Prateleira } from "./ui/Prateleira";
 
 const POR_PRATELEIRA = 4;
+const QUANTIDADE = POR_PRATELEIRA * 2;
+// Candidatos de sobra (máximo aceito pela API): a vitrine só mostra capa de verdade, nunca a
+// gerada por CSS, então pedimos mais do que cabe e filtramos as que não têm capa_url real.
+const CANDIDATOS = 48;
 // Atrasos variados (não uniformes) e curtos: a fileira assenta em ~300 ms, sem segurar clique.
 const ATRASOS_MS = [0, 70, 110, 190];
 
 /**
- * As duas prateleiras de vidro da página inicial, com capas reais do acervo. Enquanto carrega, ou
- * se a API falhar, ficam espaços vazios decorativos: a página inicial não mostra erro.
+ * As duas prateleiras de vidro da página inicial, só com capas reais do acervo (livros sem capa
+ * verificada nunca aparecem aqui). Enquanto carrega, ou se a API falhar, ficam espaços vazios
+ * decorativos: a página inicial não mostra erro.
  */
 export function EstanteDaHome() {
   const [livros, setLivros] = useState<ItemLivro[] | null>(null);
 
   useEffect(() => {
     let vivo = true;
-    api<Listagem>(`/livros?pagina=1&limite=${POR_PRATELEIRA * 2}`)
-      .then((d) => vivo && setLivros(d.itens))
+    api<Listagem>(`/livros?pagina=1&limite=${CANDIDATOS}`)
+      .then((d) => vivo && setLivros(d.itens.filter((l) => l.capa_url).slice(0, QUANTIDADE)))
       .catch(() => vivo && setLivros([]));
     return () => {
       vivo = false;

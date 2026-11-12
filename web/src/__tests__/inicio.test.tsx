@@ -9,12 +9,12 @@ vi.mock("@/lib/api", async (orig) => ({
   api: (...a: unknown[]) => apiMock(...a),
 }));
 
-const livro = (id: number, titulo: string) => ({
+const livro = (id: number, titulo: string, capa_url: string | null = "https://covers.example/x.jpg") => ({
   id,
   titulo,
   autores: ["Autoria"],
   ano: 1900,
-  capa_url: null,
+  capa_url,
   livres: 1,
   fila: 0,
 });
@@ -29,7 +29,19 @@ describe("EstanteDaHome", () => {
     render(<EstanteDaHome />);
     expect(await screen.findByRole("link", { name: "Dom Casmurro" })).toHaveAttribute("href", "/livro/1");
     expect(screen.getByRole("link", { name: "Iracema" })).toHaveAttribute("href", "/livro/2");
-    expect(apiMock).toHaveBeenCalledWith(expect.stringMatching(/^\/livros\?.*limite=8/));
+    expect(apiMock).toHaveBeenCalledWith(expect.stringMatching(/^\/livros\?.*limite=48/));
+  });
+
+  it("nunca mostra livro sem capa real, mesmo que a API o devolva na página", async () => {
+    apiMock.mockResolvedValue({
+      itens: [livro(1, "Dom Casmurro"), livro(2, "Sem Capa Nenhuma", null), livro(3, "Iracema")],
+      total: 3,
+      pagina: 1,
+    });
+    render(<EstanteDaHome />);
+    expect(await screen.findByRole("link", { name: "Dom Casmurro" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Iracema" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sem Capa Nenhuma" })).toBeNull();
   });
 
   it("se a API falha, a prateleira fica só com espaços vazios: nada de erro na página inicial", async () => {
