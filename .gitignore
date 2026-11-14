@@ -225,6 +225,7 @@ data/.cache/
 
 # rodadas parciais ou invalidadas da suíte do agente (agente.json é a oficial)
 evals/resultados/agente_parcial.json
+evals/resultados/busca_reprovada.json
 evals/resultados/reteste/
 
 # taste-skill (design-taste-frontend): mídia de demonstração para sites de marketing, que o Léia

@@ -1,0 +1,70 @@
+name: Busca (gate de não regressão)
+
+# Roda a suíte de busca (73 casos, sem LLM) com e sem reranker e reprova se a média geral de
+# Recall@5 ou nDCG@10 cair mais que ~1 caso em relação à baseline versionada
+# (evals/resultados/busca.json). Só dispara quando algo que muda o ranking muda.
+on:
+  pull_request:
+    paths:
+      - "api/src/leia_api/busca.py"
+      - "api/src/leia_api/embeddings.py"
+      - "api/src/leia_api/modelos.py"
+      - "api/src/leia_api/avaliacao.py"
+      - "api/src/leia_api/seed.py"
+      - "api/migrations/**"
+      - "api/pyproject.toml"
+      - "api/uv.lock"
+      - "data/catalogo.json"
+      - "evals/busca_casos.jsonl"
+      - "evals/run_busca.py"
+      - "evals/resultados/busca.json"
+      - ".github/workflows/busca.yml"
+  workflow_dispatch:
+
+jobs:
+  busca:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: leia
+          POSTGRES_PASSWORD: leia
+          POSTGRES_DB: leia
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U leia"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: api
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Cache dos modelos do Hugging Face
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ hashFiles('api/src/leia_api/embeddings.py', 'api/src/leia_api/modelos.py') }}
+      - run: uv sync --frozen --group ml
+      - name: Migrar, carregar o catálogo e gerar embeddings
+        run: uv run --group ml python -m leia_api.carga
+      - name: Suíte de busca com gate
+        run: uv run --group ml python ../evals/run_busca.py --falhas --gate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: busca-relatorio
+          path: |
+            evals/resultados/busca.json
+            evals/resultados/busca_reprovada.json
+          if-no-files-found: ignore
+          retention-days: 7
