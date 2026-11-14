@@ -1,7 +1,7 @@
 """Cancelar reserva e expirar reserva pronta que ninguém retirou."""
 # ruff: noqa: F811 - a fixture `session` é reaproveitada de test_locacao e reaparece nos argumentos
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from alembic.config import Config
@@ -200,10 +200,13 @@ def test_manutencao_expira_pela_varredura(session: Session) -> None:
     from leia_api.manutencao import executar
 
     dono, _, _, _, locacao, rb, _ = _fila_com_dois(session)
-    devolver(session, dono, locacao.locacao_id, agora=AGORA)
+    # `executar` usa o relógio real: a devolução (que abre o prazo de retirada) também tem de
+    # usar a hora atual, senão o teste vence sozinho DIAS depois de AGORA (falhou em 12/11).
+    agora = datetime.now(UTC)
+    devolver(session, dono, locacao.locacao_id, agora=agora)
 
     assert executar(session, REGRAS) == 0  # o prazo real (a partir de agora) ainda não passou
-    expirar_reservas(session, REGRAS, agora=AGORA + timedelta(days=DIAS, seconds=1))
+    expirar_reservas(session, REGRAS, agora=agora + timedelta(days=DIAS, seconds=1))
     assert _status(session, rb.reserva_id) == "expirada"
 
 

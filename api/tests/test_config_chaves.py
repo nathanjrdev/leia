@@ -92,7 +92,8 @@ def test_importar_o_adaptador_desliga_a_busca_de_env_do_litellm() -> None:
 def test_modelos_do_hugging_face_recebem_o_token_do_settings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import sentence_transformers
+    # O grupo `ml` é opcional e o CI rápido não o instala; lá o teste é pulado, não quebrado.
+    sentence_transformers = pytest.importorskip("sentence_transformers")
 
     from leia_api import modelos
 

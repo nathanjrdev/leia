@@ -63,6 +63,12 @@ def api(engine: Engine) -> Iterator[TestClient]:
     app.dependency_overrides[get_fabrica_sessao] = lambda: lambda: Session(engine)
     app.dependency_overrides[get_encoder] = lambda: _Encoder()
     app.dependency_overrides[get_reranker] = lambda: None
+    # Agente falso por padrão: sem ele a API montaria o cliente real, que exige a chave do
+    # provedor (ausente no CI). Os testes que conversam trocam este por `_agente(...)`; um
+    # teste que chamar o LLM sem respostas preparadas falha com IndexError, de propósito.
+    app.dependency_overrides[get_agente] = lambda: Agente(
+        LLMFalso(), ConfigAgente("PROMPT DE TESTE", 6, 5.0, 60.0, 1)
+    )
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
