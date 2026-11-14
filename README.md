@@ -4,6 +4,24 @@ Bibliotecária virtual: um agente de IA que conversa em português, busca e reco
 
 > Vídeo de demonstração: pendente de gravação.
 
+## Como a Léia funciona
+
+```mermaid
+flowchart LR
+    U([👤 Leitor]) -->|mensagem| L[🤖 Léia<br/>LLM + tool calling]
+    L -->|buscar_livros<br/>detalhar_livro| B[(Postgres + pgvector<br/>catálogo e embeddings)]
+    L -->|verificar_disponibilidade<br/>minhas_locacoes| R[⚙️ Regras em código<br/>estoque · prazos · limites]
+    L -->|locar · renovar · devolver · reservar<br/>só propõe| C[🖱️ Cartão de confirmação]
+    C -->|clique do leitor| R
+    L -.->|cada turno| O[📊 Logs<br/>latência · tokens]
+```
+
+| Princípio | Como a Léia aplica |
+|:--|:--|
+| O modelo não inventa números | Estoque, prazos e limites vêm sempre das ferramentas |
+| Nada é gravado sem confirmação | Locar, renovar, devolver e reservar só executam depois do clique do leitor |
+| Avaliação como teste de software | Recall@5, acerto de ferramenta e custo por conversa, em [O que foi medido](#o-que-foi-medido) |
+
 ## O que foi medido
 
 Todos os números saem de arquivos versionados em `evals/resultados/` e podem ser reproduzidos (comandos em [Avaliação](#avaliação)).
