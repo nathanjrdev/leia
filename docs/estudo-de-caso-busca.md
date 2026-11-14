@@ -4,6 +4,8 @@
 **Escopo deste documento:** a ferramenta de busca do agente (`buscar_livros`), da primeira medição até a versão atual.
 **Data:** novembro de 2026 · **Branch:** `feat/busca-v2` (commits `58991ed`, `91b7fb2`, `e76c199`)
 
+> **Nota de atualização (14/11/2026):** este estudo é um retrato de 07/11, com 158 livros e 51 casos de busca. O acervo atual tem 282 livros e a suíte tem 73 casos; com o reranker, a medição atual é Recall@5 1,000 e nDCG@10 0,969 (tabela do [README](../README.md) e diário de refino, seção 5). Como os casos e as sinopses vêm do mesmo conhecimento de LLM, o ganho tende a ser otimista.
+
 ---
 
 ## 1. Resumo
