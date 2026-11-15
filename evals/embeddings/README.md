@@ -50,9 +50,10 @@ python evals/embeddings/publicar_hf.py --confirmar     # envia privado; revise n
 `gerar_pares.py` usa o `LEIA_MODEL` e a chave do provedor do `.env` (ex.: `GEMINI_API_KEY`
 descomentada). Grava a cada livro: se a cota acabar, rode de novo que ele continua.
 
-No Kaggle ou no Colab, envie `data/catalogo.json`, `evals/busca_casos.jsonl`,
-`evals/embeddings/` e `evals/embeddings/saida/pares_*.jsonl`, mantendo os caminhos, e rode
-`treinar.py` e `avaliar.py` lá. Traga de volta `saida/modelo/` e o JSON de resultados.
+**No Kaggle (recomendado):** gere os pares na sua máquina, suba `pares_treino.jsonl` e
+`pares_validacao.jsonl` como um dataset do Kaggle e importe `kaggle_treino.ipynb`. Ele clona
+este repositório, treina com GPU, avalia, empacota o modelo e (opcional) publica no Hugging Face
+com o segredo `HF_TOKEN`. Traga de volta o JSON de resultados para `evals/resultados/`.
 
 ## Cuidados
 
