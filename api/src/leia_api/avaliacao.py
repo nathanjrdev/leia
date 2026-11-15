@@ -7,9 +7,10 @@ nDCG@k mede a qualidade da ordenação considerando todos os livros relevantes.
 import json
 import math
 import unicodedata
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from leia_api.busca import ResultadoBusca
 
@@ -46,6 +47,39 @@ def relevancias(caso: Caso, resultados: Sequence[ResultadoBusca]) -> list[bool]:
         or (autor is not None and any(_chave(a) == autor for a in r.autores))
         for r in resultados
     ]
+
+
+METRICAS_GATE = ("recall@5", "ndcg@10")
+# Um caso a menos em 73 baixa o Recall@5 geral em ~0,014: diferença de um caso é sinal fraco
+# (ruído), não regressão. Acima disso, o gate reprova.
+TOLERANCIA_GATE = 0.015
+
+
+def regressoes(
+    base: Mapping[str, Any], atual: Mapping[str, Any], tolerancia: float = TOLERANCIA_GATE
+) -> list[str]:
+    """Quedas da média geral além da tolerância, por configuração (com e sem reranker).
+
+    `base` e `atual` têm o formato do relatório de `evals/run_busca.py`. Só compara as
+    configurações e métricas presentes nos dois; uma configuração que sumiu do relatório
+    atual também é regressão (o gate não pode passar por omissão).
+    """
+    achadas: list[str] = []
+    for config, anterior in base.items():
+        if not isinstance(anterior, Mapping) or "resumo" not in anterior:
+            continue
+        novo = atual.get(config)
+        if not isinstance(novo, Mapping) or "resumo" not in novo:
+            achadas.append(f"{config}: ausente no relatório atual")
+            continue
+        geral_antes, geral_agora = anterior["resumo"]["geral"], novo["resumo"]["geral"]
+        for metrica in METRICAS_GATE:
+            if metrica not in geral_antes:
+                continue
+            antes, agora = float(geral_antes[metrica]), float(geral_agora.get(metrica, 0.0))
+            if antes - agora > tolerancia:
+                achadas.append(f"{config} {metrica}: {antes:.3f} → {agora:.3f}")
+    return achadas
 
 
 def carregar_casos(caminho: Path) -> list[Caso]:

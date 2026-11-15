@@ -3,7 +3,15 @@ import math
 import unicodedata
 from pathlib import Path
 
-from leia_api.avaliacao import Caso, carregar_casos, ndcg_at_k, recall_at_k, relevancias
+from leia_api.avaliacao import (
+    TOLERANCIA_GATE,
+    Caso,
+    carregar_casos,
+    ndcg_at_k,
+    recall_at_k,
+    regressoes,
+    relevancias,
+)
 from leia_api.busca import ResultadoBusca
 
 
@@ -60,3 +68,46 @@ def test_loads_cases_from_jsonl(tmp_path: Path) -> None:
     casos = carregar_casos(arquivo)
     assert [c.id for c in casos] == ["a", "b"]
     assert casos[1].autor_esperado == "José Saramago"
+
+
+def _relatorio(**configs: tuple[float, float]) -> dict[str, object]:
+    return {
+        "data": "2026-11-14",
+        **{
+            nome: {"resumo": {"geral": {"n": 73, "recall@5": r5, "ndcg@10": nd}}, "casos": []}
+            for nome, (r5, nd) in configs.items()
+        },
+    }
+
+
+def test_gate_passes_when_nothing_gets_worse() -> None:
+    base = _relatorio(sem_reranker=(0.986, 0.919), com_reranker=(1.0, 0.969))
+    atual = _relatorio(sem_reranker=(0.986, 0.925), com_reranker=(1.0, 0.969))
+    assert regressoes(base, atual) == []
+
+
+def test_gate_tolerates_a_one_case_drop() -> None:
+    base = _relatorio(com_reranker=(1.0, 0.969))
+    atual = _relatorio(com_reranker=(1.0 - 1 / 73, 0.969 - 0.01))
+    assert regressoes(base, atual) == []
+
+
+def test_gate_flags_drops_beyond_tolerance() -> None:
+    base = _relatorio(sem_reranker=(0.986, 0.919), com_reranker=(1.0, 0.969))
+    atual = _relatorio(
+        sem_reranker=(0.986, 0.919), com_reranker=(0.959, 0.969 - 2 * TOLERANCIA_GATE)
+    )
+    achadas = regressoes(base, atual)
+    assert len(achadas) == 2
+    assert all(a.startswith("com_reranker") for a in achadas)
+
+
+def test_gate_fails_when_a_configuration_disappears() -> None:
+    base = _relatorio(sem_reranker=(0.986, 0.919), com_reranker=(1.0, 0.969))
+    atual = _relatorio(sem_reranker=(0.986, 0.919))
+    assert regressoes(base, atual) == ["com_reranker: ausente no relatório atual"]
+
+
+def test_gate_ignores_metadata_fields() -> None:
+    base = {**_relatorio(com_reranker=(1.0, 0.969)), "reranker": "modelo-x"}
+    assert regressoes(base, _relatorio(com_reranker=(1.0, 0.969))) == []

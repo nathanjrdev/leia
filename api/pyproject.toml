@@ -1,7 +1,7 @@
 [project]
 name = "leia-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "API da Léia: agente de IA (FastAPI + LangGraph) que busca, recomenda e loca livros do acervo em português"
 readme = "README.md"
 authors = [
     { name = "Nathan.Jr", email = "njunioestudos@gmail.com" }

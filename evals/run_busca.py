@@ -3,10 +3,16 @@
 Uso (em api/):
   uv run --group ml python ../evals/run_busca.py            # resumo
   uv run --group ml python ../evals/run_busca.py --falhas   # lista cada caso que errou
+  uv run --group ml python ../evals/run_busca.py --gate     # exit 1 se piorar (CI)
+
+Com `--gate`, compara a média geral de cada configuração com a baseline versionada
+(`resultados/busca.json`); uma queda maior que a tolerância (~1 caso) reprova. Reprovado, o
+relatório vai para `resultados/busca_reprovada.json` e a baseline fica intacta.
 """
 
 import argparse
 import json
+import sys
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -14,7 +20,15 @@ from pathlib import Path
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from leia_api.avaliacao import Caso, carregar_casos, ndcg_at_k, recall_at_k, relevancias
+from leia_api.avaliacao import (
+    TOLERANCIA_GATE,
+    Caso,
+    carregar_casos,
+    ndcg_at_k,
+    recall_at_k,
+    regressoes,
+    relevancias,
+)
 from leia_api.busca import Reranker, buscar_livros
 from leia_api.config import settings
 from leia_api.modelos import MODELO_RERANKER, CrossEncoderReranker, EncoderST
@@ -76,7 +90,13 @@ def avaliar(
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--falhas", action="store_true", help="lista os casos fora do top 5")
+    ap.add_argument("--gate", action="store_true", help="sai com código 1 se a média geral piorar")
+    ap.add_argument("--tolerancia", type=float, default=TOLERANCIA_GATE)
     args = ap.parse_args()
+
+    saida = AQUI / "resultados" / "busca.json"
+    # A baseline é lida antes da rodada, que regrava o mesmo arquivo.
+    base = json.loads(saida.read_text(encoding="utf-8")) if args.gate else None
 
     casos = carregar_casos(AQUI / "busca_casos.jsonl")
     print(f"{len(casos)} casos. Carregando modelos...", flush=True)
@@ -105,10 +125,19 @@ def main() -> None:
                             f"      esperado {c['esperados']}\n      obtido   {c['top5']}"
                         )
 
-    saida = AQUI / "resultados" / "busca.json"
+    achadas = regressoes(base, relatorio, args.tolerancia) if base is not None else []
+    if achadas:
+        saida = saida.with_name("busca_reprovada.json")
     saida.parent.mkdir(exist_ok=True)
     saida.write_text(json.dumps(relatorio, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nRelatório gravado em {saida}")
+    if base is not None:
+        if achadas:
+            print(f"\nGATE REPROVADO (tolerância {args.tolerancia}):")
+            for a in achadas:
+                print(f"  ✗ {a}")
+            sys.exit(1)
+        print(f"\nGate aprovado: nenhuma média geral caiu mais que {args.tolerancia}.")
 
 
 if __name__ == "__main__":
