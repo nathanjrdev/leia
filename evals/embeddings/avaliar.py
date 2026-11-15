@@ -45,6 +45,19 @@ def ranquear(codificar, livros: list[dict], consultas: list[str], k: int = 10) -
     return [[titulos[j] for j in linha] for linha in ordem]
 
 
+def esperados_do_caso(caso: dict, livros: list[dict]) -> set[str]:
+    """Títulos relevantes de um caso manual. Caso de autor: todo livro dele no catálogo
+    (mesma regra de evals/run_busca.py, que também usa essa contagem no nDCG ideal)."""
+    if caso.get("autor_esperado"):
+        autor = norm(caso["autor_esperado"])
+        return {
+            norm(livro["titulo"])
+            for livro in livros
+            if any(norm(a) == autor for a in livro.get("autores") or [])
+        }
+    return {norm(e) for e in caso.get("esperados") or []}
+
+
 def avaliar_conjunto(codificar, livros, consultas, esperados) -> dict:
     return metricas(ranquear(codificar, livros, consultas), esperados)
 
@@ -70,7 +83,7 @@ def avaliar_modelo(codificar, livros) -> dict:
             codificar,
             livros,
             [c["consulta"] for c in grupo],
-            [{norm(e) for e in c["esperados"]} for c in grupo],
+            [esperados_do_caso(c, livros) for c in grupo],
         )
     return resultado
 

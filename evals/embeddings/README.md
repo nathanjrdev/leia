@@ -1,16 +1,41 @@
-# Ajuste fino de embeddings da Leia
+# Ajuste fino do encoder da Léia
 
-Copie esta pasta para `evals/embeddings/` no repositório da Leia e rode, na raiz, com o venv da api ativo.
+Ajusta o encoder da busca (`paraphrase-multilingual-mpnet-base-v2`) com pedidos sintéticos de
+leitores e mede, com honestidade, se ele melhora. Os resultados vão para
+`evals/resultados/embeddings_ajuste_<data>.json`; o modelo e o dataset podem ser publicados no
+Hugging Face.
 
-## Instalação extra
+## Desenho da avaliação
+
+- **Divisão por livro:** ~20% dos livros (hash do título, determinístico) nunca entram no
+  treino. O número que importa é `validacao_livros_nao_vistos`: mostra se o modelo generaliza
+  ou só decorou os livros do treino.
+- **Casos manuais** (`evals/busca_casos.jsonl`) nunca entram no treino (pedidos idênticos são
+  descartados), mas os livros deles podem aparecer no treino com outros pedidos. Use como sinal
+  secundário.
+- **Só vetor:** `avaliar.py` mede a busca vetorial pura (cosseno), sem texto nem reranker. Para
+  saber se o modelo ajuda o produto, troque o encoder e rode `evals/run_busca.py --gate`.
+- **Mesma origem:** os pedidos são gerados por LLM a partir das sinopses, que também vieram de
+  LLM em parte. O ganho tende a ser otimista; diga isso no model card.
+
+## Onde rodar
+
+O treino precisa baixar o modelo base do Hugging Face. Com GPU (Kaggle ou Colab gratuitos)
+leva poucos minutos; em CPU, de dezenas de minutos a horas, conforme o número de pares.
+Um notebook público no Kaggle também conta como portfólio.
+
+## Instalação (na raiz do repositório)
 
 ```powershell
+cd api
+uv sync --group ml
 uv pip install datasets accelerate python-dotenv huggingface_hub
+cd ..
 ```
 
-(`sentence-transformers` e `litellm` a api já usa.) Adicione `evals/embeddings/saida/` ao `.gitignore`.
-
 ## Ordem
+
+Use o Python do venv da API (`api\.venv\Scripts\python` no Windows).
 
 ```powershell
 python evals/embeddings/gerar_pares.py --limite 3      # teste rápido com 3 livros
@@ -18,13 +43,20 @@ python evals/embeddings/gerar_pares.py                 # catálogo inteiro (reto
 # Leia uma amostra de evals/embeddings/saida/pares_treino.jsonl e apague pedidos ruins.
 python evals/embeddings/treinar.py --epocas 3
 python evals/embeddings/avaliar.py                     # Recall@5 antes e depois
-python evals/embeddings/publicar_hf.py                 # simulação
+python evals/embeddings/publicar_hf.py                 # simulação: só monta as pastas
 python evals/embeddings/publicar_hf.py --confirmar     # envia privado; revise no site e torne público
 ```
+
+`gerar_pares.py` usa o `LEIA_MODEL` e a chave do provedor do `.env` (ex.: `GEMINI_API_KEY`
+descomentada). Grava a cada livro: se a cota acabar, rode de novo que ele continua.
+
+No Kaggle ou no Colab, envie `data/catalogo.json`, `evals/busca_casos.jsonl`,
+`evals/embeddings/` e `evals/embeddings/saida/pares_*.jsonl`, mantendo os caminhos, e rode
+`treinar.py` e `avaliar.py` lá. Traga de volta `saida/modelo/` e o JSON de resultados.
 
 ## Cuidados
 
 - `HF_TOKEN` fica só no `.env`. Os scripts nunca imprimem o token.
-- `evals/busca_casos.jsonl` nunca entra no treino. Pedidos idênticos a ele são descartados.
-- Publique os números reais, mesmo que o ganho seja pequeno, e explique no model card.
-- Se treinar no Colab ou no Kaggle, envie `saida/pares_treino.jsonl`, `data/catalogo.json` e esta pasta.
+- `evals/busca_casos.jsonl` nunca entra no treino.
+- Publique os números reais, mesmo que o ganho seja pequeno ou nulo, e explique no model card.
+- O dataset publicado não inclui as sinopses por padrão (licenças mistas); veja `publicar_hf.py`.
