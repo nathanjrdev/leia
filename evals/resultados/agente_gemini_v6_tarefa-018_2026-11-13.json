@@ -1,0 +1,84 @@
+{
+  "data": "2026-11-13T01:50:45",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": false,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 49.1,
+    "latencia_p95_s": 49.1,
+    "tokens_entrada": 6337,
+    "tokens_saida": 770,
+    "custo_referencia_usd": 0.001019
+  },
+  "casos": [
+    {
+      "id": "tarefa-018",
+      "categoria": "tarefa",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: timeout",
+        "turno 1: texto sem nenhum de ['em “', 'Em “', 'No “', 'no “', 'Na “', 'na “']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "na sua opinião, o que é o amor?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Estou demorando mais do que o normal. Pode tentar de novo em instantes?",
+          "erro": "timeout",
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "amor"
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 33
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 27
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 235
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        49.10291839999991
+      ],
+      "tokens_entrada": 6337,
+      "tokens_saida": 770
+    }
+  ]
+}

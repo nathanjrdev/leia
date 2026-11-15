@@ -1,0 +1,60 @@
+{
+  "data": "2026-11-13T02:11:40",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": false,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "ferramenta": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 38.55,
+    "latencia_p95_s": 38.55,
+    "tokens_entrada": 0,
+    "tokens_saida": 0,
+    "custo_referencia_usd": 0.0
+  },
+  "casos": [
+    {
+      "id": "ferramenta-004",
+      "categoria": "ferramenta",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: timeout",
+        "turno 1: ferramenta não chamada: buscar_livros (chamadas: [])",
+        "turno 1: argumentos de buscar_livros não casam: esperado {'consulta': {'contem_alguma': ['jorge amado', 'capitaes', 'capitães']}}, obtido []"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "ei tem algo do jorge amado ai? tipo capitaes da areia"
+        },
+        {
+          "quem": "leia",
+          "texto": "Estou demorando mais do que o normal. Pode tentar de novo em instantes?",
+          "erro": "timeout",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        38.5516304000048
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    }
+  ]
+}

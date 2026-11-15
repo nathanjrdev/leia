@@ -1,9 +1,32 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { useSyncExternalStore } from "react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErroApi } from "@/lib/api";
 import type { ItemLivro } from "@/lib/tipos";
 import { Catalogo } from "@/components/Catalogo";
+
+// URL falsa: push muda a query e re-renderiza quem lê useSearchParams.
+const url = {
+  busca: "",
+  ouvintes: new Set<() => void>(),
+  ir(q: string) {
+    url.busca = q;
+    url.ouvintes.forEach((f) => f());
+  },
+};
+const pushMock = vi.fn((destino: string) => url.ir(destino.split("?")[1] ?? ""));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: pushMock }),
+  usePathname: () => "/catalogo",
+  useSearchParams: () =>
+    new URLSearchParams(
+      useSyncExternalStore(
+        (f) => (url.ouvintes.add(f), () => url.ouvintes.delete(f)),
+        () => url.busca,
+      ),
+    ),
+}));
 
 const apiMock = vi.fn();
 vi.mock("@/lib/api", async (orig) => ({
@@ -27,6 +50,8 @@ function listagem(itens: ItemLivro[], total = itens.length, pagina = 1) {
 }
 
 beforeEach(() => {
+  url.busca = "";
+  pushMock.mockClear();
   apiMock.mockReset();
   apiMock.mockImplementation((caminho: string) => {
     if (caminho === "/categorias")
@@ -97,5 +122,39 @@ describe("Catalogo", () => {
     await u.type(screen.getByLabelText("Buscar no acervo"), "x");
     await u.click(screen.getByRole("button", { name: "Buscar" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Aguarde um instante");
+  });
+
+  it("a busca vai para a URL e limpar volta ao catálogo completo", async () => {
+    const u = userEvent.setup();
+    render(<Catalogo />);
+    await screen.findByRole("link", { name: "Livro 1" });
+    await u.type(screen.getByLabelText("Buscar no acervo"), "memória");
+    await u.click(screen.getByRole("button", { name: "Buscar" }));
+    expect(pushMock).toHaveBeenLastCalledWith("/catalogo?q=mem%C3%B3ria");
+    await screen.findByText("Resultados para “memória”");
+    await u.click(screen.getByRole("button", { name: "Limpar busca" }));
+    expect(pushMock).toHaveBeenLastCalledWith("/catalogo");
+    await waitFor(() => expect(ultimaListagem()).toMatch(/^\/livros\?/));
+    expect(screen.getByLabelText("Buscar no acervo")).toHaveValue("");
+  });
+
+  it("apagar o campo volta ao catálogo completo", async () => {
+    const u = userEvent.setup();
+    url.busca = "q=asfadfasfaf";
+    render(<Catalogo />);
+    await screen.findByText("Resultados para “asfadfasfaf”");
+    expect(screen.getByLabelText("Buscar no acervo")).toHaveValue("asfadfasfaf");
+    await u.clear(screen.getByLabelText("Buscar no acervo"));
+    await waitFor(() => expect(ultimaListagem()).toMatch(/^\/livros\?/));
+    expect(screen.queryByText(/Resultados para/)).not.toBeInTheDocument();
+  });
+
+  it("voltar para /catalogo sem q mostra o acervo, não a busca anterior", async () => {
+    url.busca = "q=memória";
+    render(<Catalogo />);
+    await screen.findByText("Resultados para “memória”");
+    act(() => url.ir(""));
+    await waitFor(() => expect(ultimaListagem()).toMatch(/^\/livros\?/));
+    expect(screen.getByLabelText("Buscar no acervo")).toHaveValue("");
   });
 });

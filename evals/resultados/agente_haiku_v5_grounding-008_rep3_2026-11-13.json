@@ -1,0 +1,114 @@
+{
+  "data": "2026-11-13T13:38:47",
+  "modelo": "anthropic/claude-haiku-5-5",
+  "prompt": "v5",
+  "reranker": true,
+  "valida": false,
+  "repeticoes": 3,
+  "instaveis": {},
+  "resumo": {
+    "grounding": {
+      "n": 3,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 1.0,
+      "ok": false
+    },
+    "geral": {
+      "n": 3,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 3,
+    "latencia_p50_s": 0.28,
+    "latencia_p95_s": 4.83,
+    "tokens_entrada": 0,
+    "tokens_saida": 0,
+    "custo_referencia_usd": 0.0
+  },
+  "casos": [
+    {
+      "id": "grounding-008",
+      "categoria": "grounding",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: erro_llm",
+        "turno 1: ferramenta não chamada: buscar_livros (chamadas: [])",
+        "turno 1: texto sem nenhum de ['não encontrei', 'não temos', 'não consta', 'não localizei', 'não há', 'não tenho', 'não está', 'não achei', 'infelizmente', 'não consegui encontrar', 'não existe', 'fora do acervo', 'não aparece']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "tem alguma coisa do Paulo Freire? Pedagogia do Oprimido, por exemplo"
+        },
+        {
+          "quem": "leia",
+          "texto": "Tive um problema para responder agora. Pode tentar de novo em instantes?",
+          "erro": "erro_llm",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        5.341131500012125
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    },
+    {
+      "id": "grounding-008",
+      "categoria": "grounding",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: erro_llm",
+        "turno 1: ferramenta não chamada: buscar_livros (chamadas: [])",
+        "turno 1: texto sem nenhum de ['não encontrei', 'não temos', 'não consta', 'não localizei', 'não há', 'não tenho', 'não está', 'não achei', 'infelizmente', 'não consegui encontrar', 'não existe', 'fora do acervo', 'não aparece']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "tem alguma coisa do Paulo Freire? Pedagogia do Oprimido, por exemplo"
+        },
+        {
+          "quem": "leia",
+          "texto": "Tive um problema para responder agora. Pode tentar de novo em instantes?",
+          "erro": "erro_llm",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        0.27409419999457896
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    },
+    {
+      "id": "grounding-008",
+      "categoria": "grounding",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: erro_llm",
+        "turno 1: ferramenta não chamada: buscar_livros (chamadas: [])",
+        "turno 1: texto sem nenhum de ['não encontrei', 'não temos', 'não consta', 'não localizei', 'não há', 'não tenho', 'não está', 'não achei', 'infelizmente', 'não consegui encontrar', 'não existe', 'fora do acervo', 'não aparece']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "tem alguma coisa do Paulo Freire? Pedagogia do Oprimido, por exemplo"
+        },
+        {
+          "quem": "leia",
+          "texto": "Tive um problema para responder agora. Pode tentar de novo em instantes?",
+          "erro": "erro_llm",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        0.2793486999871675
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "data": "2026-11-13T01:47:43",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v5",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 27.9,
+    "latencia_p95_s": 27.9,
+    "tokens_entrada": 6338,
+    "tokens_saida": 1037,
+    "custo_referencia_usd": 0.001152
+  },
+  "casos": [
+    {
+      "id": "tarefa-018",
+      "categoria": "tarefa",
+      "passou": false,
+      "falhas": [
+        "turno 1: texto sem nenhum de ['em “', 'Em “', 'No “', 'no “', 'Na “', 'na “']",
+        "turno 1: texto contém «não fui treinada»"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "na sua opinião, o que é o amor?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Essa é uma pergunta profunda. Eu ainda não fui treinada para refletir sobre isso por conta própria, mas posso ajudar você a escolher um livro no nosso acervo sobre esse assunto. Veja algumas opções:\n\n- “Declaração de amor”, de Carlos Drummond de Andrade (2015) - 2 exemplares livres\n- “Eu Hei-de Amar Uma Pedra”, de António Lobo Antunes (2004) - 1 exemplar livre\n- “Cartas de amor a Heloisa”, de Graciliano Ramos (1996) - 3 exemplares livres\n\nSe desejar locar algum deles, é só me avisar!",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "amor"
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        27.90150409999478
+      ],
+      "tokens_entrada": 6338,
+      "tokens_saida": 1037
+    }
+  ]
+}

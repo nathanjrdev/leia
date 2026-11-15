@@ -1,0 +1,63 @@
+{
+  "data": "2026-11-13T02:07:57",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "ferramenta": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0,
+      "meta": 0.9,
+      "ok": true
+    },
+    "geral": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 29.55,
+    "latencia_p95_s": 29.55,
+    "tokens_entrada": 6139,
+    "tokens_saida": 1368,
+    "custo_referencia_usd": 0.001298
+  },
+  "casos": [
+    {
+      "id": "ferramenta-001",
+      "categoria": "ferramenta",
+      "passou": true,
+      "falhas": [],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "Oi! Queria um romance curtinho sobre memória e ciúme, tem?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Olá! Encontrei algumas opções no acervo que combinam com o que você procura:\n\n- “Dom Casmurro”, de Machado de Assis (269 páginas): clássico focado nas memórias do narrador e nas dúvidas trazidas pelo ciúme. Há 3 exemplares livres.\n- “Leite derramado”, de Chico Buarque (195 páginas): romance conduzido pelas lembranças e afetos de um homem centenário. Há 3 exemplares livres.\n- “Júbilo, memória, noviciado da paixão”, de Hilda Hilst (143 páginas): leitura bem curtinha sobre memórias e sentimentos amorosos. Há 1 exemplar livre.\n\nSe quiser que eu abra a ficha de algum deles para ver a sinopse completa ou se quiser locar, é só me avisar!",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "romance memória ciúme"
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        29.55449590000353
+      ],
+      "tokens_entrada": 6139,
+      "tokens_saida": 1368
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
 import type { Categoria, Listagem } from "@/lib/tipos";
@@ -15,8 +16,12 @@ export function Catalogo() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoria, setCategoria] = useState("");
   const [soDisponiveis, setSoDisponiveis] = useState(false);
-  const [rascunho, setRascunho] = useState("");
-  const [busca, setBusca] = useState("");
+  const router = useRouter();
+  const caminho = usePathname();
+  // A busca mora na URL (?q=): o link do catálogo volta ao acervo completo
+  // e o botão voltar do navegador restaura a busca anterior.
+  const busca = (useSearchParams().get("q") ?? "").trim();
+  const [rascunho, setRascunho] = useState(busca);
   const [pagina, setPagina] = useState(1);
   const [dados, setDados] = useState<Listagem | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -27,6 +32,14 @@ export function Catalogo() {
       .then(setCategorias)
       .catch(() => setCategorias([]));
   }, []);
+
+  // Quando a URL muda (buscar, limpar, voltar do navegador), o campo acompanha.
+  const [buscaAnterior, setBuscaAnterior] = useState(busca);
+  if (buscaAnterior !== busca) {
+    setBuscaAnterior(busca);
+    setRascunho(busca);
+    setPagina(1);
+  }
 
   useEffect(() => {
     let vivo = true;
@@ -49,11 +62,16 @@ export function Catalogo() {
     };
   }, [busca, categoria, soDisponiveis, pagina]);
 
+  function irPara(texto: string) {
+    const q = texto.trim();
+    if (q === busca) return;
+    setCarregando(true);
+    router.push(q ? `${caminho}?q=${encodeURIComponent(q)}` : caminho);
+  }
+
   function buscar(e: FormEvent) {
     e.preventDefault();
-    setCarregando(true);
-    setPagina(1);
-    setBusca(rascunho.trim());
+    irPara(rascunho);
   }
 
   const paginas = dados ? Math.max(1, Math.ceil(dados.total / POR_PAGINA)) : 1;
@@ -72,7 +90,11 @@ export function Catalogo() {
               id="busca"
               type="search"
               value={rascunho}
-              onChange={(e) => setRascunho(e.target.value)}
+              onChange={(e) => {
+                setRascunho(e.target.value);
+                // Apagar o campo (inclusive pelo "x" do navegador) volta ao acervo.
+                if (!e.target.value.trim() && busca) irPara("");
+              }}
               maxLength={300}
               className="campo min-h-14 pl-12 text-lg"
             />
@@ -130,13 +152,23 @@ export function Catalogo() {
         <div className="vidro flex flex-col gap-1 p-6">
           <p className="text-lg font-semibold">Nenhum livro encontrado.</p>
           <p className="text-texto-suave">Tente outra palavra, outra categoria ou tire o filtro de disponíveis.</p>
+          {busca && (
+            <Botao className="mt-3 self-start" onClick={() => irPara("")}>
+              Ver todo o catálogo
+            </Botao>
+          )}
         </div>
       ) : (
         dados && (
           <>
-            <p className="text-texto-suave" aria-live="polite">
-              {carregando ? "Buscando…" : busca ? `Resultados para “${busca}”` : `${dados.total} livros`}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <p className="text-texto-suave" aria-live="polite">
+                {carregando ? "Buscando…" : busca ? `Resultados para “${busca}”` : `${dados.total} livros`}
+              </p>
+              {busca && (
+                <Botao onClick={() => irPara("")}>Limpar busca</Botao>
+              )}
+            </div>
             <ul
               className={`grid grid-cols-2 gap-x-6 gap-y-10 px-3 transition-opacity duration-150 sm:grid-cols-3 lg:grid-cols-5 ${carregando ? "opacity-60" : ""}`}
             >

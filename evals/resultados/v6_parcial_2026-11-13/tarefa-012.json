@@ -1,0 +1,83 @@
+{
+  "data": "2026-11-13T02:05:56",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 20.64,
+    "latencia_p95_s": 20.64,
+    "tokens_entrada": 11137,
+    "tokens_saida": 1949,
+    "custo_referencia_usd": 0.002088
+  },
+  "casos": [
+    {
+      "id": "tarefa-012",
+      "categoria": "tarefa",
+      "passou": false,
+      "falhas": [
+        "turno 1: texto sem nenhum de ['boa pergunta', 'bom ponto', 'pergunta grande', 'pergunta e tanto', 'ainda não fui treinada']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "o que é ser feliz? me explica"
+        },
+        {
+          "quem": "leia",
+          "texto": "Essa é das grandes. Olhando para o nosso acervo, cada obra enxerga esse tema de um jeito:\n\n- Em “Onde está a felicidade?”, a felicidade aparece como um questionamento sobre os contrastes da vida social, tensionando o amor, o dinheiro e a posição social. Há 2 exemplares livres.\n- Em “Felicidade clandestina”, ela surge em pequenos momentos de revelação e epifanias do cotidiano, atravessados pela memória e pelo desejo. Há 3 exemplares livres.\n- Em “Uma aprendizagem ou O livro dos prazeres”, ser feliz é retratado como um processo de autoconhecimento, de perder o medo de sentir, aceitar a alegria e ter coragem de se entregar ao outro. Há 3 exemplares livres.\n\nSe quiser, posso abrir a ficha detalhada ou te ajudar a locar qualquer um deles!",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "felicidade"
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 152
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 12
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 13
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        20.64476700000523
+      ],
+      "tokens_entrada": 11137,
+      "tokens_saida": 1949
+    }
+  ]
+}

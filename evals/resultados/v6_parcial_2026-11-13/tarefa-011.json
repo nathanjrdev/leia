@@ -1,0 +1,84 @@
+{
+  "data": "2026-11-13T02:05:01",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 23.56,
+    "latencia_p95_s": 23.56,
+    "tokens_entrada": 11134,
+    "tokens_saida": 2510,
+    "custo_referencia_usd": 0.002368
+  },
+  "casos": [
+    {
+      "id": "tarefa-011",
+      "categoria": "tarefa",
+      "passou": false,
+      "falhas": [
+        "turno 1: texto sem «livro»",
+        "turno 1: texto sem nenhum de ['boa pergunta', 'bom ponto', 'pergunta grande', 'pergunta e tanto', 'ainda não fui treinada']"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "Qual o sentido da vida, saberia me dizer?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Essa é uma grande pergunta. O acervo traz diferentes olhares para o tema:\n\n- Em “Uma Vida com Propósitos”, a vida ganha sentido quando orientada pelos propósitos definidos por Deus para cada pessoa. Há 1 exemplar livre.\n- Em “Um sopro de vida”, o sentido de existir é explorado em pensamentos e diálogos sobre a criação, o tempo, a solidão e a morte. Há 1 exemplar livre.\n- Em “Estrela da vida inteira”, a existência humana é observada pela poesia através do cotidiano simples, dos afetos, da memória e da convivência com a doença e a finitude. Há 2 exemplares livres.\n\nSe desejar, posso abrir a ficha detalhada de algum deles ou ajudar você a locar.",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "sentido da vida"
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 206
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 10
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 72
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        23.56449689999863
+      ],
+      "tokens_entrada": 11134,
+      "tokens_saida": 2510
+    }
+  ]
+}

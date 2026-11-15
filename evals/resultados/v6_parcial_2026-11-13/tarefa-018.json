@@ -1,0 +1,81 @@
+{
+  "data": "2026-11-13T02:01:52",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0,
+      "meta": 0.9,
+      "ok": true
+    },
+    "geral": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 24.72,
+    "latencia_p95_s": 24.72,
+    "tokens_entrada": 11175,
+    "tokens_saida": 2710,
+    "custo_referencia_usd": 0.002472
+  },
+  "casos": [
+    {
+      "id": "tarefa-018",
+      "categoria": "tarefa",
+      "passou": true,
+      "falhas": [],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "na sua opinião, o que é o amor?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Que pergunta bonita.\n\nAqui na biblioteca, o amor ganha diferentes olhares nas páginas dos nossos livros:\n\n- Em “Declaração de amor”, o amor surge em versos líricos e apaixonados sobre o encontro, o desejo, a ausência e a saudade com delicadeza e reflexão (2 exemplares livres).\n- Em “Cartas de amor a Heloisa”, o amor se mostra na intimidade de cartas apaixonadas, tomadas por saudade, ansiedade e planos para a vida a dois (3 exemplares livres).\n- Em “O Amor nos Tempos do Cólera”, o amor aparece como um sentimento persistente capaz de atravessar mais de cinquenta anos de espera, o tempo e a velhice (2 exemplares livres).\n\nGostaria que eu abrisse a ficha de algum deles ou quer locar um para a sua leitura?",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "amor"
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 33
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 27
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 235
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        24.723356900001818
+      ],
+      "tokens_entrada": 11175,
+      "tokens_saida": 2710
+    }
+  ]
+}

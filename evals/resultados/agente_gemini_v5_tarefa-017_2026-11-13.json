@@ -1,0 +1,66 @@
+{
+  "data": "2026-11-13T01:46:10",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v5",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 44.37,
+    "latencia_p95_s": 44.37,
+    "tokens_entrada": 6265,
+    "tokens_saida": 1178,
+    "custo_referencia_usd": 0.001216
+  },
+  "casos": [
+    {
+      "id": "tarefa-017",
+      "categoria": "tarefa",
+      "passou": false,
+      "falhas": [
+        "turno 1: texto sem nenhum de ['em “', 'Em “', 'No “', 'no “', 'Na “', 'na “']",
+        "turno 1: texto contém «não fui treinada»"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "O que é a vida"
+        },
+        {
+          "quem": "leia",
+          "texto": "Que pergunta profunda! Ainda não fui treinada para responder a questões reflexivas assim por conta própria, mas posso sugerir alguns livros do nosso acervo que abordam esse tema por diferentes perspectivas:\n\n- “Uma Vida com Propósitos”, de Rick Warren (1 exemplar livre)\n- “A Vida Nao e Util”, de Ailton Krenak (3 exemplares livres)\n- “Estrela da vida inteira”, de Manuel Bandeira (2 exemplares livres)\n\nSe algum deles chamar sua atenção, é só me avisar que posso propor a locação para você.",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "vida"
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        44.370564800003194
+      ],
+      "tokens_entrada": 6265,
+      "tokens_saida": 1178
+    }
+  ]
+}

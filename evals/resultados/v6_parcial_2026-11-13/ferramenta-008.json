@@ -1,0 +1,60 @@
+{
+  "data": "2026-11-13T02:18:48",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": false,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "ferramenta": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 36.69,
+    "latencia_p95_s": 36.69,
+    "tokens_entrada": 0,
+    "tokens_saida": 0,
+    "custo_referencia_usd": 0.0
+  },
+  "casos": [
+    {
+      "id": "ferramenta-008",
+      "categoria": "ferramenta",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: timeout",
+        "turno 1: ferramenta não chamada: minhas_locacoes (chamadas: [])",
+        "turno 1: texto sem «Vidas secas»"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "quais livros eu tenho emprestado agora?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Estou demorando mais do que o normal. Pode tentar de novo em instantes?",
+          "erro": "timeout",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        36.692426599998726
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    }
+  ]
+}

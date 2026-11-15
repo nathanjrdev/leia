@@ -1,0 +1,81 @@
+{
+  "data": "2026-11-13T01:49:18",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0,
+      "meta": 0.9,
+      "ok": true
+    },
+    "geral": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 35.44,
+    "latencia_p95_s": 35.44,
+    "tokens_entrada": 10906,
+    "tokens_saida": 2150,
+    "custo_referencia_usd": 0.002166
+  },
+  "casos": [
+    {
+      "id": "tarefa-017",
+      "categoria": "tarefa",
+      "passou": true,
+      "falhas": [],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "O que é a vida"
+        },
+        {
+          "quem": "leia",
+          "texto": "Essa é das grandes. As respostas variam de acordo com o olhar de cada obra, e o acervo traz diferentes perspectivas:\n\n- Em “Uma Vida com Propósitos”, a vida aparece como uma jornada que ganha sentido quando orientada por propósitos espirituais e comunitários (1 exemplar livre).\n- Em “A Vida Nao e Util”, a vida aparece como uma vivência integrada à Terra, aos rios e ao tempo, questionando o consumismo e a visão utilitária (3 exemplares livres).\n- Em “Estrela da vida inteira”, a vida aparece atravessada pelo cotidiano simples, afetos, memórias de infância e a presença constante da finitude (2 exemplares livres).\n\nGostaria de abrir a ficha de algum desses livros ou locar um deles?",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "vida"
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 101
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 206
+              }
+            },
+            {
+              "nome": "detalhar_livro",
+              "argumentos": {
+                "livro_id": 72
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        35.443224899994675
+      ],
+      "tokens_entrada": 10906,
+      "tokens_saida": 2150
+    }
+  ]
+}

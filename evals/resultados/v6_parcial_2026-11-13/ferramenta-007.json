@@ -1,0 +1,72 @@
+{
+  "data": "2026-11-13T02:16:51",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": false,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "ferramenta": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0,
+      "meta": 0.9,
+      "ok": false
+    },
+    "geral": {
+      "n": 1,
+      "passou": 0,
+      "taxa": 0.0
+    }
+  },
+  "desempenho": {
+    "turnos": 2,
+    "latencia_p50_s": 44.58,
+    "latencia_p95_s": 50.67,
+    "tokens_entrada": 0,
+    "tokens_saida": 0,
+    "custo_referencia_usd": 0.0
+  },
+  "casos": [
+    {
+      "id": "ferramenta-007",
+      "categoria": "ferramenta",
+      "passou": false,
+      "falhas": [
+        "turno 1: erro inesperado: timeout",
+        "turno 1: ferramenta não chamada: buscar_livros (chamadas: [])",
+        "turno 2: erro inesperado: timeout",
+        "turno 2: nenhuma de ['detalhar_livro', 'buscar_livros'] chamada (chamadas: [])"
+      ],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "tem Vidas Secas?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Estou demorando mais do que o normal. Pode tentar de novo em instantes?",
+          "erro": "timeout",
+          "ferramentas": []
+        },
+        {
+          "quem": "leitor",
+          "texto": "me conta mais sobre ele, do que ele trata?"
+        },
+        {
+          "quem": "leia",
+          "texto": "Estou demorando mais do que o normal. Pode tentar de novo em instantes?",
+          "erro": "timeout",
+          "ferramentas": []
+        }
+      ],
+      "latencias_turno": [
+        37.809307600000466,
+        51.35040519999893
+      ],
+      "tokens_entrada": 0,
+      "tokens_saida": 0
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "data": "2026-11-13T02:06:55",
+  "modelo": "gemini/gemini-3.5-flash",
+  "prompt": "v6",
+  "reranker": true,
+  "valida": true,
+  "repeticoes": 1,
+  "instaveis": {},
+  "resumo": {
+    "tarefa": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0,
+      "meta": 0.9,
+      "ok": true
+    },
+    "geral": {
+      "n": 1,
+      "passou": 1,
+      "taxa": 1.0
+    }
+  },
+  "desempenho": {
+    "turnos": 1,
+    "latencia_p50_s": 23.55,
+    "latencia_p95_s": 23.55,
+    "tokens_entrada": 6233,
+    "tokens_saida": 817,
+    "custo_referencia_usd": 0.001032
+  },
+  "casos": [
+    {
+      "id": "tarefa-014",
+      "categoria": "tarefa",
+      "passou": true,
+      "falhas": [],
+      "transcricao": [
+        {
+          "quem": "leitor",
+          "texto": "To fazendo matéria de arquitetura de software. Me recomenda algo interessante sobre"
+        },
+        {
+          "quem": "leia",
+          "texto": "Encontrei algumas opções excelentes no acervo que podem te ajudar com a matéria de arquitetura de software:\n\n- “Padrões de Projeto” (1994), de Erich Gamma, Richard Helm, Ralph Johnson e John Vlissides - 1 exemplar livre.\n- “Refatoração” (1999), de Martin Fowler - 1 exemplar livre.\n- “O Programador Pragmático” (1999), de Andrew Hunt e David Thomas - 1 exemplar livre.\n\nSe quiser saber mais detalhes sobre a sinopse de algum deles ou se desejar locar, é só me avisar!",
+          "erro": null,
+          "ferramentas": [
+            {
+              "nome": "buscar_livros",
+              "argumentos": {
+                "consulta": "arquitetura de software"
+              }
+            }
+          ]
+        }
+      ],
+      "latencias_turno": [
+        23.552732500000275
+      ],
+      "tokens_entrada": 6233,
+      "tokens_saida": 817
+    }
+  ]
+}
