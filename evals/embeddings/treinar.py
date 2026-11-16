@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 
 from comum import (
+    CASOS_MANUAIS,
     MAX_TOKENS,
     MODELO_BASE,
     SAIDA,
@@ -21,6 +22,7 @@ from comum import (
     carregar_catalogo,
     ler_jsonl,
     norm,
+    pares_do_catalogo,
 )
 
 
@@ -29,6 +31,11 @@ def main() -> None:
     ap.add_argument("--epocas", type=int, default=3)
     ap.add_argument("--lote", type=int, default=16)
     ap.add_argument("--lr", type=float, default=2e-5)
+    ap.add_argument(
+        "--com-catalogo",
+        action="store_true",
+        help="acrescenta pedidos de título e de autor gerados do catálogo (ver comum.py)",
+    )
     args = ap.parse_args()
 
     import torch
@@ -41,8 +48,14 @@ def main() -> None:
     )
     from sentence_transformers.training_args import BatchSamplers
 
-    docs = {norm(livro["titulo"]): livro["doc"] for livro in carregar_catalogo()}
+    livros = carregar_catalogo()
+    docs = {norm(livro["titulo"]): livro["doc"] for livro in livros}
     pares = [p for p in ler_jsonl(SAIDA / "pares_treino.jsonl") if norm(p["livro"]) in docs]
+    if args.com_catalogo:
+        extras = pares_do_catalogo(livros, ler_jsonl(CASOS_MANUAIS))
+        n_tit = sum(1 for p in extras if p["origem"] == "catalogo-titulo")
+        print(f"+ {len(extras)} pares do catálogo ({n_tit} de título, {len(extras) - n_tit} de autor)")
+        pares += extras
     if len(pares) < 100:
         raise SystemExit(f"Só {len(pares)} pares. Rode gerar_pares.py primeiro.")
     print(f"{len(pares)} pares de treino | {len({norm(p['livro']) for p in pares})} livros")

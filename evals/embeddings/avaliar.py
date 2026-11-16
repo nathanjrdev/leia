@@ -101,6 +101,7 @@ def codificador(caminho_ou_nome: str):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ajustado", default=str(SAIDA / "modelo"))
+    ap.add_argument("--rotulo", default="", help="sufixo do arquivo de resultado (ex.: catalogo)")
     args = ap.parse_args()
 
     livros = carregar_catalogo()
@@ -116,13 +117,15 @@ def main() -> None:
         )
 
     RESULTADOS.mkdir(parents=True, exist_ok=True)
-    destino = RESULTADOS / f"embeddings_ajuste_{date.today().isoformat()}.json"
+    sufixo = f"_{args.rotulo}" if args.rotulo else ""
+    destino = RESULTADOS / f"embeddings_ajuste_{date.today().isoformat()}{sufixo}.json"
     with open(destino, "w", encoding="utf-8") as f:
         json.dump(
             {
                 "data": date.today().isoformat(),
                 "modelo_base": MODELO_BASE,
                 "busca": "somente vetor (cosseno), sem reranker",
+                "rotulo": args.rotulo or None,
                 "antes": antes,
                 "depois": depois,
             },

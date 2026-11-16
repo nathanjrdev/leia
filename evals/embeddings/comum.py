@@ -65,6 +65,54 @@ def em_validacao(titulo: str) -> bool:
     return (h % 100) < int(FRACAO_VALIDACAO * 100)
 
 
+def _sem_acento(texto: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c)
+    )
+
+
+def pares_do_catalogo(livros: list[dict], casos_manuais: list[dict]) -> list[dict]:
+    """Pedidos simples de título e de autor, gerados do catálogo (sem LLM).
+
+    Os pares sintéticos de `gerar_pares.py` nunca citam título nem autor, e o modelo ajustado só
+    com eles esquece como casar "Saramago" com os livros dele. Estes pares ensinam esse tipo de
+    pedido de volta, sem contaminar a avaliação:
+    - só livros de treino (os de validação continuam nunca vistos);
+    - nenhum livro de caso manual de título nem autor de caso manual de autor entra, para que
+      `casos_manuais/titulo` e `casos_manuais/autor` meçam a habilidade em livros e autores
+      novos, e não a memória do treino;
+    - pedidos idênticos a um caso manual são descartados.
+    """
+    excl_titulos = {
+        norm(e) for c in casos_manuais if c.get("tipo") == "titulo" for e in c.get("esperados", [])
+    }
+    excl_autores = {norm(c["autor_esperado"]) for c in casos_manuais if c.get("autor_esperado")}
+    proibidas = {norm(c["consulta"]) for c in casos_manuais}
+    vistos: set[tuple[str, str]] = set()
+    pares: list[dict] = []
+
+    def _add(livro: dict, consulta: str, origem: str) -> None:
+        chave = (norm(livro["titulo"]), norm(consulta))
+        if chave in vistos or norm(consulta) in proibidas:
+            return
+        vistos.add(chave)
+        pares.append({"livro": livro["titulo"], "consulta": consulta, "origem": origem})
+
+    for livro in livros:
+        if em_validacao(livro["titulo"]):
+            continue
+        titulo = livro["titulo"]
+        if norm(titulo) not in excl_titulos:
+            _add(livro, titulo, "catalogo-titulo")
+            _add(livro, _sem_acento(titulo).lower(), "catalogo-titulo")  # como se digita
+        for autor in livro.get("autores") or []:
+            if norm(autor) in excl_autores:
+                continue
+            _add(livro, autor, "catalogo-autor")
+            _add(livro, f"livros de {autor}", "catalogo-autor")
+    return pares
+
+
 def metricas(rankings: list[list[str]], esperados: list[set[str]]) -> dict:
     """rankings: títulos normalizados em ordem de similaridade. Relevância binária."""
     n = len(rankings)
