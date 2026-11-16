@@ -471,8 +471,10 @@ A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as l
 
 - **Busca híbrida.** Os números são da busca só por vetor. O produto usa texto + vetor + reranker, onde título e autor já são fortes pela busca textual. Falta trocar o encoder, regerar os embeddings e rodar `run_busca.py --gate`; só isso decide se o modelo entra na Léia.
 - **Mesma origem.** Pedidos sintéticos e parte das sinopses vêm de LLM; os casos manuais também. O ganho tende a ser otimista.
-- **Variância.** Uma rodada por configuração, com semente fixa (42). Com 14 a 18 casos, um caso vale de 0,06 a 0,07 de Recall@5.
+- **Variância.** Uma rodada por configuração, com semente fixa (42). A versão salva do notebook (Kaggle, "v1 com pares de titulo e autor", execução nova do zero) repetiu exatamente os números da 2ª rodada, então o resultado é reprodutível com a mesma semente; variância entre sementes não foi medida. Com 14 a 18 casos, um caso vale de 0,06 a 0,07 de Recall@5.
 - **Dois modelos geradores** (Gemini e DeepSeek): não medimos se o estilo de um favorece o outro.
+
+**Onde estão os números.** `evals/resultados/embeddings_ajuste_2026-11-16_catalogo.json` (2ª rodada; transcrito do log da versão salva no Kaggle, que tem o JSON original e o modelo em `leia_encoder_ajustado.zip`). A 1ª rodada não foi salva como versão: os números dela vêm da tabela impressa na sessão e estão no commit `717196d`.
 
 **Decisão.** 2ª rodada é a candidata a publicar no Hugging Face (privado primeiro). Entrar no produto depende do gate da busca híbrida.
 

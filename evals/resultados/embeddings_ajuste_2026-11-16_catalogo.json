@@ -1,0 +1,60 @@
+{
+  "data": "2026-11-16",
+  "modelo_base": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+  "busca": "somente vetor (cosseno), sem reranker",
+  "rotulo": "catalogo",
+  "antes": {
+    "validacao_livros_nao_vistos": {
+      "n": 368,
+      "recall@5": 0.758,
+      "ndcg@10": 0.691
+    },
+    "casos_manuais/autor": {
+      "n": 14,
+      "recall@5": 0.929,
+      "ndcg@10": 0.72
+    },
+    "casos_manuais/geral": {
+      "n": 73,
+      "recall@5": 0.849,
+      "ndcg@10": 0.742
+    },
+    "casos_manuais/intencao": {
+      "n": 41,
+      "recall@5": 0.854,
+      "ndcg@10": 0.769
+    },
+    "casos_manuais/titulo": {
+      "n": 18,
+      "recall@5": 0.778,
+      "ndcg@10": 0.697
+    }
+  },
+  "depois": {
+    "validacao_livros_nao_vistos": {
+      "n": 368,
+      "recall@5": 0.965,
+      "ndcg@10": 0.92
+    },
+    "casos_manuais/autor": {
+      "n": 14,
+      "recall@5": 1.0,
+      "ndcg@10": 0.915
+    },
+    "casos_manuais/geral": {
+      "n": 73,
+      "recall@5": 0.973,
+      "ndcg@10": 0.917
+    },
+    "casos_manuais/intencao": {
+      "n": 41,
+      "recall@5": 1.0,
+      "ndcg@10": 0.958
+    },
+    "casos_manuais/titulo": {
+      "n": 18,
+      "recall@5": 0.889,
+      "ndcg@10": 0.825
+    }
+  }
+}
