@@ -476,7 +476,13 @@ A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as l
 
 **Onde estão os números.** `evals/resultados/embeddings_ajuste_2026-11-16_catalogo.json` (2ª rodada; transcrito do log da versão salva no Kaggle, que tem o JSON original e o modelo em `leia_encoder_ajustado.zip`). A 1ª rodada não foi salva como versão: os números dela vêm da tabela impressa na sessão e estão no commit `717196d`.
 
-**Decisão.** 2ª rodada é a candidata a publicar no Hugging Face (privado primeiro). Entrar no produto depende do gate da busca híbrida.
+**Decisão.** 2ª rodada publicada (16/11) como [nathanjrdev/leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt), com os dados em [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt) e o notebook público no Kaggle. Os cards ficam versionados em `evals/embeddings/cards/`. **Não entrou no produto:** o padrão de `ENCODER_MODELO` continua o modelo base até o gate da busca híbrida:
+
+```powershell
+$env:ENCODER_MODELO = "nathanjrdev/leia-embeddings-pt"
+uv run --group ml python -m leia_api.carga              # regera os embeddings (a chave muda com o modelo)
+uv run --group ml python ../evals/run_busca.py --falhas --gate
+```
 
 ## 6. Limites conhecidos da medida
 

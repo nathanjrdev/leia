@@ -17,6 +17,7 @@ import argparse
 import json
 import os
 import shutil
+from pathlib import Path
 
 from comum import MODELO_BASE, RAIZ, RESULTADOS, SAIDA, carregar_catalogo, ler_jsonl, escrever_jsonl
 
@@ -29,13 +30,30 @@ def ultimo_resultado() -> dict:
         return json.load(f)
 
 
+ROTULOS = {
+    "validacao_livros_nao_vistos": "Livros nunca vistos no treino (pedidos sintéticos)",
+    "casos_manuais/intencao": "Casos manuais: intenção",
+    "casos_manuais/titulo": "Casos manuais: título",
+    "casos_manuais/autor": "Casos manuais: autor",
+    "casos_manuais/geral": "Casos manuais: geral",
+}
+CARDS = Path(__file__).resolve().parent / "cards"
+
+
+def _f(valor) -> str:
+    return f"{valor:.3f}" if isinstance(valor, int | float) else str(valor)
+
+
 def tabela(res: dict) -> str:
-    linhas = ["| Conjunto | n | Recall@5 antes | Recall@5 depois | nDCG@10 antes | nDCG@10 depois |",
-              "| --- | --- | --- | --- | --- | --- |"]
-    for chave, a in res["antes"].items():
-        d = res["depois"][chave]
+    linhas = [
+        "| Conjunto | n | Recall@5 antes | Recall@5 depois | nDCG@10 antes | nDCG@10 depois |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for chave in [c for c in ROTULOS if c in res["antes"]]:
+        a, d = res["antes"][chave], res["depois"][chave]
         linhas.append(
-            f"| {chave} | {a['n']} | {a['recall@5']} | {d['recall@5']} | {a['ndcg@10']} | {d['ndcg@10']} |"
+            f"| {ROTULOS[chave]} | {a['n']} | {_f(a['recall@5'])} | {_f(d['recall@5'])} "
+            f"| {_f(a['ndcg@10'])} | {_f(d['ndcg@10'])} |"
         )
     return "\n".join(linhas)
 
@@ -52,101 +70,21 @@ def montar_dataset(destino, incluir_sinopses: bool) -> None:
     )
     escrever_jsonl(destino / "catalogo.jsonl", [{c: l.get(c) for c in campos} for l in carregar_catalogo()])
     licenca = "cc-by-sa-4.0" if incluir_sinopses else "cc-by-4.0"
-    (destino / "README.md").write_text(
-        f"""---
-language:
-- pt
-license: {licenca}
-task_categories:
-- sentence-similarity
-- text-retrieval
-size_categories:
-- n<1K
-tags:
-- livros
-- busca-semantica
-- sintetico
----
-
-# Leia: pedidos de livros em português
-
-Pares "pedido de leitor → livro" usados para ajustar o encoder da Leia, assistente de IA
-para locação de livros ([github.com/nathanjrdev/leia](https://github.com/nathanjrdev/leia)).
-
-## Conteúdo
-
-- `pares_treino.jsonl` e `pares_validacao.jsonl`: pedidos **sintéticos** em português, gerados
-  por um LLM a partir dos metadados de cada livro. A divisão é por livro: nenhum livro de
-  validação aparece no treino.
-- `casos_manuais.jsonl`: casos de teste escritos à mão (título, autor, intenção).
-- `catalogo.jsonl`: {len(carregar_catalogo())} livros (título, autores, ano, ISBN, categorias{', sinopse' if incluir_sinopses else ''}).
-
-## Limitações
-
-- Catálogo pequeno ({len(carregar_catalogo())} livros), com foco em literatura brasileira.
-- Os pedidos são sintéticos e podem soar mais "limpos" do que pedidos reais.
-- Metadados vêm da Open Library; confira os termos de cada fonte antes de reutilizar.
-""",
-        encoding="utf-8",
-    )
+    # Card versionado em cards/dataset.md (contagens, geradores, filtros e limitações). Se os
+    # dados mudarem, atualize o card antes de publicar. A licença muda com as sinopses.
+    card = (CARDS / "dataset.md").read_text(encoding="utf-8")
+    if incluir_sinopses:
+        card = card.replace("license: cc-by-4.0", f"license: {licenca}", 1)
+    (destino / "README.md").write_text(card, encoding="utf-8")
 
 
 def montar_modelo(destino, res: dict) -> None:
     if destino.exists():
         shutil.rmtree(destino)
     shutil.copytree(SAIDA / "modelo", destino)
-    (destino / "README.md").write_text(
-        f"""---
-language:
-- pt
-license: apache-2.0
-library_name: sentence-transformers
-base_model: {MODELO_BASE}
-pipeline_tag: sentence-similarity
-tags:
-- sentence-transformers
-- embeddings
-- busca-semantica
-- livros
----
-
-# leia-embeddings-pt
-
-Ajuste fino de `{MODELO_BASE}` para encontrar livros a partir de pedidos em português
-(ex.: "um romance curto sobre ciúme"). Usado na busca da Leia
-([github.com/nathanjrdev/leia](https://github.com/nathanjrdev/leia)).
-
-## Como foi treinado
-
-- Pares (pedido sintético em português, documento do livro), perda contrastiva
-  `MultipleNegativesRankingLoss`, lotes sem duplicatas.
-- Divisão **por livro**: os livros de validação nunca foram vistos no treino.
-- Dados: [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt).
-
-## Resultados
-
-Busca somente por vetor (cosseno) sobre o catálogo inteiro, sem reranker.
-
-{tabela(res)}
-
-## Como usar
-
-```python
-from sentence_transformers import SentenceTransformer
-
-modelo = SentenceTransformer("nathanjrdev/leia-embeddings-pt")
-consulta = modelo.encode("um suspense curto para o fim de semana", normalize_embeddings=True)
-```
-
-## Limitações
-
-- Treinado e avaliado num catálogo pequeno; não generaliza por conta própria para acervos de
-  outros domínios sem nova avaliação.
-- Os pedidos de treino são sintéticos. Os conjuntos de avaliação são pequenos, então diferenças
-  de poucos pontos podem ser ruído.
-""",
-        encoding="utf-8",
-    )
+    # Card versionado em cards/modelo.md; só a tabela vem do último resultado de avaliar.py.
+    card = (CARDS / "modelo.md").read_text(encoding="utf-8").replace("{TABELA}", tabela(res))
+    (destino / "README.md").write_text(card, encoding="utf-8")
 
 
 def main() -> None:
