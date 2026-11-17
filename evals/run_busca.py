@@ -106,7 +106,11 @@ def main() -> None:
         "com_reranker": CrossEncoderReranker(),
     }
 
-    relatorio: dict[str, object] = {"data": date.today().isoformat(), "reranker": MODELO_RERANKER}
+    relatorio: dict[str, object] = {
+        "data": date.today().isoformat(),
+        "encoder": settings.encoder_modelo,
+        "reranker": MODELO_RERANKER,
+    }
     with Session(create_engine(settings.database_url)) as session:
         for nome, reranker in configs.items():
             resultado = avaliar(session, casos, encoder, reranker)

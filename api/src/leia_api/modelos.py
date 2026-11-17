@@ -7,15 +7,16 @@ São o único ponto que baixa e carrega modelos; o resto do código recebe `Enco
 from collections.abc import Sequence
 
 from leia_api.config import settings
-from leia_api.embeddings import MAX_TOKENS_ENCODER, MODELO_PADRAO
+from leia_api.embeddings import MAX_TOKENS_ENCODER
 
 MODELO_RERANKER = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
 
 class EncoderST:
-    def __init__(self, modelo: str = MODELO_PADRAO) -> None:
+    def __init__(self, modelo: str | None = None) -> None:
         import sentence_transformers
 
+        modelo = modelo or settings.encoder_modelo  # ENCODER_MODELO; padrão: MODELO_PADRAO
         # token explícito do Settings (o mesmo .env das chaves de LLM), não do ambiente
         self._modelo = sentence_transformers.SentenceTransformer(modelo, token=settings.token_hf())
         self._modelo.max_seq_length = MAX_TOKENS_ENCODER
