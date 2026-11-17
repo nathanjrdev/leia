@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     # Token do Hugging Face (opcional): sem ele os modelos baixam/conferem como anônimo, com
     # limite de requisições mais baixo.
     hf_token: SecretStr | None = None
+    # Encoder da busca vetorial (ENCODER_MODELO). O padrão é o modelo base; o ajustado
+    # (nathanjrdev/leia-embeddings-pt) só entra depois de passar no gate da busca completa
+    # (`evals/run_busca.py --gate`). Trocar exige regerar os embeddings (`leia_api.carga`).
+    encoder_modelo: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
     def token_hf(self) -> str | None:
         return self.hf_token.get_secret_value() if self.hf_token else None

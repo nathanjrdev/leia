@@ -98,6 +98,8 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 | 10–11/11 | Sessão de teste manual (5.5), chave do LLM explícita (5.6) e gate no Haiku (5.7): prompt v4 + limite de títulos no código | Haiku: v2 46/55 → v4 54/55; grounding 9 → 10/10, segurança 14 → 16/16 (com seguranca-012 corrigido), tarefa 9 → 14/14 | **v4 adotada** |
 | 11/11 | Falha de ação na conversa e prompt v5 (5.8); casos de regressão e turno `cartao` no runner (5.9) | Haiku: 54/55 (v4 54/55), sem categoria abaixo da meta; tarefa-016 (cartão) detecta o defeito "não vou tentar" (1/3 no código antigo, 5/5 no novo); a autocorreção segue sem reproduzir (0 em 11) | **v5 adotada** |
 | 14/11 | Gate da busca no CI: `run_busca.py --gate` compara a média geral (Recall@5 e nDCG@10, com e sem reranker) com `evals/resultados/busca.json` e reprova queda maior que 0,015 (~1 caso em 73); workflow `busca.yml` roda em PR que mexe no ranking, no catálogo ou nos casos | nenhuma mudança na busca, no agente ou nos casos; **a rodada no CI ainda não foi observada** (torch e modelos baixados no runner; determinismo entre máquinas não medido) | ferramenta de medida, sem gate necessário |
+| 16/11 | Ajuste fino do encoder (5.11): 1ª rodada só com pedidos sintéticos; 2ª com pedidos de título e autor do catálogo | busca só por vetor, livros nunca vistos: R@5 0,758 → 0,970 (1ª) e 0,965 (2ª); casos manuais geral: 0,849 → 0,767 (1ª) e **0,973** (2ª) | 1ª **descartada** (título e autor caíram); 2ª candidata, falta medir na busca híbrida (`run_busca.py --gate`) |
+| 17/11 | Gate da busca híbrida com o encoder ajustado (`ENCODER_MODELO=nathanjrdev/leia-embeddings-pt`, 5.11) | com reranker, geral: R@5 1,000 → 1,000; nDCG@10 0,969 → 0,982 (intenção 0,945 → 0,968); sem reranker, geral: nDCG@10 0,919 → 0,952 | **gate aprovado**; padrão continua o modelo base até a suíte do agente rodar com o encoder novo |
 
 **Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
 
@@ -445,6 +447,62 @@ A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as l
 **Decisão.** tarefa-015 e tarefa-016 ficam na suíte (a 015 protege a recusa por limite depois de recomendação em vários turnos; a 016 protege o caminho do cartão e detecta o defeito nº 1). v5 segue adotada pelo que a 5.8 mediu. A autocorreção continua **sem caso que a reproduza**. Se valer o custo, o passo seguinte é reproduzir a conversa 69 por inteiro (histórico idêntico, mesmos títulos) em vez de um cenário parecido, e repetir com k ≥ 5 por versão.
 
 **NÃO medido.** A v5 no cartão (a 016 só rodou na v4); o defeito nº 3 em qualquer versão; outros modelos; a suíte completa com os dois casos novos (`agente.json` não muda: rodadas filtradas vão para `agente_parcial.json`).
+
+### 5.11 Ajuste fino do encoder da busca (16/11/2026, branch `feat/embeddings-finetune`)
+
+**Objetivo.** Ver se ajustar o encoder (`paraphrase-multilingual-mpnet-base-v2`) a pedidos de leitores em português melhora a busca vetorial, e publicar modelo e dados no Hugging Face. Scripts em `evals/embeddings/`; treino e avaliação no Kaggle (GPU T4 x2, notebook `kaggle_treino.ipynb`).
+
+**Dados.** `gerar_pares.py` gerou 8 pedidos por livro com LLM, sem citar título, autor nem personagem: os ~25 primeiros livros com o Gemini 3.5 Flash e o resto com o DeepSeek V4.1 Flash (o Gemini gratuito estourou a cota). Depois dos filtros: 1.873 pares de treino e 368 de validação. A divisão é **por livro**: 46 livros (~20%, por hash do título) nunca entram no treino. 15 pedidos descartados, entre eles os 8 de "Cacau" (todos citam "cacau", que é o título e o tema). Conferido na amostra: nenhum nome próprio do título nem de personagem nas consultas; mediana de 26 palavras por pedido (mais longos que os de um leitor real).
+
+**Medida.** `avaliar.py`, busca **só por vetor** (cosseno) sobre o catálogo inteiro, sem texto nem reranker, antes (modelo base) e depois.
+
+| Conjunto | n | R@5 base | R@5 1ª rodada | R@5 2ª rodada | nDCG@10 base | 1ª | 2ª |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Livros nunca vistos (sintéticos) | 368 | 0,758 | 0,970 | 0,965 | 0,691 | 0,932 | 0,920 |
+| Casos manuais: intenção | 41 | 0,854 | 1,000 | 1,000 | 0,769 | 0,929 | 0,958 |
+| Casos manuais: título | 18 | 0,778 | 0,611 | 0,889 | 0,697 | 0,514 | 0,825 |
+| Casos manuais: autor | 14 | 0,929 | 0,286 | 1,000 | 0,720 | 0,115 | 0,915 |
+| Casos manuais: geral | 73 | 0,849 | 0,767 | 0,973 | 0,742 | 0,670 | 0,917 |
+
+**1ª rodada (só pedidos sintéticos): descartada.** O ganho em intenção era real (livros nunca vistos, 0,758 → 0,970), mas título e autor despencaram: os pedidos sintéticos nunca citam título nem autor, e o modelo esqueceu esse tipo de pedido.
+
+**2ª rodada (+ 685 pedidos do catálogo): candidata.** `pares_do_catalogo()` (em `comum.py`) gera, sem LLM, pedidos de título (exato e sem acento) e de autor (nome e "livros de <autor>"). Para não contaminar a medida: só livros de treino; **nenhum** livro dos casos manuais de título nem autor dos casos manuais de autor ganha par (então título e autor medem livros e autores novos); nenhum pedido idêntico a um caso manual. Resultado: título e autor voltaram acima do modelo base e o ganho em intenção ficou.
+
+**O que NÃO foi medido.**
+
+- **Busca híbrida.** Os números são da busca só por vetor. O produto usa texto + vetor + reranker, onde título e autor já são fortes pela busca textual. Falta trocar o encoder, regerar os embeddings e rodar `run_busca.py --gate`; só isso decide se o modelo entra na Léia.
+- **Mesma origem.** Pedidos sintéticos e parte das sinopses vêm de LLM; os casos manuais também. O ganho tende a ser otimista.
+- **Variância.** Uma rodada por configuração, com semente fixa (42). A versão salva do notebook (Kaggle, "v1 com pares de titulo e autor", execução nova do zero) repetiu exatamente os números da 2ª rodada, então o resultado é reprodutível com a mesma semente; variância entre sementes não foi medida. Com 14 a 18 casos, um caso vale de 0,06 a 0,07 de Recall@5.
+- **Dois modelos geradores** (Gemini e DeepSeek): não medimos se o estilo de um favorece o outro.
+
+**Onde estão os números.** `evals/resultados/embeddings_ajuste_2026-11-16_catalogo.json` (2ª rodada; transcrito do log da versão salva no Kaggle, que tem o JSON original e o modelo em `leia_encoder_ajustado.zip`). A 1ª rodada não foi salva como versão: os números dela vêm da tabela impressa na sessão e estão no commit `717196d`.
+
+**Gate da busca híbrida (17/11).** Com `ENCODER_MODELO=nathanjrdev/leia-embeddings-pt`, embeddings regerados e `run_busca.py --falhas --gate` (73 casos, catálogo de 282 livros). Relatório em `evals/resultados/busca_encoder_ajustado_2026-11-17.json`; a baseline `busca.json` (10/11, modelo base) não foi trocada.
+
+| Modo | Grupo | Recall@5 base → ajustado | nDCG@10 base → ajustado |
+| --- | --- | --- | --- |
+| sem reranker | título | 0,944 → 0,944 | 0,924 → 0,944 |
+| sem reranker | autor | 1,000 → 1,000 | 0,999 → 0,999 |
+| sem reranker | intenção | 1,000 → 1,000 | 0,890 → 0,938 |
+| sem reranker | **geral** | 0,986 → 0,986 | **0,919 → 0,952** |
+| com reranker | título | 1,000 → 1,000 | 1,000 → 1,000 |
+| com reranker | autor | 1,000 → 1,000 | 0,999 → 0,999 |
+| com reranker | intenção | 1,000 → 1,000 | 0,945 → 0,968 |
+| com reranker | **geral** | 1,000 → 1,000 | **0,969 → 0,982** |
+
+Leitura: nada piorou; o ganho é na **ordem** (nDCG), concentrado em intenção, que é o que o ajuste treinou. Na busca completa o ganho é bem menor que na busca só por vetor (onde o geral foi de 0,742 para 0,917), porque texto e reranker já resolviam a maior parte. O Recall@5 não mudou porque já estava no teto (1,000 com reranker): **a suíte de busca está saturada** e não consegue mostrar ganhos maiores; precisa de casos mais difíceis. A única falha (t16, "amor de perdicao", sem reranker) já existia no modelo base.
+
+Incidente: a primeira carga dessa medição gerou 0 embeddings porque o banco local já tinha vetores do modelo ajustado, de uma tentativa anterior no mesmo dia com a variável. Enquanto isso, a API sem a variável buscaria com o modelo base sobre vetores do ajustado. O banco voltou ao modelo base (282 vetores `paraphrase-multilingual-mpnet-base-v2@256`). Lição: trocar `ENCODER_MODELO` exige sempre regerar e, ao terminar, desfazer.
+
+**O que NÃO foi medido (gate híbrido).** A suíte do agente com o encoder novo (chama LLM; pelo menos `grounding` e `ferramenta`); latência e memória (mesma arquitetura do base, então não se espera mudança, mas não foi medido); variância entre sementes.
+
+**Decisão.** 2ª rodada publicada (16/11) como [nathanjrdev/leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt), com os dados em [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt) e o notebook público no Kaggle. Os cards ficam versionados em `evals/embeddings/cards/`. **Não entrou no produto:** o padrão de `ENCODER_MODELO` continua o modelo base. O gate híbrido passou (17/11); a adoção espera a suíte do agente com o encoder novo. Para repetir a medida:
+
+```powershell
+$env:ENCODER_MODELO = "nathanjrdev/leia-embeddings-pt"
+uv run --group ml python -m leia_api.carga              # regera os embeddings (a chave muda com o modelo)
+uv run --group ml python ../evals/run_busca.py --falhas --gate
+```
 
 ## 6. Limites conhecidos da medida
 

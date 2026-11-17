@@ -246,3 +246,6 @@ evals/resultados/reteste/
 # protegidas e ficam só na máquina. O que se versiona é a escolha de páginas (data/degustacao.json).
 data/livros_estante/
 web/public/degustacao/
+
+# Saidas do ajuste fino de embeddings
+evals/embeddings/saida/
