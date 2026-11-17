@@ -99,6 +99,7 @@ Atenção: o runner grava `agente.json` mesmo em rodada parcial; se uma rodada f
 | 11/11 | Falha de ação na conversa e prompt v5 (5.8); casos de regressão e turno `cartao` no runner (5.9) | Haiku: 54/55 (v4 54/55), sem categoria abaixo da meta; tarefa-016 (cartão) detecta o defeito "não vou tentar" (1/3 no código antigo, 5/5 no novo); a autocorreção segue sem reproduzir (0 em 11) | **v5 adotada** |
 | 14/11 | Gate da busca no CI: `run_busca.py --gate` compara a média geral (Recall@5 e nDCG@10, com e sem reranker) com `evals/resultados/busca.json` e reprova queda maior que 0,015 (~1 caso em 73); workflow `busca.yml` roda em PR que mexe no ranking, no catálogo ou nos casos | nenhuma mudança na busca, no agente ou nos casos; **a rodada no CI ainda não foi observada** (torch e modelos baixados no runner; determinismo entre máquinas não medido) | ferramenta de medida, sem gate necessário |
 | 16/11 | Ajuste fino do encoder (5.11): 1ª rodada só com pedidos sintéticos; 2ª com pedidos de título e autor do catálogo | busca só por vetor, livros nunca vistos: R@5 0,758 → 0,970 (1ª) e 0,965 (2ª); casos manuais geral: 0,849 → 0,767 (1ª) e **0,973** (2ª) | 1ª **descartada** (título e autor caíram); 2ª candidata, falta medir na busca híbrida (`run_busca.py --gate`) |
+| 17/11 | Gate da busca híbrida com o encoder ajustado (`ENCODER_MODELO=nathanjrdev/leia-embeddings-pt`, 5.11) | com reranker, geral: R@5 1,000 → 1,000; nDCG@10 0,969 → 0,982 (intenção 0,945 → 0,968); sem reranker, geral: nDCG@10 0,919 → 0,952 | **gate aprovado**; padrão continua o modelo base até a suíte do agente rodar com o encoder novo |
 
 **Como ler o desempenho.** `latencia_*` é o tempo de cada resposta do agente (inclui chamadas de ferramenta e as esperas de limite de taxa: com cota esgotada o p95 sobe para ~78 a 100 s e **não representa o modelo**). Os tokens vêm do provedor e o custo é de *referência* (preços do plano para o Haiku 5.5; o provedor grátis cobra 0, e a tokenização muda de modelo para modelo). Medir latência e custo de verdade exige rodada válida, sem `erro_llm`.
 
@@ -476,7 +477,26 @@ A falha foi ferramenta-010 ("quero renovar o meu livro"): o Haiku consultou as l
 
 **Onde estão os números.** `evals/resultados/embeddings_ajuste_2026-11-16_catalogo.json` (2ª rodada; transcrito do log da versão salva no Kaggle, que tem o JSON original e o modelo em `leia_encoder_ajustado.zip`). A 1ª rodada não foi salva como versão: os números dela vêm da tabela impressa na sessão e estão no commit `717196d`.
 
-**Decisão.** 2ª rodada publicada (16/11) como [nathanjrdev/leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt), com os dados em [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt) e o notebook público no Kaggle. Os cards ficam versionados em `evals/embeddings/cards/`. **Não entrou no produto:** o padrão de `ENCODER_MODELO` continua o modelo base até o gate da busca híbrida:
+**Gate da busca híbrida (17/11).** Com `ENCODER_MODELO=nathanjrdev/leia-embeddings-pt`, embeddings regerados e `run_busca.py --falhas --gate` (73 casos, catálogo de 282 livros). Relatório em `evals/resultados/busca_encoder_ajustado_2026-11-17.json`; a baseline `busca.json` (10/11, modelo base) não foi trocada.
+
+| Modo | Grupo | Recall@5 base → ajustado | nDCG@10 base → ajustado |
+| --- | --- | --- | --- |
+| sem reranker | título | 0,944 → 0,944 | 0,924 → 0,944 |
+| sem reranker | autor | 1,000 → 1,000 | 0,999 → 0,999 |
+| sem reranker | intenção | 1,000 → 1,000 | 0,890 → 0,938 |
+| sem reranker | **geral** | 0,986 → 0,986 | **0,919 → 0,952** |
+| com reranker | título | 1,000 → 1,000 | 1,000 → 1,000 |
+| com reranker | autor | 1,000 → 1,000 | 0,999 → 0,999 |
+| com reranker | intenção | 1,000 → 1,000 | 0,945 → 0,968 |
+| com reranker | **geral** | 1,000 → 1,000 | **0,969 → 0,982** |
+
+Leitura: nada piorou; o ganho é na **ordem** (nDCG), concentrado em intenção, que é o que o ajuste treinou. Na busca completa o ganho é bem menor que na busca só por vetor (onde o geral foi de 0,742 para 0,917), porque texto e reranker já resolviam a maior parte. O Recall@5 não mudou porque já estava no teto (1,000 com reranker): **a suíte de busca está saturada** e não consegue mostrar ganhos maiores; precisa de casos mais difíceis. A única falha (t16, "amor de perdicao", sem reranker) já existia no modelo base.
+
+Incidente: a primeira carga dessa medição gerou 0 embeddings porque o banco local já tinha vetores do modelo ajustado, de uma tentativa anterior no mesmo dia com a variável. Enquanto isso, a API sem a variável buscaria com o modelo base sobre vetores do ajustado. O banco voltou ao modelo base (282 vetores `paraphrase-multilingual-mpnet-base-v2@256`). Lição: trocar `ENCODER_MODELO` exige sempre regerar e, ao terminar, desfazer.
+
+**O que NÃO foi medido (gate híbrido).** A suíte do agente com o encoder novo (chama LLM; pelo menos `grounding` e `ferramenta`); latência e memória (mesma arquitetura do base, então não se espera mudança, mas não foi medido); variância entre sementes.
+
+**Decisão.** 2ª rodada publicada (16/11) como [nathanjrdev/leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt), com os dados em [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt) e o notebook público no Kaggle. Os cards ficam versionados em `evals/embeddings/cards/`. **Não entrou no produto:** o padrão de `ENCODER_MODELO` continua o modelo base. O gate híbrido passou (17/11); a adoção espera a suíte do agente com o encoder novo. Para repetir a medida:
 
 ```powershell
 $env:ENCODER_MODELO = "nathanjrdev/leia-embeddings-pt"

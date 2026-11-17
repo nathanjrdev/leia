@@ -14,7 +14,7 @@ tags:
 
 # leia-embeddings-pt
 
-Ajuste fino de `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` para encontrar livros a partir de pedidos de leitores em português, como "um romance curto sobre ciúme" ou "livros de Clarice Lispector". Feito para a busca da [Léia](https://github.com/nathanjrdev/leia), uma bibliotecária virtual com IA. **Ainda não está em produção:** veja "O que não foi medido".
+Ajuste fino de `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` para encontrar livros a partir de pedidos de leitores em português, como "um romance curto sobre ciúme" ou "livros de Clarice Lispector". Feito para a busca da [Léia](https://github.com/nathanjrdev/leia), uma bibliotecária virtual com IA. **Ainda não é o padrão da Léia:** passou no gate de não regressão da busca completa, mas falta testar com o agente (veja "O que não foi medido").
 
 ## Como foi treinado
 
@@ -30,13 +30,17 @@ Busca **só por vetor** (cosseno) sobre o catálogo inteiro (282 livros), sem bu
 
 {TABELA}
 
+### Na busca completa da Léia
+
+A Léia combina busca textual, vetor e reranker. Com este modelo no lugar do base, nos 73 casos manuais, nada piorou e a ordem melhorou: com reranker, nDCG@10 geral 0.969 → 0.982 (intenção 0.945 → 0.968); sem reranker, 0.919 → 0.952. O Recall@5 já era 1.000 com reranker, então a suíte não mostra ganhos de recall.
+
 ### Por que os pares de título e autor
 
 Uma primeira rodada só com pares sintéticos melhorou a intenção, mas derrubou título (Recall@5 0.778 → 0.611) e autor (0.929 → 0.286): como os pedidos sintéticos nunca citam título nem autor, o modelo esqueceu esse tipo de pedido. Os pares do catálogo corrigiram isso sem perder o ganho em intenção.
 
 ## O que não foi medido
 
-- **Busca híbrida.** A Léia combina busca textual, vetor e reranker. Os números acima são só do vetor; o ganho no produto depende de trocar o encoder e rodar o gate de não regressão da busca completa.
+- **Suíte do agente.** O modelo ainda não foi testado com o agente da Léia (que chama um LLM). Por isso o padrão da Léia continua o modelo base.
 - **Variância entre sementes.** Uma rodada por configuração; a reexecução com a mesma semente repetiu os números.
 - **Mesma origem.** Os pedidos de treino, parte das sinopses e os casos de avaliação vêm de conhecimento de LLM, então o ganho tende a ser otimista.
 - **Pedidos reais.** Os pedidos sintéticos são mais longos (mediana de 26 palavras) do que costumam ser os de leitores.

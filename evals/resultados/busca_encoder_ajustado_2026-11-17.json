@@ -1,0 +1,2443 @@
+{
+  "data": "2026-11-17",
+  "encoder": "nathanjrdev/leia-embeddings-pt",
+  "reranker": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+  "sem_reranker": {
+    "resumo": {
+      "titulo": {
+        "n": 18,
+        "recall@5": 0.944,
+        "ndcg@10": 0.944
+      },
+      "autor": {
+        "n": 14,
+        "recall@5": 1.0,
+        "ndcg@10": 0.999
+      },
+      "intencao": {
+        "n": 41,
+        "recall@5": 1.0,
+        "ndcg@10": 0.938
+      },
+      "geral": {
+        "n": 73,
+        "recall@5": 0.986,
+        "ndcg@10": 0.952
+      }
+    },
+    "casos": [
+      {
+        "id": "t01",
+        "tipo": "titulo",
+        "consulta": "Dom Casmurro",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Capitu",
+          "O Conde de Monte Cristo",
+          "Dom Quixote de La Mancha",
+          "Amor de Perdição"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "t02",
+        "tipo": "titulo",
+        "consulta": "Torto Arado",
+        "primeira_relevante": 1,
+        "top5": [
+          "Torto Arado",
+          "Grande sertão: veredas",
+          "Cacau",
+          "O Minotauro",
+          "Seara vermelha"
+        ],
+        "esperados": [
+          "Torto Arado"
+        ]
+      },
+      {
+        "id": "t03",
+        "tipo": "titulo",
+        "consulta": "Vidas Secas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Vidas secas",
+          "Um alpendre, uma rede, um açude",
+          "Garranchos",
+          "São Bernardo",
+          "A Vida Nao e Util"
+        ],
+        "esperados": [
+          "Vidas secas"
+        ]
+      },
+      {
+        "id": "t04",
+        "tipo": "titulo",
+        "consulta": "Macunaíma",
+        "primeira_relevante": 1,
+        "top5": [
+          "Macunaíma",
+          "A árvore",
+          "O ermitão de Muquém",
+          "A moreninha",
+          "Pontos de fuga"
+        ],
+        "esperados": [
+          "Macunaíma"
+        ]
+      },
+      {
+        "id": "t05",
+        "tipo": "titulo",
+        "consulta": "Auto da Compadecida",
+        "primeira_relevante": 1,
+        "top5": [
+          "Auto da Compadecida",
+          "Bufo & Spallanzani",
+          "Assassinato no Expresso do Oriente",
+          "Como Eu Era Antes de Você",
+          "O Guia do Mochileiro das Galáxias"
+        ],
+        "esperados": [
+          "Auto da Compadecida"
+        ]
+      },
+      {
+        "id": "t06",
+        "tipo": "titulo",
+        "consulta": "O Alquimista",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alquimista",
+          "O Médico e o Monstro",
+          "Harry Potter e o Enigma do Príncipe",
+          "Tenda dos Milagres",
+          "O Alienista"
+        ],
+        "esperados": [
+          "O Alquimista"
+        ]
+      },
+      {
+        "id": "t07",
+        "tipo": "titulo",
+        "consulta": "Ensaio sobre a cegueira",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "O banquete dos deuses",
+          "Recordações do escrivão Isaías Caminha",
+          "O Alquimista",
+          "Flicts"
+        ],
+        "esperados": [
+          "Ensaio Sobre a Cegueira"
+        ]
+      },
+      {
+        "id": "t08",
+        "tipo": "titulo",
+        "consulta": "Capitães da Areia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "O continente (O tempo e o vento, vol. 1)",
+          "Moby Dick",
+          "O tempo e o vento",
+          "Fogo Morto"
+        ],
+        "esperados": [
+          "Capitães da Areia"
+        ]
+      },
+      {
+        "id": "t09",
+        "tipo": "titulo",
+        "consulta": "O Guarani",
+        "primeira_relevante": 1,
+        "top5": [
+          "O guarani",
+          "O ermitão de Muquém",
+          "Grande sertão: veredas",
+          "Ubirajara",
+          "O banquete dos deuses"
+        ],
+        "esperados": [
+          "O guarani"
+        ]
+      },
+      {
+        "id": "t10",
+        "tipo": "titulo",
+        "consulta": "Os Sertões",
+        "primeira_relevante": 1,
+        "top5": [
+          "Os sertões",
+          "A Guerra dos Tronos",
+          "Dom Quixote de La Mancha",
+          "Os Três Mosqueteiros",
+          "Harry Potter e as Relíquias da Morte"
+        ],
+        "esperados": [
+          "Os sertões"
+        ]
+      },
+      {
+        "id": "t11",
+        "tipo": "titulo",
+        "consulta": "Memórias póstumas de Brás Cubas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias póstumas de Brás Cubas",
+          "Memórias do cárcere",
+          "As pequenas memórias",
+          "Leite derramado",
+          "Benjamim"
+        ],
+        "esperados": [
+          "Memórias póstumas de Brás Cubas"
+        ]
+      },
+      {
+        "id": "t12",
+        "tipo": "titulo",
+        "consulta": "Livro do Desassossego",
+        "primeira_relevante": 1,
+        "top5": [
+          "Livro do Desassossego",
+          "A Sombra do Vento",
+          "Seara vermelha",
+          "Fahrenheit 451",
+          "Todos os contos"
+        ],
+        "esperados": [
+          "Livro do Desassossego"
+        ]
+      },
+      {
+        "id": "a01",
+        "tipo": "autor",
+        "consulta": "livros de Clarice Lispector",
+        "primeira_relevante": 1,
+        "top5": [
+          "Uma aprendizagem ou O livro dos prazeres",
+          "Água viva",
+          "Felicidade clandestina",
+          "Um sopro de vida",
+          "Todos os contos"
+        ],
+        "esperados": [
+          "(autor) Clarice Lispector"
+        ]
+      },
+      {
+        "id": "a02",
+        "tipo": "autor",
+        "consulta": "Saramago",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "Memorial do Convento",
+          "As Intermitências da Morte",
+          "O evangelho segundo Jesus Cristo",
+          "O ano da morte de Ricardo Reis"
+        ],
+        "esperados": [
+          "(autor) José Saramago"
+        ]
+      },
+      {
+        "id": "a03",
+        "tipo": "autor",
+        "consulta": "Jorge Amado",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "Mar Morto",
+          "Tieta Do Agreste",
+          "Suor",
+          "Seara vermelha"
+        ],
+        "esperados": [
+          "(autor) Jorge Amado"
+        ]
+      },
+      {
+        "id": "a04",
+        "tipo": "autor",
+        "consulta": "Ailton Krenak",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ideias para Adiar o Fim do Mundo",
+          "Futuro ancestral",
+          "A Vida Nao e Util",
+          "Ilíada",
+          "Anna Kariênina"
+        ],
+        "esperados": [
+          "(autor) Ailton Krenak"
+        ]
+      },
+      {
+        "id": "a05",
+        "tipo": "autor",
+        "consulta": "Paulo Coelho",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alquimista",
+          "Onze minutos",
+          "Manual do guerreiro da luz",
+          "Veronika decide morrer",
+          "O diário de um mago"
+        ],
+        "esperados": [
+          "(autor) Paulo Coelho"
+        ]
+      },
+      {
+        "id": "a06",
+        "tipo": "autor",
+        "consulta": "Monteiro Lobato",
+        "primeira_relevante": 1,
+        "top5": [
+          "Reinações de Narizinho",
+          "A menina do narizinho arrebitado",
+          "Cidades mortas",
+          "Urupês",
+          "Viagem ao céu"
+        ],
+        "esperados": [
+          "(autor) Monteiro Lobato"
+        ]
+      },
+      {
+        "id": "a07",
+        "tipo": "autor",
+        "consulta": "Machado de Assis",
+        "primeira_relevante": 1,
+        "top5": [
+          "Casa velha",
+          "Esaú e Jacó",
+          "Helena",
+          "Dom Casmurro",
+          "A mão e a luva"
+        ],
+        "esperados": [
+          "(autor) Machado de Assis"
+        ]
+      },
+      {
+        "id": "a08",
+        "tipo": "autor",
+        "consulta": "o que tem do Chico Buarque",
+        "primeira_relevante": 1,
+        "top5": [
+          "Leite derramado",
+          "Chapeuzinho Amarelo",
+          "Benjamim",
+          "Auto da Compadecida",
+          "Tieta Do Agreste"
+        ],
+        "esperados": [
+          "(autor) Chico Buarque"
+        ]
+      },
+      {
+        "id": "i01",
+        "tipo": "intencao",
+        "consulta": "um romance sobre ciúme e traição",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Adultério",
+          "Diva",
+          "Leite derramado",
+          "Capitu"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "i02",
+        "tipo": "intencao",
+        "consulta": "retirantes fugindo da seca no sertão",
+        "primeira_relevante": 1,
+        "top5": [
+          "Vidas secas",
+          "Seara vermelha",
+          "Os sertões",
+          "Um alpendre, uma rede, um açude",
+          "Grande sertão: veredas"
+        ],
+        "esperados": [
+          "Vidas secas"
+        ]
+      },
+      {
+        "id": "i03",
+        "tipo": "intencao",
+        "consulta": "peça de teatro cômica ambientada no Nordeste",
+        "primeira_relevante": 1,
+        "top5": [
+          "Auto da Compadecida",
+          "Cidades mortas",
+          "Lusbela",
+          "O analista de Bagé",
+          "Urupês"
+        ],
+        "esperados": [
+          "Auto da Compadecida"
+        ]
+      },
+      {
+        "id": "i04",
+        "tipo": "intencao",
+        "consulta": "pensamento indígena sobre o fim do mundo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ideias para Adiar o Fim do Mundo",
+          "Ubirajara",
+          "O banquete dos deuses",
+          "Sabedoria das águas",
+          "Sentimento do mundo"
+        ],
+        "esperados": [
+          "Ideias para Adiar o Fim do Mundo",
+          "Futuro ancestral",
+          "A Vida Nao e Util"
+        ]
+      },
+      {
+        "id": "i05",
+        "tipo": "intencao",
+        "consulta": "romance sobre a escravidão no Brasil",
+        "primeira_relevante": 3,
+        "top5": [
+          "Lima Barreto socialista",
+          "O tronco do ipê",
+          "A escrava Isaura",
+          "Til",
+          "A sereia"
+        ],
+        "esperados": [
+          "A escrava Isaura",
+          "Os escravos",
+          "O navio negreiro"
+        ]
+      },
+      {
+        "id": "i06",
+        "tipo": "intencao",
+        "consulta": "uma epidemia de cegueira branca",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "A Peste",
+          "Sonhos tropicais",
+          "Pedaços da fome",
+          "O judeu"
+        ],
+        "esperados": [
+          "Ensaio Sobre a Cegueira"
+        ]
+      },
+      {
+        "id": "i07",
+        "tipo": "intencao",
+        "consulta": "a morte decide parar de matar as pessoas",
+        "primeira_relevante": 1,
+        "top5": [
+          "As Intermitências da Morte",
+          "O ano da morte de Ricardo Reis",
+          "Veronika decide morrer",
+          "A morte e a morte de Quincas Berro D'Água",
+          "Incidente em Antares"
+        ],
+        "esperados": [
+          "As Intermitências da Morte"
+        ]
+      },
+      {
+        "id": "i08",
+        "tipo": "intencao",
+        "consulta": "pai que cria um filho com síndrome de Down",
+        "primeira_relevante": 1,
+        "top5": [
+          "O filho eterno",
+          "Os Irmãos Karamázov",
+          "O avesso da pele",
+          "O amigo do rei",
+          "As Aventuras de Huckleberry Finn"
+        ],
+        "esperados": [
+          "O filho eterno"
+        ]
+      },
+      {
+        "id": "i09",
+        "tipo": "intencao",
+        "consulta": "memórias de um escritor preso pela ditadura de Vargas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias do cárcere",
+          "Pontos de fuga",
+          "Diário do farol",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
+          "Livro de crónicas"
+        ],
+        "esperados": [
+          "Memórias do cárcere"
+        ]
+      },
+      {
+        "id": "i10",
+        "tipo": "intencao",
+        "consulta": "o herói sem nenhum caráter que nasce na floresta",
+        "primeira_relevante": 1,
+        "top5": [
+          "Macunaíma",
+          "Sabedoria das águas",
+          "O guarani",
+          "Ideias para Adiar o Fim do Mundo",
+          "A Fada Oriana"
+        ],
+        "esperados": [
+          "Macunaíma"
+        ]
+      },
+      {
+        "id": "i11",
+        "tipo": "intencao",
+        "consulta": "um pastor que busca um tesouro perto das pirâmides",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alquimista",
+          "Uma Vida com Propósitos",
+          "Ela, a Feiticeira",
+          "O Zahir",
+          "O evangelho segundo Jesus Cristo"
+        ],
+        "esperados": [
+          "O Alquimista"
+        ]
+      },
+      {
+        "id": "i12",
+        "tipo": "intencao",
+        "consulta": "a guerra de Canudos no sertão da Bahia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Os sertões",
+          "Grande sertão: veredas",
+          "O tempo e o vento",
+          "Guerra dos mascates",
+          "Torto Arado"
+        ],
+        "esperados": [
+          "Os sertões"
+        ]
+      },
+      {
+        "id": "i13",
+        "tipo": "intencao",
+        "consulta": "duas irmãs numa fazenda na Bahia, descendentes de escravos",
+        "primeira_relevante": 1,
+        "top5": [
+          "Torto Arado",
+          "A cachoeira de Paulo Affonso",
+          "Til",
+          "A escrava Isaura",
+          "Cacau"
+        ],
+        "esperados": [
+          "Torto Arado"
+        ]
+      },
+      {
+        "id": "i14",
+        "tipo": "intencao",
+        "consulta": "meninos abandonados que vivem em bando em Salvador",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "Campo Geral",
+          "As Aventuras de Tom Sawyer",
+          "Anne de Green Gables",
+          "Til"
+        ],
+        "esperados": [
+          "Capitães da Areia"
+        ]
+      },
+      {
+        "id": "i15",
+        "tipo": "intencao",
+        "consulta": "uma fada invisível que cuida da floresta",
+        "primeira_relevante": 1,
+        "top5": [
+          "A Fada Oriana",
+          "Sabedoria das águas",
+          "A menina do narizinho arrebitado",
+          "O Pequeno Príncipe",
+          "Reinações de Narizinho"
+        ],
+        "esperados": [
+          "A Fada Oriana"
+        ]
+      },
+      {
+        "id": "i16",
+        "tipo": "intencao",
+        "consulta": "menina negra e um coelho branco que queria ter uma filha pretinha",
+        "primeira_relevante": 3,
+        "top5": [
+          "Amor de Perdição",
+          "A sereia",
+          "Menina bonita do laço de fita",
+          "Clara dos Anjos",
+          "O amigo do rei"
+        ],
+        "esperados": [
+          "Menina bonita do laço de fita"
+        ]
+      },
+      {
+        "id": "i17",
+        "tipo": "intencao",
+        "consulta": "gatinho com medo da noite",
+        "primeira_relevante": 2,
+        "top5": [
+          "Chapeuzinho Amarelo",
+          "O gato e o escuro",
+          "Max e os Felinos",
+          "Ontem Não Te Vi Em Babilónia",
+          "A hora do diabo"
+        ],
+        "esperados": [
+          "O gato e o escuro"
+        ]
+      },
+      {
+        "id": "i18",
+        "tipo": "intencao",
+        "consulta": "jovem apaixonado num amor proibido que acaba em tragédia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Amor de Perdição",
+          "Declaração de amor",
+          "É Assim que Acaba",
+          "O Grande Gatsby",
+          "O Amor nos Tempos do Cólera"
+        ],
+        "esperados": [
+          "Amor de Perdição"
+        ]
+      },
+      {
+        "id": "i19",
+        "tipo": "intencao",
+        "consulta": "um rei promete construir um convento em Mafra",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memorial do Convento",
+          "Amor de Perdição",
+          "O Cavaleiro da Dinamarca",
+          "A Guerra dos Tronos",
+          "O amigo do rei"
+        ],
+        "esperados": [
+          "Memorial do Convento"
+        ]
+      },
+      {
+        "id": "i20",
+        "tipo": "intencao",
+        "consulta": "suecos que chegam a Alagoas e ela se apaixona por um mestiço",
+        "primeira_relevante": 1,
+        "top5": [
+          "Riacho Doce",
+          "Me Chame Pelo Seu Nome",
+          "A moreninha",
+          "Cartas de amor a Heloisa",
+          "Amor de Perdição"
+        ],
+        "esperados": [
+          "Riacho Doce"
+        ]
+      },
+      {
+        "id": "i21",
+        "tipo": "intencao",
+        "consulta": "psicanalista gaúcho de bombacha que serve chimarrão",
+        "primeira_relevante": 1,
+        "top5": [
+          "O analista de Bagé",
+          "Neuromancer",
+          "O tempo e o vento",
+          "O Alienista",
+          "O continente (O tempo e o vento, vol. 1)"
+        ],
+        "esperados": [
+          "O analista de Bagé"
+        ]
+      },
+      {
+        "id": "i22",
+        "tipo": "intencao",
+        "consulta": "o diabo conversa com uma moça depois do baile de Carnaval",
+        "primeira_relevante": 1,
+        "top5": [
+          "A hora do diabo",
+          "Clara dos Anjos",
+          "Diva",
+          "Auto da Compadecida",
+          "Onde está a felicidade?"
+        ],
+        "esperados": [
+          "A hora do diabo"
+        ]
+      },
+      {
+        "id": "i23",
+        "tipo": "intencao",
+        "consulta": "diário de um ajudante de guarda-livros em Lisboa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Livro do Desassossego",
+          "Diário do farol",
+          "Livro de crónicas",
+          "Diário de uma Paixão",
+          "O Diário de Anne Frank"
+        ],
+        "esperados": [
+          "Livro do Desassossego"
+        ]
+      },
+      {
+        "id": "i24",
+        "tipo": "intencao",
+        "consulta": "malandro no Rio de Janeiro do tempo do rei",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias de um Sargento de Milícias",
+          "Recordações do escrivão Isaías Caminha",
+          "Diva",
+          "O guarani",
+          "Casa velha"
+        ],
+        "esperados": [
+          "Memórias de um Sargento de Milícias"
+        ]
+      },
+      {
+        "id": "i25",
+        "tipo": "intencao",
+        "consulta": "um patriota ingênuo que quer reformar o país",
+        "primeira_relevante": 1,
+        "top5": [
+          "Triste fim de Policarpo Quaresma",
+          "As Intermitências da Morte",
+          "Benjamim",
+          "Dias Perfeitos",
+          "Clara dos Anjos"
+        ],
+        "esperados": [
+          "Triste fim de Policarpo Quaresma"
+        ]
+      },
+      {
+        "id": "i26",
+        "tipo": "intencao",
+        "consulta": "contos sobre a vida de mulheres negras",
+        "primeira_relevante": 1,
+        "top5": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio",
+          "Clara dos Anjos",
+          "Contos novos",
+          "Menina bonita do laço de fita"
+        ],
+        "esperados": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio"
+        ]
+      },
+      {
+        "id": "i27",
+        "tipo": "intencao",
+        "consulta": "poligamia e mulheres em Moçambique",
+        "primeira_relevante": 1,
+        "top5": [
+          "Niketche",
+          "Ponciá Vicêncio",
+          "Mar Morto",
+          "Clara dos Anjos",
+          "A casa dos budas ditosos"
+        ],
+        "esperados": [
+          "Niketche"
+        ]
+      },
+      {
+        "id": "i28",
+        "tipo": "intencao",
+        "consulta": "boneca Emília e o Sítio do Picapau Amarelo",
+        "primeira_relevante": 1,
+        "top5": [
+          "A menina do narizinho arrebitado",
+          "Reinações de Narizinho",
+          "Aritmética da Emília",
+          "O Poço do Visconde",
+          "O Minotauro"
+        ],
+        "esperados": [
+          "Reinações de Narizinho",
+          "A menina do narizinho arrebitado",
+          "Viagem ao céu",
+          "Aritmética da Emília",
+          "O Poço do Visconde"
+        ]
+      },
+      {
+        "id": "i29",
+        "tipo": "intencao",
+        "consulta": "mortos que se levantam porque os coveiros entraram em greve",
+        "primeira_relevante": 1,
+        "top5": [
+          "Incidente em Antares",
+          "As Intermitências da Morte",
+          "O ano da morte de Ricardo Reis",
+          "Fogo Morto",
+          "Seara vermelha"
+        ],
+        "esperados": [
+          "Incidente em Antares"
+        ]
+      },
+      {
+        "id": "i30",
+        "tipo": "intencao",
+        "consulta": "saga de famílias gaúchas ao longo de dois séculos",
+        "primeira_relevante": 1,
+        "top5": [
+          "O continente (O tempo e o vento, vol. 1)",
+          "O tempo e o vento",
+          "Amor de Perdição",
+          "As pequenas memórias",
+          "Leite derramado"
+        ],
+        "esperados": [
+          "O tempo e o vento",
+          "O continente (O tempo e o vento, vol. 1)"
+        ]
+      },
+      {
+        "id": "i31",
+        "tipo": "intencao",
+        "consulta": "romance irônico que critica o positivismo e o cientificismo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Quincas Borba",
+          "Tenda dos Milagres",
+          "Caim",
+          "As Intermitências da Morte",
+          "Triste fim de Policarpo Quaresma"
+        ],
+        "esperados": [
+          "Quincas Borba"
+        ]
+      },
+      {
+        "id": "t13",
+        "tipo": "titulo",
+        "consulta": "dom casmuro",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Capitu",
+          "O Iluminado",
+          "Dom Quixote de La Mancha",
+          "Casa velha"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "t14",
+        "tipo": "titulo",
+        "consulta": "grande sertao veredas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Grande sertão: veredas",
+          "Mensagem",
+          "1984",
+          "Quem Pensa Enriquece",
+          "O Grande Gatsby"
+        ],
+        "esperados": [
+          "Grande sertão: veredas"
+        ]
+      },
+      {
+        "id": "t15",
+        "tipo": "titulo",
+        "consulta": "Memorial do Convento",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memorial do Convento",
+          "Amor de Perdição",
+          "Banguê",
+          "O Corcunda de Notre-Dame",
+          "O Nome da Rosa"
+        ],
+        "esperados": [
+          "Memorial do Convento"
+        ]
+      },
+      {
+        "id": "t16",
+        "tipo": "titulo",
+        "consulta": "amor de perdicao",
+        "primeira_relevante": null,
+        "top5": [
+          "Declaração de amor",
+          "Eu Hei-de Amar Uma Pedra",
+          "O Amor nos Tempos do Cólera",
+          "Cartas de amor a Heloisa",
+          "Onze minutos"
+        ],
+        "esperados": [
+          "Amor de Perdição"
+        ]
+      },
+      {
+        "id": "t17",
+        "tipo": "titulo",
+        "consulta": "Quincas Borba",
+        "primeira_relevante": 1,
+        "top5": [
+          "Quincas Borba",
+          "Memórias póstumas de Brás Cubas",
+          "A morte e a morte de Quincas Berro D'Água",
+          "Dom Quixote de La Mancha",
+          "Um alpendre, uma rede, um açude"
+        ],
+        "esperados": [
+          "Quincas Borba"
+        ]
+      },
+      {
+        "id": "t18",
+        "tipo": "titulo",
+        "consulta": "o menino maluquinho",
+        "primeira_relevante": 1,
+        "top5": [
+          "O menino maluquinho",
+          "As Melhores Tiradas do Menino Maluquinho",
+          "O filho eterno",
+          "Anne de Green Gables",
+          "As Aventuras de Pinóquio"
+        ],
+        "esperados": [
+          "O menino maluquinho"
+        ]
+      },
+      {
+        "id": "a09",
+        "tipo": "autor",
+        "consulta": "poemas do Drummond",
+        "primeira_relevante": 1,
+        "top5": [
+          "Claro enigma",
+          "Declaração de amor",
+          "Sentimento do mundo",
+          "Correspondência de Cabral com Bandeira e Drummond",
+          "Ou isto ou aquilo"
+        ],
+        "esperados": [
+          "(autor) Carlos Drummond de Andrade"
+        ]
+      },
+      {
+        "id": "a10",
+        "tipo": "autor",
+        "consulta": "quero ler Lima Barreto",
+        "primeira_relevante": 1,
+        "top5": [
+          "Lima Barreto socialista",
+          "Triste fim de Policarpo Quaresma",
+          "Recordações do escrivão Isaías Caminha",
+          "Clara dos Anjos",
+          "Amor de Perdição"
+        ],
+        "esperados": [
+          "(autor) Lima Barreto"
+        ]
+      },
+      {
+        "id": "a11",
+        "tipo": "autor",
+        "consulta": "Mia Couto",
+        "primeira_relevante": 1,
+        "top5": [
+          "O gato e o escuro",
+          "Niketche",
+          "Capitu",
+          "Nem te conto, João",
+          "Amor de Perdição"
+        ],
+        "esperados": [
+          "(autor) Mia Couto"
+        ]
+      },
+      {
+        "id": "a12",
+        "tipo": "autor",
+        "consulta": "Guimarães Rosa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Campo Geral",
+          "Grande sertão: veredas",
+          "A escrava Isaura",
+          "O ermitão de Muquém",
+          "As horas nuas"
+        ],
+        "esperados": [
+          "(autor) João Guimarães Rosa"
+        ]
+      },
+      {
+        "id": "a13",
+        "tipo": "autor",
+        "consulta": "livros da Conceição Evaristo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio",
+          "Um sopro de vida",
+          "As aventuras do avião vermelho",
+          "O tronco do ipê"
+        ],
+        "esperados": [
+          "(autor) Conceição Evaristo"
+        ]
+      },
+      {
+        "id": "a14",
+        "tipo": "autor",
+        "consulta": "camilo castelo branco",
+        "primeira_relevante": 1,
+        "top5": [
+          "Amor de Perdição",
+          "A bruxa de Monte Córdova",
+          "A sereia",
+          "Onde está a felicidade?",
+          "Coração, cabeça e estômago"
+        ],
+        "esperados": [
+          "(autor) Camilo Castelo Branco"
+        ]
+      },
+      {
+        "id": "i32",
+        "tipo": "intencao",
+        "consulta": "quero ler poesia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Toda poesia",
+          "Três vezes Hilda",
+          "Ou isto ou aquilo",
+          "Claro enigma",
+          "Espumas flutuantes"
+        ],
+        "esperados": [
+          "Claro enigma",
+          "Sentimento do mundo",
+          "Declaração de amor",
+          "Ou isto ou aquilo",
+          "Estrela da vida inteira",
+          "Espumas flutuantes",
+          "O navio negreiro",
+          "Os escravos",
+          "A cachoeira de Paulo Affonso",
+          "Três vezes Hilda",
+          "Toda poesia",
+          "Mensagem"
+        ]
+      },
+      {
+        "id": "i33",
+        "tipo": "intencao",
+        "consulta": "poemas para crianças",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ou isto ou aquilo",
+          "O navio negreiro",
+          "Os escravos",
+          "Declaração de amor",
+          "Toda poesia"
+        ],
+        "esperados": [
+          "Ou isto ou aquilo"
+        ]
+      },
+      {
+        "id": "i34",
+        "tipo": "intencao",
+        "consulta": "crônicas sobre o dia a dia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Um alpendre, uma rede, um açude",
+          "Felicidade clandestina",
+          "Contos novos",
+          "As pequenas memórias",
+          "Ulisses"
+        ],
+        "esperados": [
+          "Um alpendre, uma rede, um açude",
+          "Livro de crónicas",
+          "Segundo livro de crónicas",
+          "Comedias para se Ler na Escola",
+          "Pontos de fuga"
+        ]
+      },
+      {
+        "id": "i35",
+        "tipo": "intencao",
+        "consulta": "cartas de um escritor para a esposa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Cartas de amor a Heloisa",
+          "Três vezes Hilda",
+          "Correspondência de Cabral com Bandeira e Drummond",
+          "Durante aquele estranho chá: perdidos e achados",
+          "O Zahir"
+        ],
+        "esperados": [
+          "Cartas de amor a Heloisa"
+        ]
+      },
+      {
+        "id": "i36",
+        "tipo": "intencao",
+        "consulta": "médico que manda trancar a cidade inteira no hospício",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alienista",
+          "A Peste",
+          "Ensaio Sobre a Cegueira",
+          "Sonhos tropicais",
+          "O ano da morte de Ricardo Reis"
+        ],
+        "esperados": [
+          "O Alienista"
+        ]
+      },
+      {
+        "id": "i37",
+        "tipo": "intencao",
+        "consulta": "moça rica que compra um marido",
+        "primeira_relevante": 1,
+        "top5": [
+          "Senhora",
+          "A mão e a luva",
+          "Pedaços da fome",
+          "O Morro dos Ventos Uivantes",
+          "Onde está a felicidade?"
+        ],
+        "esperados": [
+          "Senhora"
+        ]
+      },
+      {
+        "id": "i38",
+        "tipo": "intencao",
+        "consulta": "índio que protege uma moça branca, filha de fidalgo",
+        "primeira_relevante": 1,
+        "top5": [
+          "O guarani",
+          "Clara dos Anjos",
+          "Amor de Perdição",
+          "Menina bonita do laço de fita",
+          "Torto Arado"
+        ],
+        "esperados": [
+          "O guarani"
+        ]
+      },
+      {
+        "id": "i39",
+        "tipo": "intencao",
+        "consulta": "garota brasileira que vira prostituta na Suíça",
+        "primeira_relevante": 1,
+        "top5": [
+          "Onze minutos",
+          "Lúcia McCartney",
+          "Adultério",
+          "Heidi",
+          "O Demônio de Frankfurt"
+        ],
+        "esperados": [
+          "Onze minutos"
+        ]
+      },
+      {
+        "id": "i40",
+        "tipo": "intencao",
+        "consulta": "velho centenário num leito de hospital relembra a decadência da família",
+        "primeira_relevante": 1,
+        "top5": [
+          "Leite derramado",
+          "A morte e a morte de Quincas Berro D'Água",
+          "As horas nuas",
+          "Casa velha",
+          "O Clube dos Anjos"
+        ],
+        "esperados": [
+          "Leite derramado"
+        ]
+      },
+      {
+        "id": "i41",
+        "tipo": "intencao",
+        "consulta": "fazendeiro rude que trata a esposa como propriedade e termina sozinho",
+        "primeira_relevante": 1,
+        "top5": [
+          "São Bernardo",
+          "Grande sertão: veredas",
+          "O tronco do ipê",
+          "Tieta Do Agreste",
+          "E o Vento Levou"
+        ],
+        "esperados": [
+          "São Bernardo"
+        ]
+      }
+    ]
+  },
+  "com_reranker": {
+    "resumo": {
+      "titulo": {
+        "n": 18,
+        "recall@5": 1.0,
+        "ndcg@10": 1.0
+      },
+      "autor": {
+        "n": 14,
+        "recall@5": 1.0,
+        "ndcg@10": 0.999
+      },
+      "intencao": {
+        "n": 41,
+        "recall@5": 1.0,
+        "ndcg@10": 0.968
+      },
+      "geral": {
+        "n": 73,
+        "recall@5": 1.0,
+        "ndcg@10": 0.982
+      }
+    },
+    "casos": [
+      {
+        "id": "t01",
+        "tipo": "titulo",
+        "consulta": "Dom Casmurro",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Capitu",
+          "O Conde de Monte Cristo",
+          "Dom Quixote de La Mancha",
+          "Amor de Perdição"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "t02",
+        "tipo": "titulo",
+        "consulta": "Torto Arado",
+        "primeira_relevante": 1,
+        "top5": [
+          "Torto Arado",
+          "Grande sertão: veredas",
+          "Cacau",
+          "O Minotauro",
+          "Seara vermelha"
+        ],
+        "esperados": [
+          "Torto Arado"
+        ]
+      },
+      {
+        "id": "t03",
+        "tipo": "titulo",
+        "consulta": "Vidas Secas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Vidas secas",
+          "Um alpendre, uma rede, um açude",
+          "Garranchos",
+          "São Bernardo",
+          "A Vida Nao e Util"
+        ],
+        "esperados": [
+          "Vidas secas"
+        ]
+      },
+      {
+        "id": "t04",
+        "tipo": "titulo",
+        "consulta": "Macunaíma",
+        "primeira_relevante": 1,
+        "top5": [
+          "Macunaíma",
+          "A árvore",
+          "O ermitão de Muquém",
+          "A moreninha",
+          "Pontos de fuga"
+        ],
+        "esperados": [
+          "Macunaíma"
+        ]
+      },
+      {
+        "id": "t05",
+        "tipo": "titulo",
+        "consulta": "Auto da Compadecida",
+        "primeira_relevante": 1,
+        "top5": [
+          "Auto da Compadecida",
+          "Bufo & Spallanzani",
+          "Assassinato no Expresso do Oriente",
+          "Como Eu Era Antes de Você",
+          "O Guia do Mochileiro das Galáxias"
+        ],
+        "esperados": [
+          "Auto da Compadecida"
+        ]
+      },
+      {
+        "id": "t06",
+        "tipo": "titulo",
+        "consulta": "O Alquimista",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alquimista",
+          "O Médico e o Monstro",
+          "Harry Potter e o Enigma do Príncipe",
+          "Tenda dos Milagres",
+          "O Alienista"
+        ],
+        "esperados": [
+          "O Alquimista"
+        ]
+      },
+      {
+        "id": "t07",
+        "tipo": "titulo",
+        "consulta": "Ensaio sobre a cegueira",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "O banquete dos deuses",
+          "Recordações do escrivão Isaías Caminha",
+          "O Alquimista",
+          "Flicts"
+        ],
+        "esperados": [
+          "Ensaio Sobre a Cegueira"
+        ]
+      },
+      {
+        "id": "t08",
+        "tipo": "titulo",
+        "consulta": "Capitães da Areia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "O continente (O tempo e o vento, vol. 1)",
+          "Moby Dick",
+          "O tempo e o vento",
+          "Fogo Morto"
+        ],
+        "esperados": [
+          "Capitães da Areia"
+        ]
+      },
+      {
+        "id": "t09",
+        "tipo": "titulo",
+        "consulta": "O Guarani",
+        "primeira_relevante": 1,
+        "top5": [
+          "O guarani",
+          "O ermitão de Muquém",
+          "Grande sertão: veredas",
+          "Ubirajara",
+          "O banquete dos deuses"
+        ],
+        "esperados": [
+          "O guarani"
+        ]
+      },
+      {
+        "id": "t10",
+        "tipo": "titulo",
+        "consulta": "Os Sertões",
+        "primeira_relevante": 1,
+        "top5": [
+          "Os sertões",
+          "A Guerra dos Tronos",
+          "Dom Quixote de La Mancha",
+          "Os Três Mosqueteiros",
+          "Harry Potter e as Relíquias da Morte"
+        ],
+        "esperados": [
+          "Os sertões"
+        ]
+      },
+      {
+        "id": "t11",
+        "tipo": "titulo",
+        "consulta": "Memórias póstumas de Brás Cubas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias póstumas de Brás Cubas",
+          "Memórias do cárcere",
+          "As pequenas memórias",
+          "Leite derramado",
+          "Benjamim"
+        ],
+        "esperados": [
+          "Memórias póstumas de Brás Cubas"
+        ]
+      },
+      {
+        "id": "t12",
+        "tipo": "titulo",
+        "consulta": "Livro do Desassossego",
+        "primeira_relevante": 1,
+        "top5": [
+          "Livro do Desassossego",
+          "A Sombra do Vento",
+          "Seara vermelha",
+          "Fahrenheit 451",
+          "Todos os contos"
+        ],
+        "esperados": [
+          "Livro do Desassossego"
+        ]
+      },
+      {
+        "id": "a01",
+        "tipo": "autor",
+        "consulta": "livros de Clarice Lispector",
+        "primeira_relevante": 1,
+        "top5": [
+          "Uma aprendizagem ou O livro dos prazeres",
+          "Água viva",
+          "Todos os contos",
+          "Felicidade clandestina",
+          "Um sopro de vida"
+        ],
+        "esperados": [
+          "(autor) Clarice Lispector"
+        ]
+      },
+      {
+        "id": "a02",
+        "tipo": "autor",
+        "consulta": "Saramago",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "Memorial do Convento",
+          "As pequenas memórias",
+          "Caim",
+          "O evangelho segundo Jesus Cristo"
+        ],
+        "esperados": [
+          "(autor) José Saramago"
+        ]
+      },
+      {
+        "id": "a03",
+        "tipo": "autor",
+        "consulta": "Jorge Amado",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "Suor",
+          "Mar Morto",
+          "Seara vermelha",
+          "Tieta Do Agreste"
+        ],
+        "esperados": [
+          "(autor) Jorge Amado"
+        ]
+      },
+      {
+        "id": "a04",
+        "tipo": "autor",
+        "consulta": "Ailton Krenak",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ideias para Adiar o Fim do Mundo",
+          "A Vida Nao e Util",
+          "Futuro ancestral",
+          "Ilíada",
+          "A árvore"
+        ],
+        "esperados": [
+          "(autor) Ailton Krenak"
+        ]
+      },
+      {
+        "id": "a05",
+        "tipo": "autor",
+        "consulta": "Paulo Coelho",
+        "primeira_relevante": 1,
+        "top5": [
+          "Onze minutos",
+          "Manual do guerreiro da luz",
+          "O Alquimista",
+          "O diário de um mago",
+          "Adultério"
+        ],
+        "esperados": [
+          "(autor) Paulo Coelho"
+        ]
+      },
+      {
+        "id": "a06",
+        "tipo": "autor",
+        "consulta": "Monteiro Lobato",
+        "primeira_relevante": 1,
+        "top5": [
+          "Urupês",
+          "Cidades mortas",
+          "A menina do narizinho arrebitado",
+          "Reinações de Narizinho",
+          "Viagem ao céu"
+        ],
+        "esperados": [
+          "(autor) Monteiro Lobato"
+        ]
+      },
+      {
+        "id": "a07",
+        "tipo": "autor",
+        "consulta": "Machado de Assis",
+        "primeira_relevante": 1,
+        "top5": [
+          "Casa velha",
+          "Dom Casmurro",
+          "Esaú e Jacó",
+          "O Alienista",
+          "Helena"
+        ],
+        "esperados": [
+          "(autor) Machado de Assis"
+        ]
+      },
+      {
+        "id": "a08",
+        "tipo": "autor",
+        "consulta": "o que tem do Chico Buarque",
+        "primeira_relevante": 1,
+        "top5": [
+          "Leite derramado",
+          "Benjamim",
+          "Chapeuzinho Amarelo",
+          "Auto da Compadecida",
+          "Memórias de um Sargento de Milícias"
+        ],
+        "esperados": [
+          "(autor) Chico Buarque"
+        ]
+      },
+      {
+        "id": "i01",
+        "tipo": "intencao",
+        "consulta": "um romance sobre ciúme e traição",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Adultério",
+          "Diva",
+          "Angústia",
+          "Capitu"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "i02",
+        "tipo": "intencao",
+        "consulta": "retirantes fugindo da seca no sertão",
+        "primeira_relevante": 1,
+        "top5": [
+          "Vidas secas",
+          "Seara vermelha",
+          "Tieta Do Agreste",
+          "Os sertões",
+          "Fogo Morto"
+        ],
+        "esperados": [
+          "Vidas secas"
+        ]
+      },
+      {
+        "id": "i03",
+        "tipo": "intencao",
+        "consulta": "peça de teatro cômica ambientada no Nordeste",
+        "primeira_relevante": 1,
+        "top5": [
+          "Auto da Compadecida",
+          "Um alpendre, uma rede, um açude",
+          "Lusbela",
+          "As Aventuras de Tom Sawyer",
+          "Cidades mortas"
+        ],
+        "esperados": [
+          "Auto da Compadecida"
+        ]
+      },
+      {
+        "id": "i04",
+        "tipo": "intencao",
+        "consulta": "pensamento indígena sobre o fim do mundo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ideias para Adiar o Fim do Mundo",
+          "Ubirajara",
+          "Futuro ancestral",
+          "A Vida Nao e Util",
+          "Sentimento do mundo"
+        ],
+        "esperados": [
+          "Ideias para Adiar o Fim do Mundo",
+          "Futuro ancestral",
+          "A Vida Nao e Util"
+        ]
+      },
+      {
+        "id": "i05",
+        "tipo": "intencao",
+        "consulta": "romance sobre a escravidão no Brasil",
+        "primeira_relevante": 3,
+        "top5": [
+          "O tronco do ipê",
+          "O amigo do rei",
+          "Os escravos",
+          "A escrava Isaura",
+          "Til"
+        ],
+        "esperados": [
+          "A escrava Isaura",
+          "Os escravos",
+          "O navio negreiro"
+        ]
+      },
+      {
+        "id": "i06",
+        "tipo": "intencao",
+        "consulta": "uma epidemia de cegueira branca",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ensaio Sobre a Cegueira",
+          "Sonhos tropicais",
+          "Leite derramado",
+          "Pedaços da fome",
+          "Todos os contos"
+        ],
+        "esperados": [
+          "Ensaio Sobre a Cegueira"
+        ]
+      },
+      {
+        "id": "i07",
+        "tipo": "intencao",
+        "consulta": "a morte decide parar de matar as pessoas",
+        "primeira_relevante": 1,
+        "top5": [
+          "As Intermitências da Morte",
+          "Veronika decide morrer",
+          "O ano da morte de Ricardo Reis",
+          "Incidente em Antares",
+          "A morte e a morte de Quincas Berro D'Água"
+        ],
+        "esperados": [
+          "As Intermitências da Morte"
+        ]
+      },
+      {
+        "id": "i08",
+        "tipo": "intencao",
+        "consulta": "pai que cria um filho com síndrome de Down",
+        "primeira_relevante": 1,
+        "top5": [
+          "O filho eterno",
+          "Os Irmãos Karamázov",
+          "O amigo do rei",
+          "Dom Casmurro",
+          "As Aventuras de Huckleberry Finn"
+        ],
+        "esperados": [
+          "O filho eterno"
+        ]
+      },
+      {
+        "id": "i09",
+        "tipo": "intencao",
+        "consulta": "memórias de um escritor preso pela ditadura de Vargas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias do cárcere",
+          "As pequenas memórias",
+          "Pontos de fuga",
+          "O Diário de Anne Frank",
+          "Livro de crónicas"
+        ],
+        "esperados": [
+          "Memórias do cárcere"
+        ]
+      },
+      {
+        "id": "i10",
+        "tipo": "intencao",
+        "consulta": "o herói sem nenhum caráter que nasce na floresta",
+        "primeira_relevante": 1,
+        "top5": [
+          "Macunaíma",
+          "A Fada Oriana",
+          "O guarani",
+          "E Não Sobrou Nenhum",
+          "Sabedoria das águas"
+        ],
+        "esperados": [
+          "Macunaíma"
+        ]
+      },
+      {
+        "id": "i11",
+        "tipo": "intencao",
+        "consulta": "um pastor que busca um tesouro perto das pirâmides",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alquimista",
+          "Ela, a Feiticeira",
+          "Tieta Do Agreste",
+          "Heidi",
+          "O Hobbit"
+        ],
+        "esperados": [
+          "O Alquimista"
+        ]
+      },
+      {
+        "id": "i12",
+        "tipo": "intencao",
+        "consulta": "a guerra de Canudos no sertão da Bahia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Os sertões",
+          "Grande sertão: veredas",
+          "Torto Arado",
+          "Guerra dos mascates",
+          "Fogo Morto"
+        ],
+        "esperados": [
+          "Os sertões"
+        ]
+      },
+      {
+        "id": "i13",
+        "tipo": "intencao",
+        "consulta": "duas irmãs numa fazenda na Bahia, descendentes de escravos",
+        "primeira_relevante": 1,
+        "top5": [
+          "Torto Arado",
+          "A cachoeira de Paulo Affonso",
+          "Til",
+          "Anne de Green Gables",
+          "Ponciá Vicêncio"
+        ],
+        "esperados": [
+          "Torto Arado"
+        ]
+      },
+      {
+        "id": "i14",
+        "tipo": "intencao",
+        "consulta": "meninos abandonados que vivem em bando em Salvador",
+        "primeira_relevante": 1,
+        "top5": [
+          "Capitães da Areia",
+          "Campo Geral",
+          "Vidas secas",
+          "Anne de Green Gables",
+          "Til"
+        ],
+        "esperados": [
+          "Capitães da Areia"
+        ]
+      },
+      {
+        "id": "i15",
+        "tipo": "intencao",
+        "consulta": "uma fada invisível que cuida da floresta",
+        "primeira_relevante": 1,
+        "top5": [
+          "A Fada Oriana",
+          "Sabedoria das águas",
+          "A menina do narizinho arrebitado",
+          "Til",
+          "Reinações de Narizinho"
+        ],
+        "esperados": [
+          "A Fada Oriana"
+        ]
+      },
+      {
+        "id": "i16",
+        "tipo": "intencao",
+        "consulta": "menina negra e um coelho branco que queria ter uma filha pretinha",
+        "primeira_relevante": 1,
+        "top5": [
+          "Menina bonita do laço de fita",
+          "Amor de Perdição",
+          "Anne de Green Gables",
+          "Clara dos Anjos",
+          "O amigo do rei"
+        ],
+        "esperados": [
+          "Menina bonita do laço de fita"
+        ]
+      },
+      {
+        "id": "i17",
+        "tipo": "intencao",
+        "consulta": "gatinho com medo da noite",
+        "primeira_relevante": 1,
+        "top5": [
+          "O gato e o escuro",
+          "Chapeuzinho Amarelo",
+          "A Noite da Espera. O Lugar Mais Sombrio - Volume 1",
+          "A hora do diabo",
+          "Pontos de fuga"
+        ],
+        "esperados": [
+          "O gato e o escuro"
+        ]
+      },
+      {
+        "id": "i18",
+        "tipo": "intencao",
+        "consulta": "jovem apaixonado num amor proibido que acaba em tragédia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Amor de Perdição",
+          "O Amor nos Tempos do Cólera",
+          "O ermitão de Muquém",
+          "É Assim que Acaba",
+          "Helena"
+        ],
+        "esperados": [
+          "Amor de Perdição"
+        ]
+      },
+      {
+        "id": "i19",
+        "tipo": "intencao",
+        "consulta": "um rei promete construir um convento em Mafra",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memorial do Convento",
+          "Amor de Perdição",
+          "Casa velha",
+          "Memórias de um Sargento de Milícias",
+          "O amigo do rei"
+        ],
+        "esperados": [
+          "Memorial do Convento"
+        ]
+      },
+      {
+        "id": "i20",
+        "tipo": "intencao",
+        "consulta": "suecos que chegam a Alagoas e ela se apaixona por um mestiço",
+        "primeira_relevante": 1,
+        "top5": [
+          "Riacho Doce",
+          "Cartas de amor a Heloisa",
+          "Amor de Perdição",
+          "A moreninha",
+          "Me Chame Pelo Seu Nome"
+        ],
+        "esperados": [
+          "Riacho Doce"
+        ]
+      },
+      {
+        "id": "i21",
+        "tipo": "intencao",
+        "consulta": "psicanalista gaúcho de bombacha que serve chimarrão",
+        "primeira_relevante": 1,
+        "top5": [
+          "O analista de Bagé",
+          "O Alienista",
+          "O Silêncio dos Inocentes",
+          "Memórias do cárcere",
+          "Neuromancer"
+        ],
+        "esperados": [
+          "O analista de Bagé"
+        ]
+      },
+      {
+        "id": "i22",
+        "tipo": "intencao",
+        "consulta": "o diabo conversa com uma moça depois do baile de Carnaval",
+        "primeira_relevante": 1,
+        "top5": [
+          "A hora do diabo",
+          "Diva",
+          "Auto da Compadecida",
+          "A moreninha",
+          "Felicidade clandestina"
+        ],
+        "esperados": [
+          "A hora do diabo"
+        ]
+      },
+      {
+        "id": "i23",
+        "tipo": "intencao",
+        "consulta": "diário de um ajudante de guarda-livros em Lisboa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Livro do Desassossego",
+          "Diário do farol",
+          "Diário de uma Paixão",
+          "Livro de crónicas",
+          "O diário de um mago"
+        ],
+        "esperados": [
+          "Livro do Desassossego"
+        ]
+      },
+      {
+        "id": "i24",
+        "tipo": "intencao",
+        "consulta": "malandro no Rio de Janeiro do tempo do rei",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memórias de um Sargento de Milícias",
+          "Dom Casmurro",
+          "Casa velha",
+          "Diva",
+          "Senhora"
+        ],
+        "esperados": [
+          "Memórias de um Sargento de Milícias"
+        ]
+      },
+      {
+        "id": "i25",
+        "tipo": "intencao",
+        "consulta": "um patriota ingênuo que quer reformar o país",
+        "primeira_relevante": 1,
+        "top5": [
+          "Triste fim de Policarpo Quaresma",
+          "Benjamim",
+          "Serafim Ponte Grande",
+          "1984",
+          "A Revolução dos Bichos"
+        ],
+        "esperados": [
+          "Triste fim de Policarpo Quaresma"
+        ]
+      },
+      {
+        "id": "i26",
+        "tipo": "intencao",
+        "consulta": "contos sobre a vida de mulheres negras",
+        "primeira_relevante": 1,
+        "top5": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio",
+          "Clara dos Anjos",
+          "Todos os contos",
+          "Felicidade clandestina"
+        ],
+        "esperados": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio"
+        ]
+      },
+      {
+        "id": "i27",
+        "tipo": "intencao",
+        "consulta": "poligamia e mulheres em Moçambique",
+        "primeira_relevante": 1,
+        "top5": [
+          "Niketche",
+          "Ponciá Vicêncio",
+          "Olhos D'Água",
+          "Todos os contos",
+          "Jane Eyre"
+        ],
+        "esperados": [
+          "Niketche"
+        ]
+      },
+      {
+        "id": "i28",
+        "tipo": "intencao",
+        "consulta": "boneca Emília e o Sítio do Picapau Amarelo",
+        "primeira_relevante": 1,
+        "top5": [
+          "A menina do narizinho arrebitado",
+          "Aritmética da Emília",
+          "Reinações de Narizinho",
+          "O Poço do Visconde",
+          "O Minotauro"
+        ],
+        "esperados": [
+          "Reinações de Narizinho",
+          "A menina do narizinho arrebitado",
+          "Viagem ao céu",
+          "Aritmética da Emília",
+          "O Poço do Visconde"
+        ]
+      },
+      {
+        "id": "i29",
+        "tipo": "intencao",
+        "consulta": "mortos que se levantam porque os coveiros entraram em greve",
+        "primeira_relevante": 1,
+        "top5": [
+          "Incidente em Antares",
+          "Fogo Morto",
+          "A morte e a morte de Quincas Berro D'Água",
+          "As Intermitências da Morte",
+          "Por Quem os Sinos Dobram"
+        ],
+        "esperados": [
+          "Incidente em Antares"
+        ]
+      },
+      {
+        "id": "i30",
+        "tipo": "intencao",
+        "consulta": "saga de famílias gaúchas ao longo de dois séculos",
+        "primeira_relevante": 1,
+        "top5": [
+          "O continente (O tempo e o vento, vol. 1)",
+          "O tempo e o vento",
+          "O Morro dos Ventos Uivantes",
+          "Seara vermelha",
+          "Helena"
+        ],
+        "esperados": [
+          "O tempo e o vento",
+          "O continente (O tempo e o vento, vol. 1)"
+        ]
+      },
+      {
+        "id": "i31",
+        "tipo": "intencao",
+        "consulta": "romance irônico que critica o positivismo e o cientificismo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Quincas Borba",
+          "Caim",
+          "O Alienista",
+          "Diário do farol",
+          "As Intermitências da Morte"
+        ],
+        "esperados": [
+          "Quincas Borba"
+        ]
+      },
+      {
+        "id": "t13",
+        "tipo": "titulo",
+        "consulta": "dom casmuro",
+        "primeira_relevante": 1,
+        "top5": [
+          "Dom Casmurro",
+          "Capitu",
+          "Dom Quixote de La Mancha",
+          "O Sonho da Câmara Vermelha",
+          "O Iluminado"
+        ],
+        "esperados": [
+          "Dom Casmurro"
+        ]
+      },
+      {
+        "id": "t14",
+        "tipo": "titulo",
+        "consulta": "grande sertao veredas",
+        "primeira_relevante": 1,
+        "top5": [
+          "Grande sertão: veredas",
+          "Mensagem",
+          "1984",
+          "Quem Pensa Enriquece",
+          "O Grande Gatsby"
+        ],
+        "esperados": [
+          "Grande sertão: veredas"
+        ]
+      },
+      {
+        "id": "t15",
+        "tipo": "titulo",
+        "consulta": "Memorial do Convento",
+        "primeira_relevante": 1,
+        "top5": [
+          "Memorial do Convento",
+          "Amor de Perdição",
+          "Banguê",
+          "O Corcunda de Notre-Dame",
+          "O Nome da Rosa"
+        ],
+        "esperados": [
+          "Memorial do Convento"
+        ]
+      },
+      {
+        "id": "t16",
+        "tipo": "titulo",
+        "consulta": "amor de perdicao",
+        "primeira_relevante": 1,
+        "top5": [
+          "Amor de Perdição",
+          "Declaração de amor",
+          "Eu Hei-de Amar Uma Pedra",
+          "O Amor nos Tempos do Cólera",
+          "Cartas de amor a Heloisa"
+        ],
+        "esperados": [
+          "Amor de Perdição"
+        ]
+      },
+      {
+        "id": "t17",
+        "tipo": "titulo",
+        "consulta": "Quincas Borba",
+        "primeira_relevante": 1,
+        "top5": [
+          "Quincas Borba",
+          "Memórias póstumas de Brás Cubas",
+          "A morte e a morte de Quincas Berro D'Água",
+          "Dom Quixote de La Mancha",
+          "Um alpendre, uma rede, um açude"
+        ],
+        "esperados": [
+          "Quincas Borba"
+        ]
+      },
+      {
+        "id": "t18",
+        "tipo": "titulo",
+        "consulta": "o menino maluquinho",
+        "primeira_relevante": 1,
+        "top5": [
+          "O menino maluquinho",
+          "As Melhores Tiradas do Menino Maluquinho",
+          "O filho eterno",
+          "Anne de Green Gables",
+          "As Aventuras de Pinóquio"
+        ],
+        "esperados": [
+          "O menino maluquinho"
+        ]
+      },
+      {
+        "id": "a09",
+        "tipo": "autor",
+        "consulta": "poemas do Drummond",
+        "primeira_relevante": 1,
+        "top5": [
+          "Claro enigma",
+          "Declaração de amor",
+          "Sentimento do mundo",
+          "Correspondência de Cabral com Bandeira e Drummond",
+          "Mensagem"
+        ],
+        "esperados": [
+          "(autor) Carlos Drummond de Andrade"
+        ]
+      },
+      {
+        "id": "a10",
+        "tipo": "autor",
+        "consulta": "quero ler Lima Barreto",
+        "primeira_relevante": 1,
+        "top5": [
+          "Lima Barreto socialista",
+          "Recordações do escrivão Isaías Caminha",
+          "Triste fim de Policarpo Quaresma",
+          "Clara dos Anjos",
+          "Capão pecado"
+        ],
+        "esperados": [
+          "(autor) Lima Barreto"
+        ]
+      },
+      {
+        "id": "a11",
+        "tipo": "autor",
+        "consulta": "Mia Couto",
+        "primeira_relevante": 1,
+        "top5": [
+          "O gato e o escuro",
+          "Lúcia McCartney",
+          "Menina bonita do laço de fita",
+          "A menina do narizinho arrebitado",
+          "A moreninha"
+        ],
+        "esperados": [
+          "(autor) Mia Couto"
+        ]
+      },
+      {
+        "id": "a12",
+        "tipo": "autor",
+        "consulta": "Guimarães Rosa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Campo Geral",
+          "Grande sertão: veredas",
+          "A escrava Isaura",
+          "O ermitão de Muquém",
+          "O Nome da Rosa"
+        ],
+        "esperados": [
+          "(autor) João Guimarães Rosa"
+        ]
+      },
+      {
+        "id": "a13",
+        "tipo": "autor",
+        "consulta": "livros da Conceição Evaristo",
+        "primeira_relevante": 1,
+        "top5": [
+          "Olhos D'Água",
+          "Ponciá Vicêncio",
+          "As aventuras do avião vermelho",
+          "O tronco do ipê",
+          "Um sopro de vida"
+        ],
+        "esperados": [
+          "(autor) Conceição Evaristo"
+        ]
+      },
+      {
+        "id": "a14",
+        "tipo": "autor",
+        "consulta": "camilo castelo branco",
+        "primeira_relevante": 1,
+        "top5": [
+          "Amor de Perdição",
+          "O judeu",
+          "A bruxa de Monte Córdova",
+          "Coração, cabeça e estômago",
+          "A sereia"
+        ],
+        "esperados": [
+          "(autor) Camilo Castelo Branco"
+        ]
+      },
+      {
+        "id": "i32",
+        "tipo": "intencao",
+        "consulta": "quero ler poesia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ou isto ou aquilo",
+          "Três vezes Hilda",
+          "Júbilo, memória, noviciado da paixão",
+          "Flicts",
+          "Comedias para se Ler na Escola"
+        ],
+        "esperados": [
+          "Claro enigma",
+          "Sentimento do mundo",
+          "Declaração de amor",
+          "Ou isto ou aquilo",
+          "Estrela da vida inteira",
+          "Espumas flutuantes",
+          "O navio negreiro",
+          "Os escravos",
+          "A cachoeira de Paulo Affonso",
+          "Três vezes Hilda",
+          "Toda poesia",
+          "Mensagem"
+        ]
+      },
+      {
+        "id": "i33",
+        "tipo": "intencao",
+        "consulta": "poemas para crianças",
+        "primeira_relevante": 1,
+        "top5": [
+          "Ou isto ou aquilo",
+          "O menino maluquinho",
+          "O navio negreiro",
+          "Marcelo, marmelo, martelo",
+          "Flicts"
+        ],
+        "esperados": [
+          "Ou isto ou aquilo"
+        ]
+      },
+      {
+        "id": "i34",
+        "tipo": "intencao",
+        "consulta": "crônicas sobre o dia a dia",
+        "primeira_relevante": 1,
+        "top5": [
+          "Um alpendre, uma rede, um açude",
+          "Ulisses",
+          "Livro de crónicas",
+          "Segundo livro de crónicas",
+          "Todos os contos"
+        ],
+        "esperados": [
+          "Um alpendre, uma rede, um açude",
+          "Livro de crónicas",
+          "Segundo livro de crónicas",
+          "Comedias para se Ler na Escola",
+          "Pontos de fuga"
+        ]
+      },
+      {
+        "id": "i35",
+        "tipo": "intencao",
+        "consulta": "cartas de um escritor para a esposa",
+        "primeira_relevante": 1,
+        "top5": [
+          "Cartas de amor a Heloisa",
+          "O Zahir",
+          "Três vezes Hilda",
+          "Anna Kariênina",
+          "O Conto da Aia"
+        ],
+        "esperados": [
+          "Cartas de amor a Heloisa"
+        ]
+      },
+      {
+        "id": "i36",
+        "tipo": "intencao",
+        "consulta": "médico que manda trancar a cidade inteira no hospício",
+        "primeira_relevante": 1,
+        "top5": [
+          "O Alienista",
+          "Ensaio Sobre a Cegueira",
+          "A Peste",
+          "Um Conto de Duas Cidades",
+          "O ano da morte de Ricardo Reis"
+        ],
+        "esperados": [
+          "O Alienista"
+        ]
+      },
+      {
+        "id": "i37",
+        "tipo": "intencao",
+        "consulta": "moça rica que compra um marido",
+        "primeira_relevante": 1,
+        "top5": [
+          "Senhora",
+          "A mão e a luva",
+          "Riacho Doce",
+          "Diva",
+          "O Morro dos Ventos Uivantes"
+        ],
+        "esperados": [
+          "Senhora"
+        ]
+      },
+      {
+        "id": "i38",
+        "tipo": "intencao",
+        "consulta": "índio que protege uma moça branca, filha de fidalgo",
+        "primeira_relevante": 1,
+        "top5": [
+          "O guarani",
+          "Clara dos Anjos",
+          "A moreninha",
+          "O Corcunda de Notre-Dame",
+          "Helena"
+        ],
+        "esperados": [
+          "O guarani"
+        ]
+      },
+      {
+        "id": "i39",
+        "tipo": "intencao",
+        "consulta": "garota brasileira que vira prostituta na Suíça",
+        "primeira_relevante": 1,
+        "top5": [
+          "Onze minutos",
+          "Lúcia McCartney",
+          "Heidi",
+          "Adultério",
+          "A Garota no Trem"
+        ],
+        "esperados": [
+          "Onze minutos"
+        ]
+      },
+      {
+        "id": "i40",
+        "tipo": "intencao",
+        "consulta": "velho centenário num leito de hospital relembra a decadência da família",
+        "primeira_relevante": 1,
+        "top5": [
+          "Leite derramado",
+          "Casa velha",
+          "Eu Hei-de Amar Uma Pedra",
+          "Veronika decide morrer",
+          "Fogo Morto"
+        ],
+        "esperados": [
+          "Leite derramado"
+        ]
+      },
+      {
+        "id": "i41",
+        "tipo": "intencao",
+        "consulta": "fazendeiro rude que trata a esposa como propriedade e termina sozinho",
+        "primeira_relevante": 1,
+        "top5": [
+          "São Bernardo",
+          "Banguê",
+          "Tieta Do Agreste",
+          "As Pontes de Madison",
+          "O Conto da Aia"
+        ],
+        "esperados": [
+          "São Bernardo"
+        ]
+      }
+    ]
+  }
+}
