@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+.claude
+.local
+**/node_modules
+**/.venv
+**/__pycache__
+**/.next
+web/test-results
+web/playwright-report
+evals/embeddings/saida
+.ruff_cache

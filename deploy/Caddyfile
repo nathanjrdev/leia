@@ -1,0 +1,9 @@
+# HTTPS automático (Let's Encrypt) para o domínio do .env. Só o web é exposto;
+# o navegador fala com /api/* no próprio web, que encaminha para a API interna.
+{$DOMINIO} {
+	encode zstd gzip
+	reverse_proxy web:3000 {
+		# SSE do chat: entrega cada pedaço na hora
+		flush_interval -1
+	}
+}
