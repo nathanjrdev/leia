@@ -7,3 +7,8 @@
 		flush_interval -1
 	}
 }
+
+# www é só um apelido: redireciona (301) para o domínio principal, mantendo o caminho.
+www.{$DOMINIO} {
+	redir https://{$DOMINIO}{uri} permanent
+}
