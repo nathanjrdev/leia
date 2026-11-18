@@ -4,8 +4,8 @@ Plano para colocar a Léia no ar numa VPS e mantê-la lá. O passo a passo técn
 [deploy-vps.md](deploy-vps.md); o checklist geral do código, em [deploy.md](deploy.md). Este
 arquivo diz **o que** fazer, **em que ordem** e **como saber que deu certo**.
 
-Status: arquivos de deploy prontos na branch `deploy/vps` (commit `5b8d23d`), ainda não
-testados numa VPS real.
+Status: **no ar desde 17/11/2026** em [leiabiblioteca.tech](https://leiabiblioteca.tech/). O que divergiu
+do plano está em [deploy-vps.md](deploy-vps.md#primeiro-deploy-17112026).
 
 ## Decisões
 
@@ -13,7 +13,7 @@ testados numa VPS real.
 | --- | --- | --- |
 | Hospedagem | Hostinger KVM 2 (2 vCPU, 8 GB de RAM), 1 mês | a API precisa de ~2 GB com encoder e reranker; tudo numa máquina só |
 | Sistema | Ubuntu 24.04 com Docker | o compose sobe banco, API, web, Caddy e manutenção |
-| Domínio | `IP-COM-HIFENS.sslip.io` | HTTPS sem comprar domínio; troca depois por um domínio próprio |
+| Domínio | `leiabiblioteca.tech` (planejado: `sslip.io`) | domínio próprio já no primeiro deploy |
 | HTTPS | Caddy com Let's Encrypt | certificado automático; cookie de sessão exige HTTPS |
 | LLM | `anthropic/claude-haiku-5-5`, prompt v5 | é o modelo medido na suíte do agente (54/55) |
 | Encoder da busca | modelo base (padrão) | o ajustado passou no gate da busca, mas falta a suíte do agente |
@@ -28,17 +28,17 @@ testados numa VPS real.
 
 ## Fase 1: máquina (20 min)
 
-- [ ] Contratar o KVM 2 com **Ubuntu 24.04 com Docker**; anotar o IP.
-- [ ] Entrar por SSH (`ssh root@IP`) e trocar a senha de root, ou cadastrar uma chave SSH.
-- [ ] Liberar as portas 22, 80 e 443 no firewall da Hostinger (e no `ufw`, se estiver ativo).
+- [x] Contratar o KVM 2 com **Ubuntu 24.04 com Docker**; anotar o IP.
+- [x] Entrar por SSH (`ssh root@IP`) e trocar a senha de root, ou cadastrar uma chave SSH.
+- [x] Liberar as portas 22, 80 e 443 no firewall da Hostinger (e no `ufw`, se estiver ativo).
 
 ## Fase 2: subir (30 a 40 min)
 
-- [ ] `git clone` do repositório (da `main`, depois do merge).
-- [ ] `cp deploy/env.prod.example .env` e preencher `DOMINIO`, `POSTGRES_PASSWORD`
+- [x] `git clone` do repositório (da `main`, depois do merge).
+- [x] `cp deploy/env.prod.example .env` e preencher `DOMINIO`, `POSTGRES_PASSWORD`
       (`openssl rand -hex 24`) e `ANTHROPIC_API_KEY`.
-- [ ] `docker compose -f docker-compose.prod.yml up -d --build`.
-- [ ] Acompanhar `logs -f api` até a carga terminar (282 livros e embeddings).
+- [x] `docker compose -f docker-compose.prod.yml up -d --build`.
+- [x] Acompanhar `logs -f api` até a carga terminar (282 livros e embeddings).
 
 ## Fase 3: conferir (15 min)
 
@@ -54,10 +54,10 @@ testados numa VPS real.
 
 ## Fase 4: divulgar (30 min)
 
-- [ ] Link do site no topo do README, no artigo e na inscrição.
+- [x] Link do site no topo do README, no artigo e na inscrição.
 - [ ] Gravar o vídeo de demonstração (2 a 3 minutos): busca por intenção, recomendação, locação
       com confirmação e a tentativa de injeção sendo barrada.
-- [ ] Registrar em `docs/deploy-vps.md` o que divergiu do planejado.
+- [x] Registrar em `docs/deploy-vps.md` o que divergiu do planejado.
 
 ## Riscos e respostas
 
@@ -80,4 +80,4 @@ testados numa VPS real.
 - [ ] Backup diário do banco (`pg_dump` agendado para fora da VPS).
 - [ ] Observabilidade: traços e métricas por turno (Langfuse), que ainda não existem.
 - [ ] Suíte do agente com o encoder ajustado; se passar, `ENCODER_MODELO` passa a ser o ajustado.
-- [ ] Domínio próprio no lugar do `sslip.io`.
+- [x] Domínio próprio no lugar do `sslip.io`.

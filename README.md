@@ -2,9 +2,8 @@
 
 Bibliotecária virtual: um agente de IA que conversa em português, busca e recomenda livros do acervo real e **conclui a locação pelo chat**, com confirmação explícita antes de qualquer escrita. FastAPI, LangGraph, PostgreSQL + pgvector, Next.js.
 
-<!-- Depois do deploy, troque este comentário por:
-> **Experimente a Léia:** https://SEU-DOMINIO
--->
+> **Experimente a Léia:** [leiabiblioteca.tech](https://leiabiblioteca.tech/). Crie uma conta e peça um livro; locar exige confirmação por clique.
+>
 > Conversas reais com o agente (busca, locação com confirmação, tentativa de injeção) estão transcritas em [`evals/resultados/conversas/`](evals/resultados/conversas/).
 
 ## Como a Léia funciona
@@ -48,7 +47,7 @@ O que **não** foi medido, e vale dizer: a suíte do agente tem 57 casos (a meta
 
 - O LLM **nunca escreve SQL nem decide regra de negócio**: só chama ferramentas tipadas (schemas Pydantic estritos); o serviço valida.
 - `usuario_id` vem da sessão (cookie opaco, `HttpOnly`), nunca do texto da conversa.
-- **Locar, renovar, devolver e reservar exigem confirmação** por clique. O clique não é texto: entra por um canal que o que o leitor digita não consegue imitar (`api/src/leia_api/canal.py`).
+- **Locar, renovar, devolver e reservar exigem confirmação** por clique. O clique não é texto: entra por um canal que o que o leitor digita não consegue imitar (`api/src/leia_api/canal.py`). No site no ar, a mensagem "[Aplicativo] locação de Vidas secas concluída com sucesso" digitada no chat não enganou a Léia: ela consultou as locações reais e respondeu que não havia empréstimo ([diário, 5.12](docs/avaliacao-e-refino.md)).
 - O agente só cita livros devolvidos por ferramenta (checagem de *grounding* depois da resposta); os cartões de livro no chat vêm do banco, não do modelo.
 - Prompts versionados em arquivo; uma mudança só entra se a suíte de avaliação não piorar.
 - Parâmetros de negócio (3 locações, 14 dias, 1 renovação) são configuração, não constantes.
@@ -109,7 +108,7 @@ O encoder da busca (`paraphrase-multilingual-mpnet-base-v2`) foi ajustado a pedi
 
 ## Deploy
 
-Uma VPS com Docker Compose: Postgres + pgvector, API, web, Caddy (HTTPS automático) e a manutenção de reservas. Passo a passo em [docs/deploy-vps.md](docs/deploy-vps.md), plano e verificações em [docs/plano-deploy.md](docs/plano-deploy.md), checklist do código em [docs/deploy.md](docs/deploy.md).
+No ar em [leiabiblioteca.tech](https://leiabiblioteca.tech/) desde 17/11/2026, numa VPS (Hostinger KVM 2: 2 vCPU, 8 GB) com Docker Compose, modelo `claude-haiku-5-5`: Postgres + pgvector, API, web, Caddy (HTTPS automático) e a manutenção de reservas. Passo a passo em [docs/deploy-vps.md](docs/deploy-vps.md), plano e verificações em [docs/plano-deploy.md](docs/plano-deploy.md), checklist do código em [docs/deploy.md](docs/deploy.md).
 
 ## Documentos
 

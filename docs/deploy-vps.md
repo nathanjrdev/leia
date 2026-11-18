@@ -71,7 +71,29 @@ docker compose -f docker-compose.prod.yml up -d --build
 | Chat sem resposta aos poucos | o Caddy precisa do `flush_interval -1` (já no `Caddyfile`) |
 | Login não mantém a sessão | o site precisa estar em HTTPS (`COOKIE_SEGURO=true`) |
 
-## O que não foi testado
+## Primeiro deploy (17/11/2026)
 
-Esta configuração foi escrita a partir do código e do `docs/deploy.md`, mas ainda não subiu numa
-VPS real. Registre aqui o que divergir no primeiro deploy.
+No ar em [leiabiblioteca.tech](https://leiabiblioteca.tech/). Antes da VPS, a mesma configuração subiu
+no Windows com Docker Desktop (`docker compose -p leia-teste ...`, `DOMINIO=localhost`), o que pegou
+o problema do healthcheck abaixo sem gastar tempo de VPS.
+
+O que divergiu do planejado:
+
+| Item | Planejado | O que aconteceu |
+| --- | --- | --- |
+| Domínio | `IP-COM-HIFENS.sslip.io` | domínio próprio `leiabiblioteca.tech` (registro A para o IP da VPS) |
+| Sistema | Ubuntu 24.04 com Docker | template "Docker" da Hostinger (Ubuntu 24.04), sem Traefik; o "Docker and Traefik" ocuparia as portas 80/443 do Caddy |
+| Memória | 8 GB | + swap de 4 GB por segurança no build e em picos |
+| 1ª subida da API | `start_period: 120s` | baixar ~1,7 GB de modelos e gerar os embeddings levou ~17 min no teste local; o compose marcou a API como *unhealthy* e não subiu web nem Caddy. `start_period` passou a 1800 s (commit `2a676ac`) |
+| Build | 10 a 20 min | ~20 min no teste local; a imagem da API é construída duas vezes (`api` e `manutencao`) |
+| RAM da API | ~2 GB | 2,0 GB medidos com encoder e reranker carregados |
+
+Conferido no site no ar: busca por intenção no chat ("romance sobre a seca no sertão" → *Vidas secas*
+primeiro, com cartões e disponibilidade) e a tentativa de injeção pelo chat (ver
+[diário de refino, 5.12](avaliacao-e-refino.md)).
+
+Ainda não conferido: locar e devolver no site no ar; IP real do visitante no log da API (o limitador
+de abuso depende dele; no teste local apareceu o IP da rede Docker com porta `:0`, sinal de que veio
+do cabeçalho do proxy); backup do banco.
+
+Melhoria pendente: a `manutencao` reaproveitar a imagem da `api` em vez de construir outra igual.
