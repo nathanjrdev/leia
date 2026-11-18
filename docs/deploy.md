@@ -19,6 +19,9 @@ Este guia é o checklist para colocar a Léia no ar. **Nada disso foi executado 
 | `LEIA_MODEL` + chave do provedor (`GEMINI_API_KEY`, etc.) | modelo escolhido | modelo pago só com decisão explícita |
 | `COOKIE_SEGURO` | `true` | o cookie de sessão só trafega por HTTPS |
 | `AQUECER_MODELOS` | `true` | sem isso a primeira mensagem carrega o encoder e o reranker e estoura o proxy |
+| `URL_PUBLICA` | `https://leiabiblioteca.tech` | monta a URL de retorno do login com Google/Microsoft |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | do Google Cloud Console | sem os dois, o botão "Google" não aparece |
+| `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` | do Microsoft Entra ID | sem os dois, o botão "Microsoft" não aparece |
 | `MODO_TESTE` | **ausente ou `false`** | `true` troca LLM e encoder por falsos (E2E). Nunca em produção |
 
 Os limites de negócio (locações, prazos, renovação) e de abuso (login, busca, mensagens por dia) estão em `api/src/leia_api/config.py` e podem ser sobrescritos por variável de ambiente.
@@ -49,6 +52,27 @@ npm run start -- -p 3000
 
 Exponha só o web na internet, com HTTPS; a API pode ficar numa rede interna, porque o navegador nunca fala com ela direto.
 
+## Entrar com Google e Microsoft
+
+Os botões só aparecem para o provedor que tiver client id **e** secret. As URLs de retorno precisam ser cadastradas exatamente assim (com `URL_PUBLICA` sem barra no fim):
+
+- Google: `https://leiabiblioteca.tech/api/auth/oauth/google/retorno`
+- Microsoft: `https://leiabiblioteca.tech/api/auth/oauth/microsoft/retorno`
+
+**Google** (console.cloud.google.com → APIs e serviços):
+1. Tela de consentimento OAuth: tipo "Externo", escopos `openid`, `email`, `profile` (não exigem verificação do Google). Publique o app para sair do modo "Teste" (no modo teste só os e-mails cadastrados como testadores conseguem entrar).
+2. Credenciais → Criar ID do cliente OAuth → "Aplicativo da Web". Origem JavaScript: `https://leiabiblioteca.tech`; URI de redirecionamento: a do Google acima.
+3. Copie o ID e o segredo para `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
+
+**Microsoft** (entra.microsoft.com → Registros de aplicativo → Novo registro):
+1. Tipos de conta: "Contas em qualquer diretório organizacional e contas pessoais da Microsoft" (combina com `MICROSOFT_TENANT=common`).
+2. URI de redirecionamento: plataforma "Web", a da Microsoft acima.
+3. Certificados e segredos → Novo segredo do cliente → copie o **Valor** para `MICROSOFT_CLIENT_SECRET`; o "ID do aplicativo (cliente)" vai em `MICROSOFT_CLIENT_ID`.
+4. Permissões de API: `openid`, `email`, `profile` (Microsoft Graph, delegadas).
+5. Contas de trabalho/escola: em "Configuração de token" adicione a declaração opcional `xms_edov` ao token de ID. Sem ela a Léia recusa essas contas ("e-mail não verificado"), porque o Entra deixa o administrador de qualquer organização pôr qualquer e-mail no usuário. Contas pessoais (outlook.com, hotmail.com) funcionam sem isso.
+
+Como as contas se juntam: na primeira entrada, se já existir conta com o mesmo e-mail (verificado pelo provedor), o Google/Microsoft é vinculado a ela e a senha continua valendo. Se não existir, nasce um leitor sem senha (ele sempre entra pelo provedor). Depois disso o vínculo é pelo `sub` do provedor, então trocar o e-mail lá não perde a conta.
+
 ## Manutenção agendada
 
 Expira reservas prontas que ninguém retirou no prazo (`RESERVA_RETIRADA_DIAS`, padrão 2). É idempotente. Agende a cada hora (cron do provedor, GitHub Actions agendado, etc.):
@@ -63,6 +87,7 @@ Se ela parar de rodar, nada quebra: `locar` também expira, de forma preguiçosa
 
 - [ ] Dados: só catálogo público e leitores fictícios ou reais com consentimento; a camada grátis do Gemini usa o que recebe.
 - [ ] `COOKIE_SEGURO=true` e HTTPS no domínio do web.
+- [ ] Login social: `URL_PUBLICA` e as URLs de retorno idênticas no Google e na Microsoft; app do Google publicado (fora do modo "Teste").
 - [ ] `--proxy-headers` ativo e uma única instância da API.
 - [ ] `MODO_TESTE` desligado (a API não deve responder com o LLM falso).
 - [ ] Banco com backup; migrações aplicadas (`alembic upgrade head`).

@@ -96,6 +96,18 @@ class Settings(BaseSettings):
     senha_min_caracteres: int = Field(default=8, ge=1)
     senha_max_caracteres: int = Field(default=128, ge=8)
 
+    # Entrar com Google / Microsoft (OpenID Connect). Um provedor só aparece na tela de entrar
+    # se tiver client id E secret. `url_publica` monta a URL de retorno cadastrada no provedor:
+    # {url_publica}/api/auth/oauth/{google|microsoft}/retorno
+    url_publica: str = "http://localhost:3000"
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    microsoft_client_id: str | None = None
+    microsoft_client_secret: SecretStr | None = None
+    # "common" aceita contas pessoais e de trabalho/escola; "consumers" só pessoais.
+    microsoft_tenant: str = "common"
+    oauth_timeout_segundos: float = Field(default=10.0, gt=0)
+
     # Preço de REFERÊNCIA (US$ por 1M de tokens) para estimar o custo da suíte. Valores do plano
     # para o Claude Haiku 5.5 na demo; no desenvolvimento o provedor grátis cobra 0. Conferir de
     # novo antes do deploy (preços mudam).

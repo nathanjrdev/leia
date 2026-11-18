@@ -7,12 +7,18 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from leia_api.models import Usuario
+from leia_api.models import IdentidadeExterna, Usuario
+from leia_api.oauth import Identidade
 from leia_api.senha import gerar_hash, verificar
 
 
 class EmailEmUso(Exception):
     pass
+
+
+# Conta criada pelo Google/Microsoft não tem senha. `verificar` devolve False para este valor
+# (não é um hash scrypt), então o login por senha simplesmente não funciona para ela.
+SEM_SENHA = "!sem-senha"
 
 
 @dataclass(frozen=True)
@@ -60,3 +66,40 @@ def autenticar(session: Session, email: str, senha: str) -> Conta | None:
 def conta_por_id(session: Session, usuario_id: int) -> Conta | None:
     usuario = session.get(Usuario, usuario_id)
     return None if usuario is None else Conta(usuario.id, usuario.nome, usuario.email)
+
+
+def entrar_com_identidade(session: Session, ident: Identidade, _repetir: bool = True) -> Conta:
+    """Acha (ou cria) a conta de quem entrou pelo Google/Microsoft.
+
+    1. Já vinculada (provedor + sub): entra nela, mesmo que o e-mail tenha mudado.
+    2. Existe conta com o mesmo e-mail: vincula. Seguro porque `oauth` só entrega identidade
+       com e-mail VERIFICADO pelo provedor.
+    3. Nada: cria um leitor sem senha e vincula.
+    """
+    vinculo = session.scalar(
+        select(IdentidadeExterna).where(
+            IdentidadeExterna.provedor == ident.provedor,
+            IdentidadeExterna.sujeito == ident.sujeito,
+        )
+    )
+    if vinculo is not None:
+        conta = conta_por_id(session, vinculo.usuario_id)
+        if conta is not None:
+            return conta
+    email = normalizar_email(ident.email)
+    usuario = session.scalar(select(Usuario).where(Usuario.email == email))
+    if usuario is None:
+        usuario = Usuario(nome=ident.nome, email=email, senha_hash=SEM_SENHA)
+        session.add(usuario)
+        session.flush()
+    session.add(
+        IdentidadeExterna(usuario_id=usuario.id, provedor=ident.provedor, sujeito=ident.sujeito)
+    )
+    try:
+        session.commit()
+    except IntegrityError:  # corrida: o mesmo login chegou duas vezes; o outro já vinculou
+        session.rollback()
+        if not _repetir:
+            raise
+        return entrar_com_identidade(session, ident, _repetir=False)
+    return Conta(usuario.id, usuario.nome, usuario.email)

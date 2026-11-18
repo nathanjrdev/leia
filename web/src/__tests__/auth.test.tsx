@@ -106,6 +106,36 @@ describe("FormularioAuth", () => {
     await waitFor(() => expect(push).toHaveBeenCalled());
   });
 
+  it("mostra 'Entrar com' Google e Microsoft quando a API oferece", async () => {
+    apiMock.mockImplementation((caminho: string) =>
+      caminho === "/auth/eu"
+        ? Promise.reject(new ErroApi(401, "nao_autenticado", ""))
+        : Promise.resolve({ provedores: ["google", "microsoft"] }),
+    );
+    montar("entrar");
+    expect(await screen.findByRole("link", { name: "Entrar com Google" })).toHaveAttribute(
+      "href",
+      "/api/auth/oauth/google/iniciar",
+    );
+    expect(screen.getByRole("link", { name: "Entrar com Microsoft" })).toHaveAttribute(
+      "href",
+      "/api/auth/oauth/microsoft/iniciar",
+    );
+  });
+
+  it("sem provedores configurados não mostra os botões sociais", async () => {
+    montar("entrar");
+    await waitFor(() => expect(apiMock).toHaveBeenCalledWith("/auth/provedores"));
+    expect(screen.queryByRole("link", { name: /Entrar com/ })).toBeNull();
+  });
+
+  it("mostra o erro do login social que volta na URL", async () => {
+    window.history.replaceState(null, "", "/entrar?erro=email_nao_verificado");
+    montar("entrar");
+    expect(await screen.findByRole("alert")).toHaveTextContent("e-mail verificado");
+    window.history.replaceState(null, "", "/");
+  });
+
   it("oferece o link para a outra tela", () => {
     montar("entrar");
     expect(screen.getByRole("link", { name: "Criar conta" })).toHaveAttribute("href", "/cadastrar");

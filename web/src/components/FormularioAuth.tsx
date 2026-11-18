@@ -2,15 +2,28 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { FormEvent } from "react";
 import { api, mensagemDoErro } from "@/lib/api";
 import type { Conta } from "@/lib/tipos";
 import { useSessao } from "./SessaoProvider";
 import { Aviso } from "./ui/Aviso";
-import { Botao } from "./ui/Botao";
+import { Botao, classesBotao } from "./ui/Botao";
 
 const SENHA_MIN = 8;
+
+type Provedor = "google" | "microsoft";
+const NOME_PROVEDOR: Record<Provedor, string> = { google: "Google", microsoft: "Microsoft" };
+
+/** Códigos que a API põe em `/entrar?erro=…` quando o login com Google/Microsoft não dá certo. */
+const ERRO_SOCIAL: Record<string, string> = {
+  cancelado: "A entrada foi cancelada. Tente de novo quando quiser.",
+  email_nao_verificado:
+    "Essa conta não tem um e-mail verificado. Use outra conta ou entre com e-mail e senha.",
+  provedor_indisponivel: "Essa forma de entrar não está disponível agora.",
+  muitas_tentativas: "Muitas tentativas seguidas. Aguarde um instante.",
+  oauth_falhou: "Não consegui entrar com essa conta. Tente de novo.",
+};
 
 export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
   const router = useRouter();
@@ -21,12 +34,38 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [provedores, setProvedores] = useState<Provedor[]>([]);
+
+  // Erro do login social vem na URL (?erro=…). Lido sem efeito: no servidor não há URL (null).
+  const codigoUrl = useSyncExternalStore(
+    semAssinatura,
+    () => new URLSearchParams(window.location.search).get("erro"),
+    () => null,
+  );
+  const [tentouDeNovo, setTentouDeNovo] = useState(false);
+  const erroSocial =
+    codigoUrl && !tentouDeNovo ? (ERRO_SOCIAL[codigoUrl] ?? ERRO_SOCIAL.oauth_falhou) : null;
+  const erroVisivel = erro ?? erroSocial;
+
+  useEffect(() => {
+    let vivo = true;
+    api<{ provedores?: unknown }>("/auth/provedores")
+      .then((r) => {
+        const lista = Array.isArray(r?.provedores) ? r.provedores : [];
+        if (vivo) setProvedores(lista.filter((p): p is Provedor => p in NOME_PROVEDOR));
+      })
+      .catch(() => {}); // sem a lista, só some o login social; e-mail e senha seguem
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
     if (enviando) return;
     setEnviando(true);
     setErro(null);
+    setTentouDeNovo(true);
     try {
       const conta = await api<Conta>(cadastro ? "/auth/cadastro" : "/auth/login", {
         metodo: "POST",
@@ -70,10 +109,11 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
         minLength={cadastro ? SENHA_MIN : undefined}
         ajuda={cadastro ? `Pelo menos ${SENHA_MIN} caracteres.` : undefined}
       />
-      {erro && <Aviso tipo="erro">{erro}</Aviso>}
+      {erroVisivel && <Aviso tipo="erro">{erroVisivel}</Aviso>}
       <Botao type="submit" variante="primaria" disabled={enviando} className="w-full">
         {enviando ? (cadastro ? "Criando…" : "Entrando…") : rotuloBotao}
       </Botao>
+      {provedores.length > 0 && <EntrarCom provedores={provedores} />}
       <p className="text-texto-suave">
         {cadastro ? "Já tem conta? " : "Ainda não tem conta? "}
         <Link href={cadastro ? "/entrar" : "/cadastrar"} className="font-semibold text-rosa underline">
@@ -81,6 +121,35 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
         </Link>
       </p>
     </form>
+  );
+}
+
+const semAssinatura = () => () => {};
+
+/** "ou / Entrar com:" e um botão por provedor. São links comuns (GET): a API redireciona para o
+ * Google/Microsoft e, na volta, abre a sessão e manda para /conversa. */
+function EntrarCom({ provedores }: { provedores: Provedor[] }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3 text-sm text-texto-suave" aria-hidden="true">
+        <span className="h-px flex-1 bg-current opacity-30" />
+        ou
+        <span className="h-px flex-1 bg-current opacity-30" />
+      </div>
+      <p className="text-center text-sm text-texto-suave">Entrar com:</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {provedores.map((p) => (
+          <a
+            key={p}
+            href={`/api/auth/oauth/${p}/iniciar`}
+            className={classesBotao("secundaria", "w-full")}
+            aria-label={`Entrar com ${NOME_PROVEDOR[p]}`}
+          >
+            {NOME_PROVEDOR[p]}
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }
 

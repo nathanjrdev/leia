@@ -106,6 +106,25 @@ class Usuario(Base):
     preferencias: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
 
 
+class IdentidadeExterna(Base):
+    """Vínculo de um usuário com uma conta Google/Microsoft. `sujeito` é o `sub` do id_token."""
+
+    __tablename__ = "identidades_externas"
+    __table_args__ = (
+        UniqueConstraint("provedor", "sujeito", name="uq_identidades_provedor_sujeito"),
+        CheckConstraint(
+            "provedor IN ('google', 'microsoft')", name="ck_identidades_externas_provedor"
+        ),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="CASCADE"), index=True
+    )
+    provedor: Mapped[str] = mapped_column(String(20))
+    sujeito: Mapped[str] = mapped_column(String(255))
+    criada_em: Mapped[datetime] = _now()
+
+
 class Sessao(Base):
     """Sessão de login. O token vai ao navegador em cookie; aqui fica só o SHA-256 dele."""
 

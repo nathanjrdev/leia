@@ -145,6 +145,7 @@ const servidor = http.createServer(async (req, res) => {
   if (p === "/auth/eu") return json(res, 200, CONTA);
   if (p === "/auth/logout") return json(res, 200, {});
   if (p === "/auth/login" || p === "/auth/cadastro") return json(res, 200, CONTA);
+  if (p === "/auth/provedores") return json(res, 200, { provedores: ["google", "microsoft"] });
   if (p === "/categorias") return json(res, 200, CATEGORIAS);
   if (p === "/livros" || p === "/livros/busca") return json(res, 200, listar(url));
   if ((r = p.match(/^\/livros\/(\d+)$/))) {

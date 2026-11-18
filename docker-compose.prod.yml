@@ -24,6 +24,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://leia:${POSTGRES_PASSWORD}@db:5432/leia
       COOKIE_SEGURO: "true"
+      URL_PUBLICA: https://${DOMINIO}  # retorno do login com Google/Microsoft
       AQUECER_MODELOS: "true"
       MODO_TESTE: "false"
     volumes:
