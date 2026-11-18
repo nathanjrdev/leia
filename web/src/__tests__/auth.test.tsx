@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErroApi } from "@/lib/api";
@@ -113,13 +113,45 @@ describe("FormularioAuth", () => {
         : Promise.resolve({ provedores: ["google", "microsoft"] }),
     );
     montar("entrar");
-    expect(await screen.findByRole("link", { name: "Entrar com Google" })).toHaveAttribute(
+    const lista = await screen.findByRole("list", { name: "Outras formas de entrar" });
+    expect(lista).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar com Google" })).toHaveAttribute(
       "href",
       "/api/auth/oauth/google/iniciar",
     );
     expect(screen.getByRole("link", { name: "Entrar com Microsoft" })).toHaveAttribute(
       "href",
       "/api/auth/oauth/microsoft/iniciar",
+    );
+  });
+
+  it("um provedor só ocupa a largura toda e diz 'Continuar com'", async () => {
+    apiMock.mockImplementation((caminho: string) =>
+      caminho === "/auth/eu"
+        ? Promise.reject(new ErroApi(401, "nao_autenticado", ""))
+        : Promise.resolve({ provedores: ["google"] }),
+    );
+    montar("entrar");
+    const link = await screen.findByRole("link", { name: "Entrar com Google" });
+    expect(link).toHaveTextContent("Continuar com Google");
+  });
+
+  it("ao clicar, avisa que está abrindo e trava os outros botões (sem clique duplo)", async () => {
+    apiMock.mockImplementation((caminho: string) =>
+      caminho === "/auth/eu"
+        ? Promise.reject(new ErroApi(401, "nao_autenticado", ""))
+        : Promise.resolve({ provedores: ["google", "microsoft"] }),
+    );
+    montar("entrar");
+    const google = await screen.findByRole("link", { name: "Entrar com Google" });
+    // jsdom não navega; só o estado da tela importa aqui
+    google.addEventListener("click", (e) => e.preventDefault());
+    fireEvent.click(google);
+    expect(google).toHaveAttribute("aria-busy", "true");
+    expect(google).toHaveTextContent("Abrindo o Google…");
+    expect(screen.getByRole("link", { name: "Entrar com Microsoft" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
     );
   });
 

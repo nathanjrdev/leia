@@ -114,7 +114,7 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
         {enviando ? (cadastro ? "Criando…" : "Entrando…") : rotuloBotao}
       </Botao>
       {provedores.length > 0 && <EntrarCom provedores={provedores} />}
-      <p className="text-texto-suave">
+      <p className="rodape-auth text-texto-suave">
         {cadastro ? "Já tem conta? " : "Ainda não tem conta? "}
         <Link href={cadastro ? "/entrar" : "/cadastrar"} className="font-semibold text-rosa underline">
           {cadastro ? "Entrar" : "Criar conta"}
@@ -126,30 +126,85 @@ export function FormularioAuth({ modo }: { modo: "entrar" | "cadastrar" }) {
 
 const semAssinatura = () => () => {};
 
-/** "ou / Entrar com:" e um botão por provedor. São links comuns (GET): a API redireciona para o
- * Google/Microsoft e, na volta, abre a sessão e manda para /conversa. */
+/** Divisor "ou entre com" e um botão por provedor, como pílulas de vidro lado a lado (um só
+ * provedor ocupa a largura toda). São links comuns (GET): a API redireciona para o provedor e,
+ * na volta, abre a sessão e manda para /conversa. Ao clicar, o botão diz que está abrindo e os
+ * outros travam, para não haver dois redirecionamentos disputando o mesmo cookie de tentativa. */
 function EntrarCom({ provedores }: { provedores: Provedor[] }) {
+  const [indo, setIndo] = useState<Provedor | null>(null);
+
+  // Voltar do provedor pelo botão "voltar" restaura a página do cache (bfcache) com o estado
+  // antigo: destrava os botões.
+  useEffect(() => {
+    const destravar = (e: PageTransitionEvent) => e.persisted && setIndo(null);
+    window.addEventListener("pageshow", destravar);
+    return () => window.removeEventListener("pageshow", destravar);
+  }, []);
+
+  const sozinho = provedores.length === 1;
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3 text-sm text-texto-suave" aria-hidden="true">
-        <span className="h-px flex-1 bg-current opacity-30" />
-        ou
-        <span className="h-px flex-1 bg-current opacity-30" />
+    <div className="entra flex flex-col gap-4">
+      <div className="divisor-ou" aria-hidden="true">
+        ou entre com
       </div>
-      <p className="text-center text-sm text-texto-suave">Entrar com:</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {provedores.map((p) => (
-          <a
-            key={p}
-            href={`/api/auth/oauth/${p}/iniciar`}
-            className={classesBotao("secundaria", "w-full")}
-            aria-label={`Entrar com ${NOME_PROVEDOR[p]}`}
-          >
-            {NOME_PROVEDOR[p]}
-          </a>
-        ))}
-      </div>
+      <ul
+        aria-label="Outras formas de entrar"
+        className={`grid gap-3 ${sozinho ? "grid-cols-1" : "grid-cols-1 min-[380px]:grid-cols-2"}`}
+      >
+        {provedores.map((p) => {
+          const nome = NOME_PROVEDOR[p];
+          const abrindo = indo === p;
+          const travado = indo !== null && !abrindo;
+          return (
+            <li key={p} className="flex">
+              <a
+                href={`/api/auth/oauth/${p}/iniciar`}
+                className={classesBotao("secundaria", "botao-provedor w-full")}
+                aria-label={`Entrar com ${nome}`}
+                aria-busy={abrindo || undefined}
+                aria-disabled={travado || undefined}
+                tabIndex={travado ? -1 : undefined}
+                onClick={(e) => {
+                  if (indo) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setIndo(p);
+                }}
+              >
+                <MarcaProvedor provedor={p} />
+                <span>
+                  {abrindo
+                    ? `Abrindo o ${nome}…`
+                    : sozinho
+                      ? `Continuar com ${nome}`
+                      : nome}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
     </div>
+  );
+}
+
+/** Logo oficial do provedor, se estiver em `public/marcas/{google,microsoft}.svg`. As diretrizes
+ * de marca do Google e da Microsoft pedem os arquivos deles, sem redesenho: baixe-os das páginas
+ * de marca e coloque nessa pasta. Sem o arquivo, o botão fica só com o nome. */
+function MarcaProvedor({ provedor }: { provedor: Provedor }) {
+  const [falhou, setFalhou] = useState(false);
+  if (falhou) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- SVG local de 18 px; next/image não ajuda
+    <img
+      src={`/marcas/${provedor}.svg`}
+      alt=""
+      width={18}
+      height={18}
+      className="botao-provedor-marca"
+      onError={() => setFalhou(true)}
+    />
   );
 }
 
