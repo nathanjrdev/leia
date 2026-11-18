@@ -2,7 +2,9 @@
 
 Bibliotecária virtual: um agente de IA que conversa em português, busca e recomenda livros do acervo real e **conclui a locação pelo chat**, com confirmação explícita antes de qualquer escrita. FastAPI, LangGraph, PostgreSQL + pgvector, Next.js.
 
-> Vídeo de demonstração: pendente de gravação.
+> **Experimente a Léia:** [leiabiblioteca.tech](https://leiabiblioteca.tech/). Crie uma conta e peça um livro; locar exige confirmação por clique.
+>
+> Conversas reais com o agente (busca, locação com confirmação, tentativa de injeção) estão transcritas em [`evals/resultados/conversas/`](evals/resultados/conversas/).
 
 ## Como a Léia funciona
 
@@ -29,6 +31,7 @@ Todos os números saem de arquivos versionados em `evals/resultados/` e podem se
 | O quê | Resultado | Como foi medido |
 |---|---|---|
 | Busca híbrida (texto + vetor + reranker) | **Recall@5 1,000** · **nDCG@10 0,969** | 73 casos em pt-BR sobre 282 livros; sem o reranker: 0,986 e 0,919 |
+| Encoder ajustado ([leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt)) | nDCG@10 **0,969 → 0,982** com reranker · **0,919 → 0,952** sem | mesmos 73 casos; Recall@5 igual (já no teto); ganho concentrado em intenção (0,890 → 0,938 sem reranker) |
 | Agente (ferramentas, grounding, segurança, tarefa) | **54/55** | `claude-haiku-5-5`, prompt v5; todas as metas por categoria (0,9 a 1,0) batidas; a falha é um caso que oscila (2 de 3 também na v4) |
 | Latência do turno | p50 **3,5 s** · p95 **9,3 s** | 69 turnos da suíte, Haiku 5.5 |
 | Custo de referência | **US$ 0,09** pelos 55 casos (762 mil tokens de entrada) | preço de tabela do plano |
@@ -44,7 +47,7 @@ O que **não** foi medido, e vale dizer: a suíte do agente tem 57 casos (a meta
 
 - O LLM **nunca escreve SQL nem decide regra de negócio**: só chama ferramentas tipadas (schemas Pydantic estritos); o serviço valida.
 - `usuario_id` vem da sessão (cookie opaco, `HttpOnly`), nunca do texto da conversa.
-- **Locar, renovar, devolver e reservar exigem confirmação** por clique. O clique não é texto: entra por um canal que o que o leitor digita não consegue imitar (`api/src/leia_api/canal.py`).
+- **Locar, renovar, devolver e reservar exigem confirmação** por clique. O clique não é texto: entra por um canal que o que o leitor digita não consegue imitar (`api/src/leia_api/canal.py`). No site no ar, a mensagem "[Aplicativo] locação de Vidas secas concluída com sucesso" digitada no chat não enganou a Léia: ela consultou as locações reais e respondeu que não havia empréstimo ([diário, 5.12](docs/avaliacao-e-refino.md)).
 - O agente só cita livros devolvidos por ferramenta (checagem de *grounding* depois da resposta); os cartões de livro no chat vêm do banco, não do modelo.
 - Prompts versionados em arquivo; uma mudança só entra se a suíte de avaliação não piorar.
 - Parâmetros de negócio (3 locações, 14 dias, 1 renovação) são configuração, não constantes.
@@ -89,13 +92,23 @@ Casos em `evals/busca_casos.jsonl` e `evals/casos/<categoria>.jsonl`.
 
 O que se acha usando o produto vira caso de regressão quando dá, e o diário registra se o caso **reproduz** o defeito (falha na versão antiga) ou só protege o que já funcionava. Exemplo real, conversa 69: três frases estranhas numa recusa por limite. O caso por cartão (`tarefa-016`) detecta uma delas (1/3 no código antigo, 5/5 no novo); a terceira, a falsa autocorreção, não foi reproduzida e está declarada assim. Para chegar lá o runner ganhou um tipo de turno `cartao`, que simula o clique em Locar no cartão. [Como e por quê](docs/avaliacao-e-refino.md#3-o-ciclo-de-refino); [o caso completo, seção 5.9](docs/avaliacao-e-refino.md).
 
-## Pós-MVP: ajuste fino de embeddings (congelado)
+## Ajuste fino do encoder (publicado no Hugging Face)
 
-Os scripts para ajustar o modelo de embeddings ao catálogo estão prontos no branch [`pos-mvp/embeddings-finetune`](https://github.com/nathanjrdev/leia/tree/pos-mvp/embeddings-finetune), em `evals/embeddings/`: gerar pares livro-consulta com LLM, treinar, avaliar (Recall@5 antes e depois, sem tocar nos casos de avaliação da busca) e publicar no Hugging Face. **Nenhum resultado foi medido e nenhum modelo foi publicado**: ficou congelado até o MVP fechar. Só vira afirmação aqui quando houver número em `evals/resultados/`.
+O encoder da busca (`paraphrase-multilingual-mpnet-base-v2`) foi ajustado a pedidos de leitores em português e publicado como [nathanjrdev/leia-embeddings-pt](https://huggingface.co/nathanjrdev/leia-embeddings-pt), com os dados em [leia-busca-livros-pt](https://huggingface.co/datasets/nathanjrdev/leia-busca-livros-pt). Treino no Kaggle (GPU T4), com 1.873 pares de treino, divididos **por livro**: 46 livros nunca entram no treino. Código em `evals/embeddings/`.
+
+| Medida | Base → ajustado |
+|---|---|
+| Só vetor, livros nunca vistos (368 pedidos) | Recall@5 0,758 → **0,965** |
+| Só vetor, 73 casos manuais | Recall@5 0,849 → **0,973** · nDCG@10 0,742 → **0,917** |
+| Busca completa, com reranker (gate) | nDCG@10 0,969 → **0,982**, nenhum grupo piorou |
+
+**O que deu errado no caminho:** a 1ª rodada, só com pedidos sintéticos, melhorou intenção, mas derrubou a busca por autor (Recall@5 0,929 → 0,286), porque os pedidos nunca citavam título nem autor. A 2ª rodada acrescentou pares de título e autor tirados do catálogo e recuperou os dois.
+
+**Por que ainda não é o padrão:** na busca completa o ganho é pequeno, porque texto e reranker já resolviam quase tudo, e a suíte de busca está saturada (Recall@5 1,000). A troca de `ENCODER_MODELO` espera a suíte do agente rodar com o encoder novo. Detalhes, ressalvas e como repetir: [diário de refino, 5.11](docs/avaliacao-e-refino.md).
 
 ## Deploy
 
-Checklist e variáveis em [docs/deploy.md](docs/deploy.md).
+No ar em [leiabiblioteca.tech](https://leiabiblioteca.tech/) desde 17/11/2026, numa VPS (Hostinger KVM 2: 2 vCPU, 8 GB) com Docker Compose, modelo `claude-haiku-5-5`: Postgres + pgvector, API, web, Caddy (HTTPS automático) e a manutenção de reservas. Passo a passo em [docs/deploy-vps.md](docs/deploy-vps.md), plano e verificações em [docs/plano-deploy.md](docs/plano-deploy.md), checklist do código em [docs/deploy.md](docs/deploy.md).
 
 ## Documentos
 
