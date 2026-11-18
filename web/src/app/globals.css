@@ -314,6 +314,24 @@ h3 {
     }
   }
 
+  /* Páginas de texto corrido (privacidade, termos). */
+  .texto-legal ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .texto-legal li::marker {
+    color: var(--rosa);
+  }
+
+  .texto-legal p,
+  .texto-legal li {
+    line-height: 1.65;
+  }
+
   /* Login: divisor "ou entre com" (filetes de vidro) e botões de provedor. */
   .divisor-ou {
     display: flex;
