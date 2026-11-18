@@ -12,7 +12,8 @@ async function cadastrar(page: Page) {
   await page.getByLabel("E-mail").fill(`e2e-${Date.now()}-${++contador}@leia.example`);
   await page.getByLabel("Senha").fill("senha-ficticia-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(page.getByRole("button", { name: "Sair" })).toBeVisible();
+  // Logado, o cabeçalho troca "Entrar" pelo menu da conta (Sair fica na gaveta dele).
+  await expect(page.getByRole("button", { name: "Menu da conta" })).toBeVisible();
 }
 
 async function falar(page: Page, texto: string) {

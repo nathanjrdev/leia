@@ -314,6 +314,109 @@ h3 {
     }
   }
 
+  /* Páginas de texto corrido (privacidade, termos). */
+  .texto-legal ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .texto-legal li::marker {
+    color: var(--rosa);
+  }
+
+  .texto-legal p,
+  .texto-legal li {
+    line-height: 1.65;
+  }
+
+  /* Login: divisor "ou entre com" (filetes de vidro) e botões de provedor. */
+  .divisor-ou {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    color: var(--texto-suave);
+    font-size: 0.875rem;
+  }
+
+  .divisor-ou::before,
+  .divisor-ou::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--vidro-filete);
+  }
+
+  .botao-provedor {
+    gap: 0.625rem;
+  }
+
+  .botao-provedor[aria-disabled="true"] {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .botao-provedor[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  .botao-provedor-marca {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex: none;
+  }
+
+  /* Rodapé do formulário de conta: separado das ações por um filete, centralizado. */
+  .rodape-auth {
+    margin-top: 0.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--vidro-filete);
+    text-align: center;
+  }
+
+  /* Botão só de ícone (menu da conta, fechar): círculo de vidro de 44 px. */
+  .botao-menu {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    border-radius: 9999px;
+    background-color: var(--vidro);
+    color: var(--texto);
+    box-shadow: inset 0 0 0 1px var(--vidro-filete);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-estado) ease,
+      transform var(--dur-toque) var(--ease-out);
+  }
+
+  .botao-menu-icone {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .botao-menu-render {
+    width: 1.75rem;
+    height: 1.75rem;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .botao-menu:hover {
+      background-color: rgb(255 255 255 / 0.18);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .botao-menu:active {
+      transform: scale(0.94);
+    }
+  }
+
   /* Vidro: superfície sobre o fundo. Fosco (blur) só em superfícies grandes e poucas. */
   .vidro {
     border-radius: 1.25rem;
@@ -874,5 +977,95 @@ h3 {
   .degustacao-seta-avancar {
     grid-row: 2;
     justify-self: start;
+  }
+}
+
+
+/* ------------------------------------------------------------------------------------------
+   Gaveta lateral (components/MenuConta.tsx): <dialog> que entra pela direita. Vidro sólido (é
+   superfície fixa), filete só na borda que encosta na página. Abre e fecha animando só
+   `translate`; com movimento reduzido, só a opacidade.
+   ------------------------------------------------------------------------------------------ */
+.gaveta {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(20rem, 88vw);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: var(--vidro-solido);
+  color: var(--texto);
+  box-shadow:
+    inset 1px 0 0 var(--vidro-filete),
+    -24px 0 48px var(--sombra);
+}
+
+.gaveta-painel {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: calc(1.25rem + env(safe-area-inset-top)) calc(1.25rem + env(safe-area-inset-right))
+    calc(1.5rem + env(safe-area-inset-bottom)) 1.5rem;
+}
+
+.gaveta-conta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--vidro-filete);
+}
+
+.gaveta::backdrop {
+  background-color: rgb(10 0 20 / 0.55);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gaveta,
+  .gaveta::backdrop {
+    transition:
+      translate var(--dur-camada) var(--ease-drawer),
+      opacity var(--dur-camada) var(--ease-drawer),
+      display var(--dur-camada) allow-discrete,
+      overlay var(--dur-camada) allow-discrete;
+  }
+  .gaveta:not([open]) {
+    translate: 100% 0;
+  }
+  .gaveta:not([open])::backdrop {
+    opacity: 0;
+  }
+  @starting-style {
+    .gaveta[open] {
+      translate: 100% 0;
+    }
+    .gaveta[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaveta,
+  .gaveta::backdrop {
+    transition:
+      opacity var(--dur-estado) ease,
+      display var(--dur-estado) allow-discrete,
+      overlay var(--dur-estado) allow-discrete;
+  }
+  .gaveta:not([open]),
+  .gaveta:not([open])::backdrop {
+    opacity: 0;
+  }
+  @starting-style {
+    .gaveta[open],
+    .gaveta[open]::backdrop {
+      opacity: 0;
+    }
   }
 }

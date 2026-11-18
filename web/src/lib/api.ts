@@ -62,7 +62,11 @@ export async function api<T = unknown>(caminho: string, o: Opcoes = {}): Promise
 /** Texto para o leitor. Nunca expõe detalhe técnico. */
 export function mensagemDoErro(e: unknown): string {
   if (e instanceof ErroApi) {
-    if (e.status === 401) return "Sua sessão acabou. Entre de novo para continuar.";
+    // Só a falta de sessão vira "sessão acabou". Outros 401 (ex.: senha errada no login,
+    // `credenciais_invalidas`) trazem a própria mensagem da API.
+    if (e.status === 401 && (e.codigo === "nao_autenticado" || !e.message)) {
+      return "Sua sessão acabou. Entre de novo para continuar.";
+    }
     if (e.status === 0) return "Sem conexão com o servidor. Verifique a internet e tente de novo.";
     if (e.message) return e.message;
     if (e.status === 429) return "Muitas tentativas seguidas. Aguarde um instante.";

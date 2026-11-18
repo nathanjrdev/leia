@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { MenuConta } from "./MenuConta";
 import { useSessao } from "./SessaoProvider";
-import { Botao, classesBotao } from "./ui/Botao";
+import { classesBotao } from "./ui/Botao";
 
 // Os rótulos ficam com maiúscula no DOM (nome acessível e testes); a tela mostra em minúsculas.
 const LINKS = [
@@ -13,13 +13,7 @@ const LINKS = [
 ];
 
 export function Cabecalho() {
-  const { conta, carregando, sair } = useSessao();
-  const router = useRouter();
-
-  async function aoSair() {
-    await sair();
-    router.push("/");
-  }
+  const { conta, carregando } = useSessao();
 
   return (
     <header className="pt-[env(safe-area-inset-top)]">
@@ -52,12 +46,7 @@ export function Cabecalho() {
         </nav>
         <div className="ml-auto flex items-center gap-3">
           {carregando ? null : conta ? (
-            <>
-              <span className="text-texto-suave">{conta.nome}</span>
-              <Botao variante="texto" onClick={aoSair}>
-                Sair
-              </Botao>
-            </>
+            <MenuConta conta={conta} />
           ) : (
             <Link href="/entrar" className={classesBotao("secundaria", "min-h-10 py-1.5")}>
               Entrar

@@ -78,6 +78,8 @@ Os tons são iguais nos dois temas (a capa é um objeto).
   atraso, ícone + "Atrasada".
 - **Objeto:** um chaveiro de livros (asset nosso, `web/public/objetos/`), só na página inicial, pendurado na prateleira. É decorativo (`aria-hidden`); balança amortecido ao carregar e ao toque, nunca em loop; parado com movimento reduzido.
 - **Ícones:** um conjunto pequeno de SVGs próprios, traço único. Nada de emoji ou glifo como ícone.
+- **Menu da conta:** logado, o cabeçalho mostra só o botão de três livros deitados num círculo de vidro de 44 px: um render de prata como o chaveiro (capas, bloco de páginas, lombada curva e cantoneiras; fonte em `design/menu-livros.figcraft`, exportado em `public/objetos/menu-livros{,@2x,@3x}.webp`), com o traço `IconeMenuLivros` de reserva se a imagem falhar. Ele abre uma gaveta lateral (`<dialog>` modal, vidro sólido, entra pela direita com `--ease-drawer`) com nome, e-mail e "Sair". Esc, o botão Fechar e o clique no fundo fecham; o foco volta ao botão.
+- **Entrar com Google/Microsoft:** divisor "ou entre com" entre filetes; botões de provedor em pílula de vidro, com o logo oficial do provedor (arquivo dele em `public/marcas/`, nunca redesenhado).
 - `backdrop-filter` só em superfícies grandes e poucas; sem suporte, o vidro vira `--vidro-solido`.
 - Todo campo tem `<label>` visível. Foco visível com anel `--foco` (rosa).
 - Estados sempre previstos: carregando, vazio, erro (com ação de tentar de novo).
@@ -107,5 +109,5 @@ placeholder; vidro como enfeite (só onde é a prateleira ou uma superfície); c
 
 `web/src/components/ui/`: `Botao` (+ `classesBotao` para links), `Selo`, `Aviso`, `Prateleira` e
 `Icones`. Estilos em `globals.css`, `@layer components`: `.botao-*`, `.vidro`, `.vidro-fosco`,
-`.campo`, `.selo-*`, `.aviso-*`, `.prateleira*`, `.livro-em-pe`, `.livro-capa`, `.entra`.
+`.campo`, `.selo-*`, `.aviso-*`, `.prateleira*`, `.livro-em-pe`, `.livro-capa`, `.entra`, `.botao-menu`, `.divisor-ou`, `.botao-provedor`, `.rodape-auth`; fora da camada, `.gaveta`.
 Os nomes da identidade anterior (`papel`, `tinta`, `lombada`, `font-serif`) não existem mais.

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { Cabecalho } from "@/components/Cabecalho";
+import { Rodape } from "@/components/Rodape";
 import { SessaoProvider } from "@/components/SessaoProvider";
 import "./globals.css";
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             tabIndex={-1}
             className="mx-auto w-full max-w-6xl flex-1 pt-6 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(2rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] outline-none sm:pt-10"
           >{children}</main>
+          <Rodape />
         </SessaoProvider>
       </body>
     </html>

@@ -78,6 +78,11 @@ describe("mensagemDoErro", () => {
       "E-mail já cadastrado.",
     );
   });
+  it("senha errada (401 credenciais_invalidas) mostra a mensagem da API, não 'sessão acabou'", () => {
+    const e = new ErroApi(401, "credenciais_invalidas", "E-mail ou senha incorretos.");
+    expect(mensagemDoErro(e)).toBe("E-mail ou senha incorretos.");
+  });
+
   it("trata 401 como sessão expirada", () => {
     expect(mensagemDoErro(new ErroApi(401, "nao_autenticado", ""))).toMatch(/entre/i);
   });

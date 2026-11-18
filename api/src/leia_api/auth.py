@@ -5,15 +5,18 @@ carrega esse valor. Cookie `HttpOnly` + `SameSite=Lax`; os POSTs só aceitam JSO
 o SameSite, barra CSRF de formulário entre sites.
 """
 
+import secrets
 from datetime import timedelta
 from typing import Annotated
+from urllib.parse import urlencode
 
+import httpx
 from fastapi import APIRouter, Cookie, Depends, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy.orm import Session
 
-from leia_api import contas, limite, sessao
+from leia_api import contas, limite, oauth, sessao
 from leia_api.config import settings
 from leia_api.contas import Conta
 from leia_api.db import get_session
@@ -136,3 +139,91 @@ def logout(
 @router.get("/eu", response_model=ContaOut)
 def eu(conta: Annotated[Conta, Depends(usuario_atual)]) -> ContaOut:
     return ContaOut(nome=conta.nome, email=conta.email)
+
+
+# ---------- Entrar com Google / Microsoft ----------
+
+COOKIE_OAUTH = "leia_oauth"
+_COOKIE_OAUTH_TTL = 600  # 10 min para o leitor escolher a conta no provedor
+
+
+def _cliente_http() -> httpx.Client:
+    """Dependência própria para os testes trocarem o provedor por um falso."""
+    return httpx.Client(timeout=settings.oauth_timeout_segundos)
+
+
+def _voltar_para_entrar(codigo: str) -> RedirectResponse:
+    resp = RedirectResponse(f"/entrar?{urlencode({'erro': codigo})}", status_code=303)
+    resp.delete_cookie(COOKIE_OAUTH, path="/")
+    return resp
+
+
+class ProvedoresOut(BaseModel):
+    provedores: list[str]
+
+
+@router.get("/provedores", response_model=ProvedoresOut)
+def provedores() -> ProvedoresOut:
+    """Quais botões de "Entrar com…" a tela deve mostrar."""
+    return ProvedoresOut(provedores=list(oauth.disponiveis()))
+
+
+@router.get("/oauth/{nome}/iniciar")
+def oauth_iniciar(nome: str) -> RedirectResponse:
+    p = oauth.provedor(nome)
+    if p is None:
+        return _voltar_para_entrar("provedor_indisponivel")
+    tentativa = oauth.nova_tentativa(p.nome)
+    resp = RedirectResponse(oauth.url_de_login(p, tentativa), status_code=303)
+    resp.set_cookie(
+        COOKIE_OAUTH,
+        tentativa.serializar(),
+        max_age=_COOKIE_OAUTH_TTL,
+        httponly=True,
+        samesite="lax",  # Lax: o cookie volta no GET de topo que o provedor redireciona
+        secure=settings.cookie_seguro,
+        path="/",
+    )
+    return resp
+
+
+@router.get("/oauth/{nome}/retorno")
+def oauth_retorno(
+    nome: str,
+    request: Request,
+    session: Annotated[Session, Depends(get_session)],
+    cliente: Annotated[httpx.Client, Depends(_cliente_http)],
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    leia_oauth: Annotated[str | None, Cookie(alias=COOKIE_OAUTH)] = None,
+) -> RedirectResponse:
+    p = oauth.provedor(nome)
+    if p is None:
+        return _voltar_para_entrar("provedor_indisponivel")
+    if error:  # o leitor fechou/cancelou na tela do provedor
+        return _voltar_para_entrar("cancelado" if error == "access_denied" else "oauth_falhou")
+    tentativa = oauth.Tentativa.ler(leia_oauth)
+    if (
+        tentativa is None
+        or tentativa.provedor != p.nome
+        or not code
+        or not state
+        or not secrets.compare_digest(state, tentativa.state)
+    ):
+        return _voltar_para_entrar("oauth_falhou")
+    chave_ip = f"ip:{request.client.host if request.client else 'desconhecido'}"
+    janela = settings.login_janela_segundos
+    if limite.LOGIN.excedeu(chave_ip, settings.login_max_falhas_por_ip, janela):
+        return _voltar_para_entrar("muitas_tentativas")
+    try:
+        id_token = oauth.trocar_codigo(p, code, tentativa, cliente)
+        identidade = oauth.identidade_do_token(p, id_token, tentativa.nonce)
+    except oauth.FalhaOAuth as falha:
+        limite.LOGIN.registrar(chave_ip, settings.login_max_falhas_por_ip, janela)
+        return _voltar_para_entrar(falha.codigo)
+    conta = contas.entrar_com_identidade(session, identidade)
+    resp = RedirectResponse("/conversa", status_code=303)
+    resp.delete_cookie(COOKIE_OAUTH, path="/")
+    _abrir_sessao(resp, session, conta)
+    return resp

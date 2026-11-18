@@ -62,6 +62,30 @@ cd leia && git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+### Imagens da degustação (fora do git)
+
+As páginas da degustação são obras protegidas: ficam fora do git (`web/public/degustacao/`
+no `.gitignore`), então o `git pull` não as leva. Sem elas o site funciona, mas a capa da estante
+leva direto à ficha. O build do web copia o que estiver em `web/public/`, então basta a pasta
+existir no clone da VPS antes do `--build`. Uma vez copiada ela fica lá; só repita quando
+gerar páginas novas (`data/gerar_degustacao.py`).
+
+No PC (PowerShell), na raiz do repositório:
+
+```powershell
+tar -czf .local/degustacao-imagens.tar.gz -C web/public degustacao
+scp .local/degustacao-imagens.tar.gz USUARIO@IP-DA-VPS:~/
+```
+
+Na VPS:
+
+```bash
+cd leia && rm -rf web/public/degustacao && tar -xzf ~/degustacao-imagens.tar.gz -C web/public
+test -f web/public/degustacao/indice.json && echo ok
+docker compose -f docker-compose.prod.yml up -d --build web
+curl -s -o /dev/null -w '%{http_code}\n' https://SEU-DOMINIO/degustacao/indice.json   # 200
+```
+
 ## Problemas comuns
 
 | Sintoma | Causa provável |

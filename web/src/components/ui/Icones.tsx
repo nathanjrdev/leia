@@ -61,3 +61,29 @@ export const IconeLivro = (p: SVGProps<SVGSVGElement>) => (
     <path d="M5 17.5a2 2 0 0 1 2-2h10.5" />
   </Base>
 );
+
+/** Menu da conta: três livros deitados, empilhados como as três barras do menu sanduíche; o
+ * traço curto perto da ponta é a lombada. */
+export const IconeMenuLivros = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <rect x="2.7" y="2.4" width="18.6" height="4.2" rx="2.1" />
+    <path d="M5.7 2.7v3.6" />
+    <rect x="2.7" y="9.9" width="18.6" height="4.2" rx="2.1" />
+    <path d="M5.7 10.2v3.6" />
+    <rect x="2.7" y="17.4" width="18.6" height="4.2" rx="2.1" />
+    <path d="M5.7 17.7v3.6" />
+  </Base>
+);
+
+export const IconeFechar = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Base>
+);
+
+export const IconeSair = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <path d="M14 4h3.5A1.5 1.5 0 0 1 19 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" />
+    <path d="M10 8l-4 4 4 4M6 12h9" />
+  </Base>
+);
