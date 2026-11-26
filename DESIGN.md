@@ -92,6 +92,11 @@ Tokens: `--ease-out` `cubic-bezier(0.23, 1, 0.32, 1)`, `--ease-in-out`
 `--dur-toque` 120 ms, `--dur-estado` 200 ms, `--dur-camada` 300 ms, `--dur-foco` 450 ms.
 
 - Momento focal: a capa sai da prateleira para a ficha (`<ViewTransition>` com nome por livro).
+- Momento focal: a folha da degustação. Ela enrola num arco preso na lombada, com perspectiva,
+  sombra na página de baixo e brilho na dobra, desenhada num `<canvas>` (`FolhaCurva`; geometria
+  em `lib/curvatura.ts`). É a exceção à regra de só `transform`/`opacity`: o DOM por baixo já tem
+  a vista nova e só fica transparente enquanto o canvas o cobre. A folha segue o dedo ou o mouse;
+  solta, vira se passou de ~40% do caminho ou num peteleco, senão volta ao lugar.
 - Interface abaixo de 300 ms; entrada com ease-out; nada de `ease-in` nem `scale(0)`.
 - Só `transform` e `opacity` (e `clip-path` na página inicial).
 - Ação de teclado e o que se usa dezenas de vezes por dia não animam.

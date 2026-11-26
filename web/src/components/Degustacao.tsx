@@ -12,15 +12,23 @@ import {
   type PointerEvent as PointerEventReact,
 } from "react";
 import { createPortal } from "react-dom";
+import { progressoDaBorda } from "@/lib/curvatura";
 import { rotuloVista, vistaDoItem, vistas, type Degustacao as DadosDegustacao, type Lado } from "@/lib/degustacao";
+import { conduz, decodifica, FolhaCurva, imagem, novoMotor, type Face, type Motor } from "./FolhaCurva";
 import { classesBotao } from "./ui/Botao";
 import { IconeSeta } from "./ui/Icones";
 
-// Folha em pé de virada; o fim da animação limpa a folha, e este prazo garante a limpeza mesmo
-// se o `animationend` não vier (aba em segundo plano, por exemplo).
-const PRAZO_VIRADA_MS = 900;
-// Deslize mínimo (px) para virar a página no toque.
+// Prazo de segurança: se o requestAnimationFrame parar (aba em segundo plano) ou a página de
+// baixo demorar a decodificar, a folha some mesmo assim.
+const FOLGA_PRAZO_MS = 1200;
+// Virada inteira pelo botão ou clique (momento focal, um pouco acima de --dur-foco).
+const DUR_VIRADA_MS = 1100;
+// Depois de soltar o arrasto: tempo para a folha ir de uma ponta a outra (proporcional ao que falta).
+const DUR_SOLTA_MS = 820;
+// Deslize mínimo (px) para virar a página no toque sem arrastar a folha.
 const DESLIZE_MIN = 48;
+// Distância (px) a partir da qual o gesto vira arrasto da folha.
+const ARRASTO_MIN = 8;
 
 function useMidia(consulta: string): boolean {
   return useSyncExternalStore(
@@ -43,13 +51,25 @@ type Props = {
   onFechar: () => void;
 };
 
-type Virada = { de: number; dir: 1 | -1; n: number };
+/**
+ * A folha entre a vista `k` e a `k + 1`. `final` é o lado em que vai assentar (1 = vira para a
+ * vista k + 1, 0 = fica na k); `null` enquanto o dedo a segura.
+ */
+type Virada = { k: number; n: number; dir: 1 | -1; final: 0 | 1 | null };
+
+type Gesto = {
+  id: number;
+  x: number;
+  y: number;
+  toque: boolean;
+  arrasto: { dir: 1 | -1; desvio: number; rastro: { x: number; t: number }[] } | null;
+};
 
 /**
  * Degustação: folhear as primeiras páginas de um livro, como num livro de papel. Em tela larga,
- * páginas duplas com a folha virando sobre a lombada; em tela estreita, uma página por vez.
- * Setas do teclado, botões, clique no lado da página ou deslize viram a página; Esc fecha.
- * A última página leva à ficha (para locar) e à conversa com a Léia.
+ * páginas duplas; em tela estreita, uma página por vez. A folha enrola de verdade ao virar
+ * (FolhaCurva) e pode ser puxada com o dedo ou o mouse. Setas do teclado, botões, clique no lado
+ * da página ou deslize viram a página; Esc fecha. A última página leva à ficha e à conversa.
  */
 export function Degustacao({ livro, degustacao, onFechar }: Props) {
   const dupla = useMidia("(min-width: 768px)");
@@ -64,25 +84,38 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
   const lados = lista[vista];
 
   const caixa = useRef<HTMLDivElement>(null);
+  const livroEl = useRef<HTMLDivElement>(null);
   const fechar = useRef<HTMLButtonElement>(null);
-  const toque = useRef<{ x: number; y: number } | null>(null);
+  const gesto = useRef<Gesto | null>(null);
   const deslizou = useRef(false);
   const contador = useRef(0);
+  const motor = useRef<Motor>(novoMotor(0));
+
+  const irPara = useCallback(
+    (destino: number) => {
+      const primeiro = lista[destino].find((l): l is number => l !== null) ?? 0;
+      setItem(primeiro);
+    },
+    [lista],
+  );
 
   const ir = useCallback(
     (dir: 1 | -1, animar: boolean) => {
       const destino = vista + dir;
       if (destino < 0 || destino >= lista.length) return;
-      const primeiro = lista[destino].find((l): l is number => l !== null) ?? 0;
-      setItem(primeiro);
-      if (animar && dupla && !reduzido) {
+      irPara(destino);
+      if (animar && !reduzido) {
+        // A folha sai de onde está; o conteúdo novo já entrou no DOM.
+        const m = novoMotor(dir === 1 ? 0 : 1);
+        conduz(m, dir === 1 ? 1 : 0, DUR_VIRADA_MS, "suave");
+        motor.current = m;
         contador.current += 1;
-        setVirada({ de: vista, dir, n: contador.current });
+        setVirada({ k: dir === 1 ? vista : destino, n: contador.current, dir, final: dir === 1 ? 1 : 0 });
       } else {
         setVirada(null);
       }
     },
-    [vista, lista, dupla, reduzido],
+    [vista, lista, reduzido, irPara],
   );
 
   // Foco entra no leitor; a página de trás não rola enquanto ele está aberto.
@@ -96,19 +129,27 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!virada) return;
-    const t = window.setTimeout(() => setVirada((v) => (v?.n === virada.n ? null : v)), PRAZO_VIRADA_MS);
+    if (!virada || virada.final === null) return;
+    const t = window.setTimeout(
+      () => setVirada((v) => (v?.n === virada.n ? null : v)),
+      motor.current.dur + FOLGA_PRAZO_MS,
+    );
     return () => window.clearTimeout(t);
   }, [virada]);
 
-  // Pré-carrega as vistas vizinhas: a próxima página já está pronta quando a folha vira.
+  // Pré-carrega e decodifica todas as páginas ao abrir (são ~10 imagens leves), começando pelas
+  // vizinhas: quando a folha vira, a página já está pronta e nada pisca.
   useEffect(() => {
-    for (const v of [lista[vista + 1], lista[vista - 1]]) {
-      for (const l of v ?? []) {
-        if (l !== null && l < total) new Image().src = degustacao.paginas[l];
-      }
-    }
+    const perto = [lista[vista + 1], lista[vista - 1]].flatMap((v) => v ?? []);
+    for (const l of perto) if (l !== null && l < total) imagem(degustacao.paginas[l]);
+    for (const src of degustacao.paginas) imagem(src);
   }, [vista, lista, total, degustacao.paginas]);
+
+  /** A folha assentou: só sai de cima quando as páginas do DOM já estão decodificadas. */
+  const folhaAssentou = useCallback((n: number) => {
+    const imgs = Array.from(livroEl.current?.querySelectorAll("img") ?? []);
+    Promise.all(imgs.map(decodifica)).then(() => setVirada((v) => (v?.n === n ? null : v)));
+  }, []);
 
   function teclas(e: KeyboardEventReact<HTMLDivElement>) {
     // Ação de teclado não anima (DESIGN.md, Movimento): a página troca na hora.
@@ -139,20 +180,90 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
     }
   }
 
-  function inicioToque(e: PointerEventReact) {
-    deslizou.current = false;
-    toque.current = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
+  /** Onde está o ponteiro, medido a partir da lombada, e a largura de uma página. */
+  function medida(clientX: number) {
+    const r = livroEl.current!.getBoundingClientRect();
+    const W = dupla ? r.width / 2 : r.width;
+    return { x: clientX - (r.left + (dupla ? W : 0)), W };
   }
 
-  function fimToque(e: PointerEventReact) {
-    const t = toque.current;
-    toque.current = null;
-    if (!t) return;
-    const dx = e.clientX - t.x;
-    if (Math.abs(dx) >= DESLIZE_MIN && Math.abs(dx) > Math.abs(e.clientY - t.y)) {
+  function inicioGesto(e: PointerEventReact) {
+    deslizou.current = false;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    // Enquanto a folha anda sozinha, um novo toque não a agarra (o clique ainda vira).
+    gesto.current = { id: e.pointerId, x: e.clientX, y: e.clientY, toque: e.pointerType !== "mouse", arrasto: null };
+  }
+
+  function moveGesto(e: PointerEventReact) {
+    const g = gesto.current;
+    if (!g || g.id !== e.pointerId || reduzido) return;
+    if (!g.arrasto) {
+      const dx = e.clientX - g.x;
+      const dy = e.clientY - g.y;
+      if (Math.abs(dx) < ARRASTO_MIN || Math.abs(dx) <= Math.abs(dy)) return;
+      const dir: 1 | -1 = dx < 0 ? 1 : -1;
+      const destino = vista + dir;
+      if (destino < 0 || destino >= lista.length || (virada && virada.final !== null)) {
+        gesto.current = null;
+        return;
+      }
+      // A borda da folha acompanha a mão a partir de onde ela agarrou.
+      const { x, W } = medida(g.x);
+      const desvio = (dir === 1 ? W : -W) - x;
+      g.arrasto = { dir, desvio, rastro: [] };
+      motor.current = novoMotor(dir === 1 ? 0 : 1);
+      contador.current += 1;
+      setVirada({ k: dir === 1 ? vista : destino, n: contador.current, dir, final: null });
+      try {
+        livroEl.current?.setPointerCapture(e.pointerId);
+      } catch {
+        // Sem captura (ponteiro sintético): o gesto segue pelos eventos do próprio livro.
+      }
+    }
+    const { x, W } = medida(e.clientX);
+    motor.current.dedo = progressoDaBorda(x + g.arrasto.desvio, W, g.arrasto.dir);
+    const agora = performance.now();
+    g.arrasto.rastro.push({ x: e.clientX, t: agora });
+    while (g.arrasto.rastro.length > 2 && agora - g.arrasto.rastro[0].t > 100) g.arrasto.rastro.shift();
+  }
+
+  function fimGesto(e: PointerEventReact) {
+    const g = gesto.current;
+    gesto.current = null;
+    if (!g || g.id !== e.pointerId) return;
+    if (g.arrasto) {
+      deslizou.current = true;
+      const { dir, rastro } = g.arrasto;
+      const r0 = rastro[0];
+      const dt = r0 ? performance.now() - r0.t : 0;
+      const vel = r0 && dt > 0 ? (e.clientX - r0.x) / dt : 0; // px/ms; negativo = para a esquerda
+      const m = motor.current;
+      m.dedo = m.p;
+      // Vira se passou de ~40% do caminho ou se foi um peteleco para o lado certo.
+      const vira =
+        dir === 1 ? vel < -0.45 || (m.p > 0.4 && vel < 0.3) : vel > 0.45 || (m.p < 0.6 && vel > -0.3);
+      const final: 0 | 1 = dir === 1 ? (vira ? 1 : 0) : vira ? 0 : 1;
+      if (vira) irPara(vista + dir);
+      conduz(m, final, Math.max(200, DUR_SOLTA_MS * Math.abs(final - m.p)), "assenta");
+      setVirada((v) => (v ? { ...v, final } : v));
+      return;
+    }
+    // Deslize curto no toque, sem mover a folha (ou com movimento reduzido).
+    const dx = e.clientX - g.x;
+    if (g.toque && Math.abs(dx) >= DESLIZE_MIN && Math.abs(dx) > Math.abs(e.clientY - g.y)) {
       deslizou.current = true;
       ir(dx < 0 ? 1 : -1, true);
     }
+  }
+
+  function cancelaGesto(e: PointerEventReact) {
+    const g = gesto.current;
+    gesto.current = null;
+    if (!g?.arrasto || g.id !== e.pointerId) return;
+    const m = motor.current;
+    const final: 0 | 1 = g.arrasto.dir === 1 ? 0 : 1;
+    conduz(m, final, Math.max(200, DUR_SOLTA_MS * Math.abs(final - m.p)), "assenta");
+    setVirada((v) => (v ? { ...v, final } : v));
   }
 
   /** Clique no lado da página: o lado direito avança, o esquerdo volta (como no papel). */
@@ -198,15 +309,14 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
     );
   }
 
-  // Durante a virada, por baixo ficam o lado que a folha ainda não cobriu (da vista anterior) e
-  // o lado que ela já descobriu (da vista nova). A folha leva a frente e o verso.
-  const de = virada ? lista[virada.de] : null;
-  const base: Lado[] =
-    dupla && virada && de
-      ? virada.dir === 1
-        ? [de[0], lados[1]]
-        : [lados[0], de[1]]
-      : lados;
+  // Durante a virada, o canvas pinta o livro: por baixo, o lado esquerdo da vista k e o direito
+  // da k + 1; a folha leva a frente (direita da k) e o verso (esquerda da k + 1). Em página
+  // simples, por baixo fica a k + 1 e a folha (a k) sai pela esquerda, de costas em branco.
+  const face = (l: Lado | undefined): Face =>
+    l === null || l === undefined ? null : l >= total ? { tipo: "fim" } : { tipo: "pagina", src: degustacao.paginas[l] };
+  const vk = virada ? lista[virada.k] : null;
+  const vk1 = virada ? lista[virada.k + 1] : null;
+  const sombraDe: Lado[] = vk && vk1 ? [vk[0], vk1[1]] : lados;
   const rotulo = rotuloVista(lados, total);
   const razao = (degustacao.largura * (dupla ? 2 : 1)) / degustacao.altura;
   const noInicio = vista === 0;
@@ -245,42 +355,28 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
         </button>
 
         <div
+          ref={livroEl}
           className="degustacao-livro"
           data-dupla={dupla || undefined}
-          data-so={dupla ? (lados[0] === null ? "dir" : lados[1] === null ? "esq" : undefined) : undefined}
+          data-so={dupla ? (sombraDe[0] === null ? "dir" : sombraDe[1] === null ? "esq" : undefined) : undefined}
+          data-arrastando={virada?.final === null || undefined}
           style={{ ["--razao" as string]: razao }}
-          onPointerDown={inicioToque}
-          onPointerUp={fimToque}
-          onPointerCancel={() => (toque.current = null)}
+          onPointerDown={inicioGesto}
+          onPointerMove={moveGesto}
+          onPointerUp={fimGesto}
+          onPointerCancel={cancelaGesto}
         >
           {dupla ? (
             <>
               <div className="degustacao-lado degustacao-lado-esq" onClick={() => cliqueNaPagina("esq")}>
-                {pagina(base[0], "degustacao-pagina-esq")}
+                {pagina(lados[0], "degustacao-pagina-esq")}
               </div>
               <div className="degustacao-lado degustacao-lado-dir" onClick={() => cliqueNaPagina("dir")}>
-                {pagina(base[1], "degustacao-pagina-dir")}
+                {pagina(lados[1], "degustacao-pagina-dir")}
               </div>
-              {virada && de && (
-                <div
-                  key={virada.n}
-                  aria-hidden="true"
-                  className="degustacao-folha"
-                  data-dir={virada.dir === 1 ? "avanca" : "volta"}
-                  onAnimationEnd={() => setVirada((v) => (v?.n === virada.n ? null : v))}
-                >
-                  <div className="degustacao-face">
-                    {pagina(virada.dir === 1 ? de[1] : de[0], virada.dir === 1 ? "degustacao-pagina-dir" : "degustacao-pagina-esq")}
-                  </div>
-                  <div className="degustacao-face degustacao-verso">
-                    {pagina(virada.dir === 1 ? lados[0] : lados[1], virada.dir === 1 ? "degustacao-pagina-esq" : "degustacao-pagina-dir")}
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div
-              key={vista}
               className="degustacao-lado degustacao-unica"
               onClick={(e) => {
                 const r = e.currentTarget.getBoundingClientRect();
@@ -289,6 +385,21 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
             >
               {pagina(lados[0])}
             </div>
+          )}
+          {virada && vk && vk1 && (
+            <FolhaCurva
+              key={virada.n}
+              dupla={dupla}
+              baixoEsq={dupla ? face(vk[0]) : null}
+              baixoDir={face(dupla ? vk1[1] : vk1[0])}
+              frente={face(dupla ? vk[1] : vk[0])}
+              verso={dupla ? face(vk1[0]) : { tipo: "papel" }}
+              motor={motor}
+              titulo={livro.titulo}
+              livro={livroEl}
+              dir={virada.dir}
+              onFim={() => folhaAssentou(virada.n)}
+            />
           )}
         </div>
 

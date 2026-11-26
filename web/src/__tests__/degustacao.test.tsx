@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Degustacao } from "@/components/Degustacao";
@@ -11,6 +11,7 @@ import {
   vistas,
   type Degustacao as DadosDegustacao,
 } from "@/lib/degustacao";
+import { borda, curva, progressoDaBorda, projeta } from "@/lib/curvatura";
 
 const apiMock = vi.fn();
 vi.mock("@/lib/api", async (orig) => ({
@@ -33,15 +34,6 @@ function midia({ largo = false, reduzido = false } = {}) {
       removeEventListener: vi.fn(),
     })),
   );
-}
-
-/** O React escolhe o nome do evento (com ou sem prefixo) conforme o navegador; o jsdom não tem
- * AnimationEvent, então disparamos os dois. */
-function fimDaAnimacao(el: Element) {
-  act(() => {
-    el.dispatchEvent(new Event("animationend", { bubbles: true }));
-    el.dispatchEvent(new Event("webkitAnimationEnd", { bubbles: true }));
-  });
 }
 
 afterEach(() => {
@@ -102,6 +94,46 @@ describe("lib/degustacao", () => {
     expect((await carregarDegustacoes()).size).toBe(0);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("rede")));
     expect((await carregarDegustacoes()).size).toBe(0);
+  });
+});
+
+describe("lib/curvatura", () => {
+  const L = 400;
+  it("nas pontas a folha deita exata: à direita de frente, à esquerda de costas", () => {
+    for (const sentido of [1, -1] as const) {
+      for (const s of [0, 100, 400]) {
+        const ini = projeta(s, curva(0, L, sentido));
+        expect(ini.x).toBeCloseTo(s, 6);
+        expect(ini.z).toBeCloseTo(0, 6);
+        const fim = projeta(s, curva(1, L, sentido));
+        expect(fim.x).toBeCloseTo(-s, 6);
+        expect(fim.z).toBeCloseTo(0, 6);
+      }
+    }
+  });
+
+  it("no meio a folha está no ar, e a ponta vai na frente de quem vira", () => {
+    const vai = curva(0.5, L, 1);
+    const volta = curva(0.5, L, -1);
+    expect(projeta(L, vai).z).toBeGreaterThan(0);
+    expect(projeta(L, vai).angulo).toBeGreaterThan(vai.beta); // avançando, a ponta passa a lombada
+    expect(projeta(L, volta).angulo).toBeLessThan(volta.beta); // voltando, fica atrás
+  });
+
+  it("a borda anda num sentido só, e o progresso sob o dedo inverte a borda", () => {
+    for (const sentido of [1, -1] as const) {
+      let antes = Infinity;
+      for (let i = 0; i <= 60; i++) {
+        const b = borda(i / 60, L, sentido);
+        expect(b).toBeLessThanOrEqual(antes + 1e-9);
+        antes = b;
+      }
+      for (const p of [0.1, 0.33, 0.5, 0.8]) expect(progressoDaBorda(borda(p, L, sentido), L, sentido)).toBeCloseTo(p, 4);
+    }
+    expect(borda(0, L)).toBeCloseTo(L);
+    expect(borda(1, L)).toBeCloseTo(-L);
+    expect(progressoDaBorda(L + 50, L)).toBe(0);
+    expect(progressoDaBorda(-L - 50, L)).toBe(1);
   });
 });
 
@@ -171,29 +203,59 @@ describe("Degustacao (leitor)", () => {
     expect(screen.getByRole("img", { name: "Página 1 de Dom Casmurro" })).toBeInTheDocument();
   });
 
-  it("em tela larga mostra páginas duplas e a folha vira por cima até a animação acabar", async () => {
+  it("em tela larga mostra páginas duplas; a folha vira por cima e some no fim", () => {
     midia({ largo: true });
     vi.useFakeTimers();
     render(<Degustacao livro={livro} degustacao={dados()} onFechar={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
     const dialogo = screen.getByRole("dialog");
+    // O conteúdo novo entra na hora; a folha (canvas decorativo) anda por cima.
     expect(screen.getByText("Páginas 1 e 2 de 4")).toBeInTheDocument();
-    // A folha (decorativa) leva a capa na frente e a página 1 no verso.
-    const folha = dialogo.querySelector(".degustacao-folha")!;
-    expect(folha).toHaveAttribute("data-dir", "avanca");
-    expect(within(folha as HTMLElement).getAllByRole("img", { hidden: true })).toHaveLength(2);
-    fimDaAnimacao(folha);
-    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
-    // Por baixo, a vista nova inteira.
     expect(screen.getByRole("img", { name: "Página 1 de Dom Casmurro" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Página 2 de Dom Casmurro" })).toBeInTheDocument();
+    const folha = dialogo.querySelector("canvas.degustacao-folha")!;
+    expect(folha).toHaveAttribute("data-dir", "avanca");
+    expect(folha).toHaveAttribute("aria-hidden", "true");
+    act(() => vi.advanceTimersByTime(2500));
+    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
 
-    // Voltar também vira; se o animationend não vier, o prazo limpa a folha.
     fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
     expect(dialogo.querySelector(".degustacao-folha")).toHaveAttribute("data-dir", "volta");
-    act(() => vi.advanceTimersByTime(1000));
-    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
     expect(screen.getByText("Capa")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(2500));
+    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
+  });
+
+  it("arrastar a folha: puxada além do meio vira; puxada curta volta ao lugar", () => {
+    midia({ largo: true });
+    vi.useFakeTimers();
+    render(<Degustacao livro={livro} degustacao={dados()} onFechar={() => {}} />);
+    const dialogo = screen.getByRole("dialog");
+    const livroEl = dialogo.querySelector(".degustacao-livro") as HTMLElement;
+    livroEl.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 560, right: 800, bottom: 560, x: 0, y: 0, toJSON: () => ({}) });
+    const p = { pointerId: 1, pointerType: "mouse", button: 0 };
+
+    // Curta: agarra perto da borda direita e solta logo; a folha volta e a vista não muda.
+    fireEvent.pointerDown(livroEl, { ...p, clientX: 780, clientY: 200 });
+    fireEvent.pointerMove(livroEl, { ...p, clientX: 740, clientY: 200 });
+    expect(livroEl).toHaveAttribute("data-arrastando");
+    expect(dialogo.querySelector(".degustacao-folha")).toHaveAttribute("data-dir", "avanca");
+    act(() => vi.advanceTimersByTime(200));
+    fireEvent.pointerUp(livroEl, { ...p, clientX: 740, clientY: 200 });
+    fireEvent.click(livroEl.querySelector(".degustacao-lado-dir")!); // o clique do fim do arrasto não conta
+    expect(screen.getByText("Capa")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(2500));
+    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
+
+    // Longa: leva a borda para o lado esquerdo; ao soltar, vira.
+    fireEvent.pointerDown(livroEl, { ...p, clientX: 780, clientY: 200 });
+    fireEvent.pointerMove(livroEl, { ...p, clientX: 600, clientY: 200 });
+    fireEvent.pointerMove(livroEl, { ...p, clientX: 250, clientY: 210 });
+    act(() => vi.advanceTimersByTime(200));
+    fireEvent.pointerUp(livroEl, { ...p, clientX: 250, clientY: 210 });
+    expect(screen.getByText("Páginas 1 e 2 de 4")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(2500));
+    expect(dialogo.querySelector(".degustacao-folha")).toBeNull();
   });
 
   it("clique no lado direito da página avança e no esquerdo volta", () => {
@@ -206,12 +268,16 @@ describe("Degustacao (leitor)", () => {
     expect(screen.getByText("Capa")).toBeInTheDocument();
   });
 
-  it("com movimento reduzido não há folha virando", () => {
+  it("com movimento reduzido não há folha, nem arrastando", () => {
     midia({ largo: true, reduzido: true });
     render(<Degustacao livro={livro} degustacao={dados()} onFechar={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
     expect(screen.getByRole("dialog").querySelector(".degustacao-folha")).toBeNull();
     expect(screen.getByText("Páginas 1 e 2 de 4")).toBeInTheDocument();
+    const livroEl = screen.getByRole("dialog").querySelector(".degustacao-livro")!;
+    fireEvent.pointerDown(livroEl, { pointerId: 2, pointerType: "mouse", button: 0, clientX: 700, clientY: 100 });
+    fireEvent.pointerMove(livroEl, { pointerId: 2, pointerType: "mouse", button: 0, clientX: 500, clientY: 100 });
+    expect(screen.getByRole("dialog").querySelector(".degustacao-folha")).toBeNull();
   });
 });
 
