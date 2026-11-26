@@ -22,7 +22,9 @@ import { IconeSeta } from "./ui/Icones";
 // baixo demorar a decodificar, a folha some mesmo assim.
 const FOLGA_PRAZO_MS = 1200;
 // Virada inteira pelo botão ou clique (momento focal, um pouco acima de --dur-foco).
-const DUR_VIRADA_MS = 720;
+const DUR_VIRADA_MS = 1100;
+// Depois de soltar o arrasto: tempo para a folha ir de uma ponta a outra (proporcional ao que falta).
+const DUR_SOLTA_MS = 820;
 // Deslize mínimo (px) para virar a página no toque sem arrastar a folha.
 const DESLIZE_MIN = 48;
 // Distância (px) a partir da qual o gesto vira arrasto da folha.
@@ -242,7 +244,7 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
         dir === 1 ? vel < -0.45 || (m.p > 0.4 && vel < 0.3) : vel > 0.45 || (m.p < 0.6 && vel > -0.3);
       const final: 0 | 1 = dir === 1 ? (vira ? 1 : 0) : vira ? 0 : 1;
       if (vira) irPara(vista + dir);
-      conduz(m, final, Math.max(160, 560 * Math.abs(final - m.p)), "assenta");
+      conduz(m, final, Math.max(200, DUR_SOLTA_MS * Math.abs(final - m.p)), "assenta");
       setVirada((v) => (v ? { ...v, final } : v));
       return;
     }
@@ -260,7 +262,7 @@ export function Degustacao({ livro, degustacao, onFechar }: Props) {
     if (!g?.arrasto || g.id !== e.pointerId) return;
     const m = motor.current;
     const final: 0 | 1 = g.arrasto.dir === 1 ? 0 : 1;
-    conduz(m, final, Math.max(160, 560 * Math.abs(final - m.p)), "assenta");
+    conduz(m, final, Math.max(200, DUR_SOLTA_MS * Math.abs(final - m.p)), "assenta");
     setVirada((v) => (v ? { ...v, final } : v));
   }
 
